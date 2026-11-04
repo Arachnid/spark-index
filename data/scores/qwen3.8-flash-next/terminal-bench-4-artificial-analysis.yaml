@@ -1,0 +1,10 @@
+benchmark: terminal-bench
+benchmark_version: '4.0'
+value: 25.3
+provenance: independent
+setting: mini-SWE-agent, mean of 3 runs
+source:
+  title: 'Artificial Analysis: Qwen3.8 Flash Next'
+  url: https://artificialanalysis.ai/models/qwen3-8-flash-next
+  date: '2026-11-04'
+notes: Run through an API; serving precision not stated.

@@ -1,0 +1,25 @@
+model: deepseek-v4.1-flash-1017
+build: mia-exl3-eaq-2.9bpw
+title: DeepSeek-V4.1-Flash-1017 EXL3 on 2x DGX Sparks with TensorFold
+author: Mia's AI Lab
+url: https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-1017-2x-DGX-Sparks
+install:
+  label: Get the recipe on GitHub
+  url: https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-1017-2x-DGX-Sparks
+engine: TensorFold native Zig engine (bertholomus/TensorFold deepseek-v41-zig @ fbbc971), tensor parallel
+sparks: [2]
+commands: |
+  git clone https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-1017-2x-DGX-Sparks.git
+  cd DeepSeek-v4.1-Flash-1017-2x-DGX-Sparks
+  cp scripts/local.sh.example scripts/local.sh   # set WORKER and FABRIC_PEER
+  DRY_RUN=1 ./start.sh
+  ./start.sh
+notes: Engram tables should be on local disk; over NFS, prefill drops to roughly 690 to 890 t/s.
+speeds:
+  - sparks: 2
+    decode_tps: 63.9
+    prefill_tps: 2153.6
+    prefill_prompt: 32k tokens
+    ttft_ms: 214
+    workload: one request, prose, temperature 0.7, thinking on
+    source: https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-1017-2x-DGX-Sparks

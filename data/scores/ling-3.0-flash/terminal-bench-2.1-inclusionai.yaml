@@ -1,0 +1,9 @@
+benchmark: terminal-bench
+benchmark_version: '2.1'
+value: 57.0
+provenance: lab
+setting: Terminus 2, 2-hour timeout, mean of 3 runs
+source:
+  title: Ling-3.0-flash model card
+  url: https://huggingface.co/inclusionAI/Ling-3.0-flash
+  date: 2026-08

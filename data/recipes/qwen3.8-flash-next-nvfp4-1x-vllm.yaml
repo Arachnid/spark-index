@@ -1,0 +1,23 @@
+model: qwen3.8-flash-next
+build: mia-nvfp4
+title: Qwen3.8-Flash-Next on one DGX Spark (vLLM)
+author: Mia's AI Lab
+url: https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark
+install:
+  label: Get the recipe on GitHub
+  url: https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark
+engine: vLLM (vllm/vllm-openai:qwen38-flash-next image)
+sparks: [1]
+commands: |
+  cp .env.sample .env
+  ./download.sh
+  ./start.sh
+notes: Superseded by the TensorFold recipe, according to its README. The measured speed used a 512k-context profile, not the shipped one.
+speeds:
+  - sparks: 1
+    decode_tps: 48.7
+    prefill_tps: 2314
+    prefill_prompt: 32k tokens
+    workload: one request, 600-token prose, sparkDash
+    source: https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark
+    date: "2026-09-06"

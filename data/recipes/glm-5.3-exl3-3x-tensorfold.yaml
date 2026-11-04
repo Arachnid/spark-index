@@ -1,0 +1,26 @@
+model: glm-5.3
+build: mia-exl3-2.75bpw
+title: The full GLM 5.3, on three DGX Sparks
+author: Mia's AI Lab
+url: https://mia-ai.net/models/GLM-5.3-EXL3-3x-DGX-Sparks-TensorFold
+install:
+  label: Get the recipe on GitHub
+  url: https://github.com/MiaAI-Lab/GLM-5.3-EXL3-3x-DGX-Sparks-TensorFold
+engine: TensorFold v0.6.0 with 110 recipe patches
+sparks: [3]
+commands: |
+  # share the Hugging Face cache over NFS first (see the recipe)
+  git clone https://github.com/MiaAI-Lab/GLM-5.3-EXL3-3x-DGX-Sparks-TensorFold.git
+  cd GLM-5.3-EXL3-3x-DGX-Sparks-TensorFold
+  cp scripts/local.sh.example scripts/local.sh   # set WORKER, WORKER2 and NFS settings
+  DRY_RUN=1 ./start.sh
+  ./start.sh
+notes: Routed experts average 2.75 bits (2 to 4 per expert); dense weights served at 4 bits by default.
+speeds:
+  - sparks: 3
+    decode_tps: 31.3
+    prefill_tps: 591.2
+    prefill_prompt: 32k tokens
+    workload: one request, prose, greedy, release build of 2026-10-04
+    source: https://mia-ai.net/models/GLM-5.3-EXL3-3x-DGX-Sparks-TensorFold
+    date: "2026-10-04"

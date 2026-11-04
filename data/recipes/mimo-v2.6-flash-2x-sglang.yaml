@@ -1,0 +1,26 @@
+model: mimo-v2.6-flash-rl
+build: release
+title: MiMo-V2.6-Flash for 2x DGX Sparks
+author: Mia's AI Lab
+url: https://github.com/MiaAI-Lab/MiMo-V2.6-Flash-2x-DGX-Sparks
+install:
+  label: Get the recipe on GitHub
+  url: https://github.com/MiaAI-Lab/MiMo-V2.6-Flash-2x-DGX-Sparks
+engine: SGLang nightly (nightly-dev-cu13-20260921 or newer), EAGLE MTP
+sparks: [2]
+commands: |
+  ./start.sh doctor
+  ./start.sh download
+  ./start.sh build
+  ./start.sh share
+  ./start.sh serve
+notes: Runs Xiaomi's official checkpoint as published (pinned revision 3b38d06). A single Spark can't hold it.
+speeds:
+  - sparks: 2
+    decode_tps: 35.0
+    prefill_tps: 2316.9
+    prefill_prompt: 32k tokens
+    ttft_ms: 332
+    workload: one request, prose, thinking off, EAGLE MTP, sparkDash
+    source: https://github.com/MiaAI-Lab/MiMo-V2.6-Flash-2x-DGX-Sparks
+    date: "2026-09-22"

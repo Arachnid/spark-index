@@ -1,0 +1,9 @@
+benchmark: terminal-bench
+benchmark_version: '2.1'
+value: 84.3
+provenance: lab
+setting: Claude Code 2.1.207, effort max
+source:
+  title: GLM-5.3-Flash model card
+  url: https://huggingface.co/zai-org/GLM-5.3-Flash
+  date: '2026-08-26'

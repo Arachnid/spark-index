@@ -1,0 +1,10 @@
+name: DeepSeek-V4-Flash-Vision-Exp
+developer: DeepSeek
+url: https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-Vision-Exp
+notes: An experimental vision variant of DeepSeek-V4-Flash. It takes images, not video.
+builds:
+  release:
+    label: DeepSeek release
+    format: as published
+    by: DeepSeek
+    url: https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-Vision-Exp

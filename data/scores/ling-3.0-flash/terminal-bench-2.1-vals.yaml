@@ -1,0 +1,10 @@
+benchmark: terminal-bench
+benchmark_version: '2.1'
+value: 50.19
+provenance: independent
+setting: Terminus 2
+source:
+  title: 'Vals AI: Terminal-Bench 2.1'
+  url: https://www.vals.ai/benchmarks/terminal-bench-2-1
+  date: '2026-10-01'
+notes: ±2.46. Run through an API; serving precision not stated.

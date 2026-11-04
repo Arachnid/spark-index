@@ -1,0 +1,10 @@
+benchmark: cybergym
+benchmark_version: not stated
+value: 88.1
+provenance: lab
+setting: DeepSeek Harness
+source:
+  title: DeepSeek-V4.1-Flash model card
+  url: https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash
+  date: '2026-09-10'
+notes: The card doesn't say which CyberGym level or how many trials.

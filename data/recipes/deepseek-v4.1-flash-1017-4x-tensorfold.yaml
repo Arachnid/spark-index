@@ -1,0 +1,26 @@
+model: deepseek-v4.1-flash-1017
+build: release
+title: DeepSeek V4.1 Flash on four DGX Sparks, with TensorFold
+author: Mia's AI Lab
+url: https://mia-ai.net/models/DeepSeek-V4.1-Flash-1017-4x-DGX-Sparks-TensorFold
+install:
+  label: Get the recipe on GitHub
+  url: https://github.com/MiaAI-Lab/DeepSeek-V4.1-Flash-1017-4x-DGX-Sparks-TensorFold
+engine: TensorFold native Zig engine (BertholomusAI deepseek-v41-zig-tp4 branch) with 43 recipe patches
+sparks: [4]
+commands: |
+  git clone https://github.com/MiaAI-Lab/DeepSeek-V4.1-Flash-1017-4x-DGX-Sparks-TensorFold.git
+  cd DeepSeek-V4.1-Flash-1017-4x-DGX-Sparks-TensorFold
+  cp scripts/local.sh.example scripts/local.sh
+  ./start.sh              # on a switch
+  ./start-switchless.sh   # on a ring
+notes: Runs DeepSeek's weights as published, with no re-quantization. NVFP4=1 switches to NVIDIA's NVFP4 build, which is a different build for ranking purposes.
+speeds:
+  - sparks: 4
+    decode_tps: 65.8
+    prefill_tps: 4127.2
+    prefill_prompt: 32k tokens
+    ttft_ms: 186
+    workload: one request, prose, temperature 0.7, thinking on, median of 3
+    source: https://mia-ai.net/models/DeepSeek-V4.1-Flash-1017-4x-DGX-Sparks-TensorFold
+    date: "2026-10-25"

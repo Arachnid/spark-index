@@ -1,0 +1,10 @@
+benchmark: terminal-bench
+benchmark_version: '4.0'
+value: 41.82
+provenance: lab
+setting: Claude Code, reasoning max, 5 trials per task
+source:
+  title: Terminal-Bench 4.0 leaderboard
+  url: https://www.tbench.ai/leaderboard
+  date: '2026-08-14'
+notes: Submitted by Z.ai. ±3.23 at 95% confidence. Precision not stated.

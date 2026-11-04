@@ -1,0 +1,9 @@
+benchmark: terminal-bench
+benchmark_version: '4.0'
+value: 37.9
+provenance: other-lab
+source:
+  title: DeepSeek-V4.1-Flash model card
+  url: https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash
+  date: '2026-09-10'
+notes: From DeepSeek's comparison table; harness not stated.

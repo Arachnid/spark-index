@@ -1,0 +1,11 @@
+name: CyberGym
+short: CyberGym
+version: level 1
+categories: [security, agentic]
+metric: success rate, one trial (%)
+description: Given a vulnerability description and the unpatched code, write a proof of concept that crashes the vulnerable build but not the patched one. 1,507 instances from 188 OSS-Fuzz projects.
+url: https://www.cybergym.io/cybergym/
+paper: https://arxiv.org/abs/2506.02548
+leaderboard: https://www.cybergym.io/cybergym/
+tasks: 1507
+harness: the submitter's own agent, named in each score's setting; model-focused entries only

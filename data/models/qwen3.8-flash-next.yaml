@@ -1,0 +1,37 @@
+name: Qwen3.8-Flash-Next
+developer: Qwen
+params_total_b: 180
+params_active_b: 6
+license: Qwen Community License 1.0
+released: "2026-08"
+url: https://huggingface.co/Qwen/Qwen3.8-Flash-Next
+notes: 125B of transformer weights, a 51B n-gram embedding table and a 4B multi-token prediction head.
+builds:
+  release:
+    label: Qwen BF16
+    format: BF16
+    bits: 16
+    by: Qwen
+    url: https://huggingface.co/Qwen/Qwen3.8-Flash-Next
+    notes: Qwen also publishes an official FP8 copy.
+  nvidia-fp4-local:
+    label: NVIDIA FP4-Local
+    format: FP4
+    bits: 4
+    by: NVIDIA
+    url: https://huggingface.co/nvidia/Qwen3.8-Flash-Next-FP4-Local
+    size_gb: 103
+  nvidia-nvfp4:
+    label: NVIDIA NVFP4
+    format: NVFP4 experts, BF16 dense layers, FP8 n-gram table
+    bits: 4
+    by: NVIDIA
+    url: https://huggingface.co/nvidia/Qwen3.8-Flash-Next-NVFP4
+    size_gb: 133
+  mia-nvfp4:
+    label: Mia's NVFP4
+    format: NVFP4 (mixed)
+    bits: 4
+    by: Mia's AI Lab
+    url: https://huggingface.co/Mia-AiLab/Qwen3.8-Flash-Next-NVFP4
+    size_gb: 106

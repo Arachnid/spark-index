@@ -1,0 +1,24 @@
+model: qwen3.8-flash-next
+build: nvidia-fp4-local
+title: Qwen3.8 Flash Next on one DGX Spark, with TensorFold
+author: Mia's AI Lab
+url: https://mia-ai.net/models/Qwen3.8-Flash-Next-Single-DGX-Spark-TensorFold
+install:
+  label: Get the recipe on GitHub
+  url: https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark-TensorFold
+engine: TensorFold 1.1.4 Zig engine at a pinned commit, with recipe patches
+sparks: [1]
+updated: "2026-10-18"
+commands: |
+  git clone https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark-TensorFold.git
+  cd Qwen3.8-Flash-Next-Single-DGX-Spark-TensorFold
+  ./start.sh
+notes: CHECKPOINT=int4 switches to an INT4 AutoRound build, which is a different build for ranking purposes.
+speeds:
+  - sparks: 1
+    decode_tps: 55.6
+    prefill_tps: 2735
+    prefill_prompt: 32k tokens
+    ttft_ms: 136
+    workload: one request, prose, temperature 0.7, thinking on, sparkDash
+    source: https://mia-ai.net/models/Qwen3.8-Flash-Next-Single-DGX-Spark-TensorFold

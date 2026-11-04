@@ -1,0 +1,11 @@
+benchmark: aider-polyglot
+benchmark_version: '1'
+value: 33.0
+provenance: spark
+sparks: 1
+setting: Harbor aider-polyglot tasks, Codex agent, vLLM with DFlash, reasoning effort medium
+subset: about 10 of the 225 exercises
+source:
+  title: spark-evals
+  url: https://github.com/DanTup/spark-evals
+notes: 33% isn't a whole number of 10 tasks, so some tasks were probably dropped.

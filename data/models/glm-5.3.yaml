@@ -1,0 +1,23 @@
+name: GLM-5.3
+developer: Z.ai
+params_total_b: 753
+params_active_b: 40
+license: GLM-5.3 License
+released: "2026-08"
+url: https://huggingface.co/zai-org/GLM-5.3
+notes: The total is the Hugging Face tensor count; the active count comes from Artificial Analysis, not the model card.
+builds:
+  release:
+    label: Z.ai FP8
+    format: FP8
+    bits: 8
+    by: Z.ai
+    url: https://huggingface.co/zai-org/GLM-5.3
+    notes: A BF16 copy is published at zai-org/GLM-5.3-BF16.
+  mia-exl3-2.75bpw:
+    label: Mia's EXL3 2.75-bit
+    format: EXL3
+    bits: 2.75
+    by: Mia's AI Lab
+    url: https://huggingface.co/Mia-AiLab/GLM-5.3-EXL3-2.75bpw-TensorFold
+    size_gb: 293

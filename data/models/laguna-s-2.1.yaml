@@ -1,0 +1,22 @@
+name: Laguna S 2.1
+developer: poolside
+params_total_b: 118
+params_active_b: 8
+license: OpenMDW-1.1
+released: "2026-07"
+url: https://huggingface.co/poolside/Laguna-S-2.1
+builds:
+  release:
+    label: poolside BF16
+    format: BF16
+    bits: 16
+    by: poolside
+    url: https://huggingface.co/poolside/Laguna-S-2.1
+  poolside-nvfp4:
+    label: poolside NVFP4
+    format: NVFP4
+    bits: 4
+    by: poolside
+    url: https://huggingface.co/poolside/Laguna-S-2.1-NVFP4
+    size_gb: 71
+    notes: Re-released in August 2026 with changed weights.

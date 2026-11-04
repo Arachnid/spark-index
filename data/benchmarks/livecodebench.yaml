@@ -1,0 +1,11 @@
+name: LiveCodeBench
+short: LCB
+version: v6
+categories: [coding]
+metric: pass@1 (%)
+description: Code generation on LeetCode, AtCoder and Codeforces contest problems, each dated so problems released after a model's training can be separated out.
+url: https://livecodebench.github.io/
+paper: https://arxiv.org/abs/2403.07974
+leaderboard: https://livecodebench.github.io/leaderboard.html
+tasks: 1055
+harness: lcb_runner, codegeneration scenario, release_v6

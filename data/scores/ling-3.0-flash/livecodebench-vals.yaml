@@ -1,0 +1,10 @@
+benchmark: livecodebench
+benchmark_version: not stated
+value: 83.99
+provenance: independent
+setting: Vals' own implementation, temperature 0.6
+source:
+  title: 'Vals AI: LiveCodeBench'
+  url: https://www.vals.ai/benchmarks/lcb
+  date: '2026-09-01'
+notes: ±1.04. Run through Ant Group's API; serving precision not stated.

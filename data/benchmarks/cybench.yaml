@@ -1,0 +1,11 @@
+name: Cybench
+short: Cybench
+version: unguided
+categories: [security, agentic]
+metric: tasks solved without hints (%)
+description: 40 professional capture-the-flag tasks from four competitions, solved by an agent in a Kali Linux container.
+url: https://cybench.github.io/
+paper: https://arxiv.org/abs/2408.08926
+leaderboard: https://cybench.github.io/
+tasks: 40
+harness: the Cybench agent in unguided mode

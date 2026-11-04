@@ -1,0 +1,22 @@
+model: nemotron-3.5-bolt-74b-a9b
+build: nvidia-24gb
+title: Nemotron 3.5 Bolt on one DGX Spark, with TensorFold
+author: Mia's AI Lab
+url: https://mia-ai.net/models/Nemotron-3.5-Bolt-TensorFold-DGX-Spark
+install:
+  label: Get the recipe on GitHub
+  url: https://github.com/MiaAI-Lab/Nemotron-3.5-Bolt-TensorFold-DGX-Spark
+engine: TensorFold Zig engine (pinned 1.0.12 commit) with recipe patches and the libbolt Bolt backend
+sparks: [1]
+commands: |
+  git clone https://github.com/MiaAI-Lab/Nemotron-3.5-Bolt-TensorFold-DGX-Spark.git
+  cd Nemotron-3.5-Bolt-TensorFold-DGX-Spark
+  ./start.sh   # first run builds TensorFold
+speeds:
+  - sparks: 1
+    decode_tps: 71.0
+    prefill_tps: 1375.1
+    prefill_prompt: 32k tokens
+    ttft_ms: 56
+    workload: one request, prose, sparkDash
+    source: https://mia-ai.net/models/Nemotron-3.5-Bolt-TensorFold-DGX-Spark

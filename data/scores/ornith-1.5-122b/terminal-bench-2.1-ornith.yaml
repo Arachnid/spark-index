@@ -1,0 +1,9 @@
+benchmark: terminal-bench
+benchmark_version: '2.1'
+value: 81.2
+provenance: lab
+setting: Claude Code 2.1.126, temperature 1.0, mean of 5 runs, modified chat template
+source:
+  title: Ornith-1.5-122B model card
+  url: https://huggingface.co/ornith-ai/Ornith-1.5-122B
+  date: 2026-10

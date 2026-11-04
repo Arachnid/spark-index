@@ -1,0 +1,20 @@
+{
+  "name": "spark-index",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Capability rankings for open-weight model recipes on NVIDIA DGX Spark, built from community-contributed YAML.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "validate": "node src/validate.mjs",
+    "test": "node --test \"test/**/*.test.mjs\"",
+    "build": "node src/build.mjs",
+    "serve": "node src/serve.mjs",
+    "check": "npm run validate && npm test && npm run build"
+  },
+  "dependencies": {
+    "yaml": "^2.6.1"
+  }
+}

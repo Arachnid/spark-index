@@ -1,0 +1,10 @@
+benchmark: terminal-bench
+benchmark_version: '2.1'
+value: 86.4
+build: nvidia-nvfp4
+provenance: independent
+setting: Inspect, one seed
+source:
+  title: Red Hat Qwen3.8-Flash-Next-NVFP4 model card
+  url: https://huggingface.co/RedHatAI/Qwen3.8-Flash-Next-NVFP4
+  date: '2026-08-27'

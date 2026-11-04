@@ -1,0 +1,10 @@
+benchmark: terminal-bench
+benchmark_version: '4.0'
+value: 24.24
+provenance: independent
+setting: mini-SWE-agent, temperature 1.0, top_p 0.95
+source:
+  title: 'Vals AI: Terminal-Bench 4.0'
+  url: https://www.vals.ai/benchmarks/terminal-bench-4
+  date: '2026-10-29'
+notes: ±1.51. Run through Xiaomi's API; serving precision not stated.

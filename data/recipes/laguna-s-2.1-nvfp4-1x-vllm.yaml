@@ -1,0 +1,20 @@
+model: laguna-s-2.1
+build: poolside-nvfp4
+title: Laguna-S-2.1-NVFP4 with DFlash on vLLM
+author: Mia's AI Lab
+url: https://github.com/MiaAI-Lab/Laguna-S-2.1-DGX-Spark-RTX-6000-PRO
+install:
+  label: Get the recipe on GitHub
+  url: https://github.com/MiaAI-Lab/Laguna-S-2.1-DGX-Spark-RTX-6000-PRO
+engine: vLLM 0.25.1 with a FlashInfer nightly, DFlash drafter (7 speculative tokens)
+sparks: [1]
+commands: |
+  export HF_TOKEN="hf_..."
+  ./start.sh --download-only
+  ./start.sh
+speeds:
+  - sparks: 1
+    decode_tps: 76.7
+    ttft_ms: 487
+    workload: one request; read from the recipe's benchmark chart
+    source: https://github.com/MiaAI-Lab/Laguna-S-2.1-DGX-Spark-RTX-6000-PRO

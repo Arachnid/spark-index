@@ -1,0 +1,20 @@
+name: Qwen3.6-35B-A3B
+developer: Qwen
+params_total_b: 35
+params_active_b: 3
+license: Apache-2.0
+released: "2026-04"
+url: https://huggingface.co/Qwen/Qwen3.6-35B-A3B
+builds:
+  release:
+    label: Qwen BF16
+    format: BF16
+    bits: 16
+    by: Qwen
+    url: https://huggingface.co/Qwen/Qwen3.6-35B-A3B
+  unsloth-nvfp4:
+    label: Unsloth NVFP4
+    format: NVFP4 experts, FP8 dense layers
+    bits: 4
+    by: Unsloth
+    url: https://huggingface.co/unsloth/Qwen3.6-35B-A3B-NVFP4

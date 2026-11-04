@@ -1,0 +1,11 @@
+name: Web-Bench
+short: Web-Bench
+version: v1.0.0
+categories: [coding]
+metric: Pass@1 (%)
+description: 50 web development projects of 20 sequential, dependent tasks each, built against web standards and frameworks.
+url: https://github.com/bytedance/web-bench
+paper: https://arxiv.org/abs/2505.07473
+leaderboard: https://huggingface.co/spaces/bytedance-research/Web-Bench-Leaderboard
+tasks: 1000
+harness: Web-Agent, via the project's Docker image

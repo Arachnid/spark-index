@@ -1,0 +1,11 @@
+benchmark: livecodebench
+benchmark_version: not stated
+value: 95.0
+build: nvidia-nvfp4
+provenance: independent
+setting: Inspect, one seed
+source:
+  title: Red Hat Qwen3.8-Flash-Next-NVFP4 model card
+  url: https://huggingface.co/RedHatAI/Qwen3.8-Flash-Next-NVFP4
+  date: '2026-08-27'
+notes: Red Hat's comparison of four builds; BF16 also scored 95.0.

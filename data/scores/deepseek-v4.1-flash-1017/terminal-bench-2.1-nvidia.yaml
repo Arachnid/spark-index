@@ -1,0 +1,10 @@
+benchmark: terminal-bench
+benchmark_version: '2.1'
+value: 81.81
+provenance: independent
+setting: mean of 2 runs
+source:
+  title: NVIDIA DeepSeek-V4.1-Flash-1017-NVFP4 model card
+  url: https://huggingface.co/nvidia/DeepSeek-V4.1-Flash-1017-NVFP4
+  date: '2026-10-30'
+notes: NVIDIA's baseline run on the release weights, beside its own NVFP4 quantization (81.11).

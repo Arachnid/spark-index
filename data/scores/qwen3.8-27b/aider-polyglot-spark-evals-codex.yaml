@@ -1,0 +1,11 @@
+benchmark: aider-polyglot
+benchmark_version: '1'
+value: 50.0
+provenance: spark
+sparks: 1
+setting: Harbor aider-polyglot tasks, Codex agent, vLLM with MTP-4, reasoning effort medium
+subset: 10 of the 225 exercises
+source:
+  title: spark-evals
+  url: https://github.com/DanTup/spark-evals
+notes: The run config labels this FP8, but it served the BF16 release weights.

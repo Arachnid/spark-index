@@ -1,0 +1,20 @@
+model: muse-glimmer-30b
+build: redhat-nvfp4
+title: Muse Glimmer 30B NVFP4 on a DGX Spark
+author: Mia's AI Lab
+url: https://github.com/MiaAI-Lab/Muse-Glimmer-30B-DGX-Spark-RTX-5090-6000-PRO
+install:
+  label: Get the recipe on GitHub
+  url: https://github.com/MiaAI-Lab/Muse-Glimmer-30B-DGX-Spark-RTX-5090-6000-PRO
+engine: vLLM fork (xianbaoqian/vllm, commit 99a10304d) with local RoPE patches, DFlash drafter
+sparks: [1]
+commands: |
+  git clone https://github.com/MiaAI-Lab/Muse-Glimmer-30B-DGX-Spark-RTX-5090-6000-PRO.git
+  cd Muse-Glimmer-30B-DGX-Spark-RTX-5090-6000-PRO
+  ./start.sh
+notes: The README gives two conflicting single-request speeds (about 35 t/s, and about 66 t/s for a 250-token burst); the lower one is shown.
+speeds:
+  - sparks: 1
+    decode_tps: 35
+    workload: one request, DFlash
+    source: https://github.com/MiaAI-Lab/Muse-Glimmer-30B-DGX-Spark-RTX-5090-6000-PRO

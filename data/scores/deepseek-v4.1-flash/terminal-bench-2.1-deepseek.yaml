@@ -1,0 +1,10 @@
+benchmark: terminal-bench
+benchmark_version: '2.1'
+value: 90.6
+provenance: lab
+setting: DeepSeek Harness Minimal, effort 100, 3 runs
+source:
+  title: DeepSeek-V4.1-Flash model card
+  url: https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash
+  date: '2026-09-10'
+notes: The same card gives 88.0 with Claude Code and 84.1 with Codex.

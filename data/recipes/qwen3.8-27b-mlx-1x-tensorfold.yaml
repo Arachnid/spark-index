@@ -1,0 +1,22 @@
+model: qwen3.8-27b
+build: vontra-mlx-4bit
+title: Qwen3.8 27B on one DGX Spark, with TensorFold
+author: Mia's AI Lab
+url: https://mia-ai.net/models/Qwen3.8-27B-DGX-Spark-TensorFold
+install:
+  label: Get the recipe on GitHub
+  url: https://github.com/MiaAI-Lab/Qwen3.8-27B-DGX-Spark-TensorFold
+engine: TensorFold v0.6.0 with 5 recipe patches, DFlash2 drafter
+sparks: [1]
+commands: |
+  git clone https://github.com/MiaAI-Lab/Qwen3.8-27B-DGX-Spark-TensorFold.git
+  cd Qwen3.8-27B-DGX-Spark-TensorFold
+  ./start.sh
+speeds:
+  - sparks: 1
+    decode_tps: 58.3
+    prefill_tps: 1633.3
+    prefill_prompt: 32k tokens
+    ttft_ms: 100
+    workload: one request, prose, sparkDash
+    source: https://mia-ai.net/models/Qwen3.8-27B-DGX-Spark-TensorFold

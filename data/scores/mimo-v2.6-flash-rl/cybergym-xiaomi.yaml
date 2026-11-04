@@ -1,0 +1,9 @@
+benchmark: cybergym
+benchmark_version: modified by Xiaomi
+value: 95.1
+provenance: lab
+source:
+  title: MiMo-V2.6 technical report
+  url: https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Flash-RL/blob/main/MiMo_V2_6_technical_report.pdf
+  date: 2026-09
+notes: Xiaomi corrected what it calls flawed evaluation environments and gave the agent the compiled harness binary, which standard CyberGym withholds.

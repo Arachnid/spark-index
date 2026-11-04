@@ -1,0 +1,22 @@
+name: Ornith-1.5-122B
+developer: Ornith AI
+params_total_b: 125.09
+license: MIT
+released: "2026-10"
+url: https://huggingface.co/ornith-ai/Ornith-1.5-122B
+notes: A mixture of experts with 256 experts, 8 routed per token plus a shared expert. Ornith doesn't state an active parameter count.
+builds:
+  release:
+    label: Ornith BF16
+    format: BF16
+    bits: 16
+    by: Ornith AI
+    url: https://huggingface.co/ornith-ai/Ornith-1.5-122B
+  mia-exl3-eaq-4bpw:
+    label: Mia's EXL3 EAQ 4-bit
+    format: EXL3 (EAQ v1)
+    bits: 4.049
+    by: Mia's AI Lab
+    url: https://huggingface.co/Mia-AiLab/Ornith-1.5-122B-EXL3-EAQv1-4-bpw
+    size_gb: 66.6
+    notes: Its card reports a KL divergence of 0.0135 and 96.7% top-1 agreement against BF16, and no public benchmarks.

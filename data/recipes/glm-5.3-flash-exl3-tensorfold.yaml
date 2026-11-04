@@ -1,0 +1,46 @@
+model: glm-5.3-flash
+build: mia-exl3-4bpw
+title: GLM 5.3 Flash on two to four DGX Sparks, with TensorFold
+author: Mia's AI Lab
+url: https://mia-ai.net/models/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold
+install:
+  label: Get the recipe on GitHub
+  url: https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold
+engine: TensorFold v0.6.0 with 96 recipe patches, tensor parallel over ConnectX-7
+sparks: [2, 3, 4]
+experimental: [3, 4]
+version: v1.10
+updated: "2026-10-08"
+commands: |
+  git clone https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold.git
+  cd GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold
+  cp scripts/local.sh.example scripts/local.sh   # set WORKER in it
+  ./start.sh                                     # 2 Sparks
+  ./start-tp3.sh                                 # 3 Sparks
+  git checkout tp4 && ./start-tp4-switchless.sh  # 4 Sparks on a ring
+notes: Dense weights are served at 4 bits by default (DENSE=q4). The optional DFlash2 drafter is non-commercial (CC BY-NC-ND 4.0); DRAFTER=mtp avoids it.
+speeds:
+  - sparks: 2
+    decode_tps: 60.4
+    prefill_tps: 1978.9
+    prefill_prompt: 32k tokens
+    ttft_ms: 170
+    workload: one request, prose, sparkDash
+    source: https://mia-ai.net/models/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold
+    date: "2026-10"
+  - sparks: 3
+    decode_tps: 77.6
+    prefill_tps: 2064.2
+    prefill_prompt: 32k tokens
+    ttft_ms: 144
+    workload: one request, prose, sparkDash
+    source: https://mia-ai.net/models/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold
+    date: "2026-10"
+  - sparks: 4
+    decode_tps: 95.2
+    prefill_tps: 2583.3
+    prefill_prompt: 32k tokens
+    ttft_ms: 122
+    workload: one request, prose, sparkDash, switchless ring
+    source: https://mia-ai.net/models/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold
+    date: "2026-10-09"

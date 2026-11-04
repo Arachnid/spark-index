@@ -1,0 +1,10 @@
+benchmark: terminal-bench
+benchmark_version: '2.1'
+value: 70.2
+provenance: lab
+setting: pass@1, thinking on
+source:
+  title: Laguna S 2.1 model card
+  url: https://huggingface.co/poolside/Laguna-S-2.1
+  date: '2026-07-21'
+notes: The same table appears on the FP8, NVFP4 and INT4 cards, and predates the re-released NVFP4 weights.

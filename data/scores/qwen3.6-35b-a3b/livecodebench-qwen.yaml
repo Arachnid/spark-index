@@ -1,0 +1,8 @@
+benchmark: livecodebench
+benchmark_version: v6
+value: 80.4
+provenance: lab
+source:
+  title: Qwen3.6-35B-A3B model card
+  url: https://huggingface.co/Qwen/Qwen3.6-35B-A3B
+  date: 2026-04

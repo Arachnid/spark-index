@@ -1,0 +1,10 @@
+benchmark: terminal-bench
+benchmark_version: '2.1'
+value: 50.98
+build: nvidia-24gb
+provenance: lab
+source:
+  title: Nemotron 3.5 Bolt 24GB technical report
+  url: https://research.nvidia.com/labs/nemotron/files/NVIDIA-Nemotron-3.5-Bolt-74B-A9B-24GB-Technical-Report.pdf
+  date: '2026-10-15'
+notes: Measured on vLLM; the Spark recipe serves the same pack on TensorFold.

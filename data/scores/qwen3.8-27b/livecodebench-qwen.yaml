@@ -1,0 +1,8 @@
+benchmark: livecodebench
+benchmark_version: v6
+value: 90.3
+provenance: lab
+source:
+  title: Qwen3.8-27B model card
+  url: https://huggingface.co/Qwen/Qwen3.8-27B
+  date: 2026-08

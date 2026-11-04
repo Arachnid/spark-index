@@ -1,0 +1,9 @@
+benchmark: terminal-bench
+benchmark_version: '4.0'
+value: 28.8
+provenance: lab
+source:
+  title: MiMo-V2.6 technical report
+  url: https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Flash-RL/blob/main/MiMo_V2_6_technical_report.pdf
+  date: 2026-09
+notes: The report doesn't state the harness, or whether it scored the -RL or the -MOPD checkpoint.

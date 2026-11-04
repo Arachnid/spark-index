@@ -1,0 +1,8 @@
+benchmark: terminal-bench
+benchmark_version: '2.1'
+value: 87.6
+provenance: lab
+source:
+  title: MiMo-V2.6 technical report
+  url: https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Flash-RL/blob/main/MiMo_V2_6_technical_report.pdf
+  date: 2026-09

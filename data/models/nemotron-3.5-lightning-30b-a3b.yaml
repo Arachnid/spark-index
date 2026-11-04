@@ -1,0 +1,19 @@
+name: Nemotron 3.5 Lightning 30B-A3B
+developer: NVIDIA
+params_total_b: 30
+params_active_b: 3
+license: OpenMDW-1.1
+released: "2026-08"
+builds:
+  release:
+    label: NVIDIA BF16
+    format: BF16
+    bits: 16
+    by: NVIDIA
+  nvidia-nvfp4:
+    label: NVIDIA NVFP4
+    format: NVFP4 (ModelOpt mixed)
+    bits: 4
+    by: NVIDIA
+    url: https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4
+    notes: Runs as W4A16 through Marlin kernels on GB10, according to its card.

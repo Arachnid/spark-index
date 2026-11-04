@@ -1,0 +1,10 @@
+benchmark: terminal-bench
+benchmark_version: '4.0'
+value: 26.8
+provenance: independent
+setting: mini-SWE-agent, reasoning max, mean of 3 runs
+source:
+  title: 'Artificial Analysis: DeepSeek V4.1 Flash'
+  url: https://artificialanalysis.ai/models/deepseek-v4-1-flash
+  date: '2026-11-04'
+notes: Run through an API; serving precision not stated.

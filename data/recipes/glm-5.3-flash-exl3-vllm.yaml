@@ -1,0 +1,31 @@
+model: glm-5.3-flash
+build: mia-exl3-4bpw
+title: GLM-5.3 Flash EXL3 on DGX Spark (vLLM)
+author: Mia's AI Lab and contributors
+url: https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks
+install:
+  label: Get the recipe on GitHub
+  url: https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks
+engine: vLLM (image ghcr.io/miaai-lab/glm-5.3-flash-2x-dgx-sparks:exl3-instanttensor)
+sparks: [2, 3, 4]
+experimental: [4]
+commands: |
+  git clone https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks.git
+  cd GLM-5.3-Flash-EXL3-2x-DGX-Sparks
+  cp .env.example .env   # set HEAD_IP, WORKER_IP and the CX7 interface names
+  ./start.sh             # 2 Sparks; ./start-tp3.sh or ./start-tp4.sh for more
+notes: Superseded by the TensorFold recipe, according to its README. Serves the same checkpoint with FP8 dense layers by default.
+speeds:
+  - sparks: 2
+    decode_tps: 36.1
+    prefill_tps: 1511
+    prefill_prompt: 32k tokens
+    workload: one request, prose, temperature 0, thinking off, DFlash2
+    source: https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks
+    date: "2026-09-28"
+  - sparks: 4
+    prefill_tps: 2422
+    prefill_prompt: 32k tokens
+    workload: contributor measurement
+    source: https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks
+    date: "2026-09-27"

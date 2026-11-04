@@ -1,0 +1,15 @@
+name: MiMo-V2.6-Flash-RL
+developer: Xiaomi
+params_total_b: 309
+params_active_b: 15
+license: MIT
+released: "2026-09"
+url: https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Flash-RL
+notes: Xiaomi also publishes a separate MiMo-V2.6-Flash-MOPD checkpoint.
+builds:
+  release:
+    label: Xiaomi release
+    format: FP8 (e4m3), routed experts in MXFP4 from quantization-aware training
+    by: Xiaomi
+    url: https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Flash-RL
+    size_gb: 173

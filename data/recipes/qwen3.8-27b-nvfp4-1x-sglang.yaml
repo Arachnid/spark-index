@@ -1,0 +1,21 @@
+model: qwen3.8-27b
+build: radixark-nvfp4
+title: Qwen3.8 27B on SGLang for DGX Spark
+author: Mia's AI Lab
+url: https://github.com/MiaAI-Lab/Qwen3.8-27B-SGLang-DGX-Spark
+install:
+  label: Get the recipe on GitHub
+  url: https://github.com/MiaAI-Lab/Qwen3.8-27B-SGLang-DGX-Spark
+engine: SGLang (lmsysorg/sglang:qwen38-27b), DSpark, MTP or DFlash2 speculative decoding
+sparks: [1]
+commands: |
+  cp .env.sample .env
+  ./start-dspark.sh   # or ./start.sh (MTP) or ./start-dflash.sh
+  curl http://127.0.0.1:8888/v1/models
+speeds:
+  - sparks: 1
+    decode_tps: 56.6
+    ttft_ms: 127
+    workload: one stream, DFlash2, synthetic ladder
+    source: https://github.com/MiaAI-Lab/Qwen3.8-27B-SGLang-DGX-Spark
+    date: "2026-09-05"

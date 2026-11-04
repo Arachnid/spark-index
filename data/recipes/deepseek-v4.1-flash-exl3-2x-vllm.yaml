@@ -1,0 +1,22 @@
+model: deepseek-v4.1-flash
+build: mia-exl3-2.9bpw
+title: DeepSeek v4.1 Flash EXL3 2.9 bpw for 2x DGX Sparks
+author: Mia's AI Lab
+url: https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks
+install:
+  label: Get the recipe on GitHub
+  url: https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks
+engine: vLLM 0.1.dev20904 (deepseekv41-flash-0909 image) with an EXL3 overlay, ExLlamaV3 v1.4.5
+sparks: [2]
+commands: |
+  cp .env.example .env
+  ./start.sh
+  ./start.sh pack   # optional: Engram rows onto each node's NVMe, +25-50% prefill
+speeds:
+  - sparks: 2
+    decode_tps: 31.6
+    prefill_tps: 1054.7
+    prefill_prompt: 32k tokens
+    ttft_ms: 221
+    workload: one request, 400-token prose, temperature 0, thinking off, DSpark k=3
+    source: https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks

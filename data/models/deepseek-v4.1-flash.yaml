@@ -1,0 +1,20 @@
+name: DeepSeek-V4.1-Flash
+developer: DeepSeek
+license: MIT
+released: "2026-09"
+url: https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash
+related: [deepseek-v4.1-flash-1017]
+notes: A 552B backbone plus 196B of Engram memory (763B on Hugging Face), with 8B parameters active in prefill and 16B in decode.
+builds:
+  release:
+    label: DeepSeek release
+    format: FP8, with MXFP4 experts
+    by: DeepSeek
+    url: https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash
+  mia-exl3-2.9bpw:
+    label: Mia's EXL3 2.9-bit
+    format: EXL3
+    bits: 2.9
+    by: Mia's AI Lab
+    url: https://huggingface.co/Mia-AiLab/DeepSeek-V4.1-Flash-EXL3-2.9bpw
+    size_gb: 210

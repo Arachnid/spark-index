@@ -1,0 +1,18 @@
+name: Nemotron 3.5 Bolt 74B-A9B
+developer: NVIDIA
+params_total_b: 74
+params_active_b: 9
+license: OpenMDW-1.1
+released: "2026-10"
+builds:
+  release:
+    label: NVIDIA BF16
+    format: BF16
+    bits: 16
+    by: NVIDIA
+  nvidia-24gb:
+    label: NVIDIA 24GB pack
+    format: IQ2_XXS experts (trained with quantization-aware distillation), NVFP4 Mamba projections, Q8_0 elsewhere
+    by: NVIDIA
+    url: https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Bolt-74B-A9B-24GB
+    size_gb: 24.1

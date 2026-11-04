@@ -1,0 +1,9 @@
+benchmark: livecodebench
+benchmark_version: 2408-2505 window
+value: 82.8
+provenance: lab
+setting: thinking on, temperature 0.6
+source:
+  title: Ling-3.0-flash model card
+  url: https://huggingface.co/inclusionAI/Ling-3.0-flash
+  date: 2026-08

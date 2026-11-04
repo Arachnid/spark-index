@@ -1,0 +1,10 @@
+benchmark: terminal-bench
+benchmark_version: '2.1'
+value: 51.7
+provenance: independent
+setting: Terminus 2, high reasoning
+source:
+  title: Muse Glimmer 30B model card
+  url: https://huggingface.co/meta-models/Muse-Glimmer-30B
+  date: 2026-08
+notes: Meta's table says this figure comes from Artificial Analysis. Run through an API; serving precision not stated.

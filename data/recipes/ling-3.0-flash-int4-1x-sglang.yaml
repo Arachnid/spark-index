@@ -1,0 +1,21 @@
+model: ling-3.0-flash
+build: inclusionai-int4
+title: Ling-3.0-Flash on SGLang for DGX Spark
+author: Mia's AI Lab
+url: https://github.com/MiaAI-Lab/Ling-3.0-Flash-SGLang-DSpark-DGX-Spark
+install:
+  label: Get the recipe on GitHub
+  url: https://github.com/MiaAI-Lab/Ling-3.0-Flash-SGLang-DSpark-DGX-Spark
+engine: SGLang (lmsysorg/sglang:dev-Ling-3.0-flash), DSpark drafter
+sparks: [1]
+commands: |
+  ./start.sh --download-only
+  ./start.sh
+  curl -fsS http://127.0.0.1:8888/v1/models
+notes: The measured speed used MEM_FRACTION_STATIC 0.87, above the shipped default of 0.75.
+speeds:
+  - sparks: 1
+    decode_tps: 83
+    ttft_ms: 1440
+    workload: one request, DSpark, MEM_FRACTION_STATIC 0.87
+    source: https://github.com/MiaAI-Lab/Ling-3.0-Flash-SGLang-DSpark-DGX-Spark

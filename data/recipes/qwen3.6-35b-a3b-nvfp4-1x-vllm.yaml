@@ -1,0 +1,20 @@
+model: qwen3.6-35b-a3b
+build: unsloth-nvfp4
+title: Qwen3.6-35B-A3B NVFP4 on a DGX Spark
+author: Mia's AI Lab
+url: https://github.com/MiaAI-Lab/Unsloth-Qwen3.6-35b-NVFP4-DGX-Spark
+install:
+  label: Get the recipe on GitHub
+  url: https://github.com/MiaAI-Lab/Unsloth-Qwen3.6-35b-NVFP4-DGX-Spark
+engine: vLLM about 0.26 for GB10 (patched vllm-gb10 image), FlashInfer 0.6.14
+sparks: [1]
+commands: |
+  git clone https://github.com/MiaAI-Lab/Unsloth-Qwen3.6-35b-NVFP4-DGX-Spark.git
+  cd Unsloth-Qwen3.6-35b-NVFP4-DGX-Spark
+  ./start.sh
+speeds:
+  - sparks: 1
+    decode_tps: 95.1
+    ttft_ms: 103
+    workload: one request, 500 completion tokens, MTP 2
+    source: https://github.com/MiaAI-Lab/Unsloth-Qwen3.6-35b-NVFP4-DGX-Spark

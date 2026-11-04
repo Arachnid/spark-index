@@ -1,0 +1,22 @@
+name: GLM-5.3-Flash
+developer: Z.ai
+params_total_b: 320
+params_active_b: 18
+license: MIT
+released: "2026-08"
+url: https://huggingface.co/zai-org/GLM-5.3-Flash
+builds:
+  release:
+    label: Z.ai FP8
+    format: FP8
+    bits: 8
+    by: Z.ai
+    url: https://huggingface.co/zai-org/GLM-5.3-Flash
+    notes: A BF16 copy is published at zai-org/GLM-5.3-Flash-BF16.
+  mia-exl3-4bpw:
+    label: Mia's EXL3 4-bit
+    format: EXL3, routed experts at 4 bpw, BF16 elsewhere
+    bits: 4
+    by: Mia's AI Lab
+    url: https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-4bpw-TensorFold
+    size_gb: 175.7

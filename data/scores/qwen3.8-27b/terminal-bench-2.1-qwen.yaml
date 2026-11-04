@@ -1,0 +1,9 @@
+benchmark: terminal-bench
+benchmark_version: '2.1'
+value: 73.0
+provenance: lab
+setting: Terminus
+source:
+  title: Qwen3.8-27B model card
+  url: https://huggingface.co/Qwen/Qwen3.8-27B
+  date: 2026-08

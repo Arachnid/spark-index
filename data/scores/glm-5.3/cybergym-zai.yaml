@@ -1,0 +1,10 @@
+benchmark: cybergym
+benchmark_version: level 1
+value: 84.5
+provenance: lab
+setting: Claude Code, one run
+source:
+  title: GLM-5.3 announcement
+  url: https://z.ai/blog/glm-5.3
+  date: '2026-08-14'
+notes: Also listed on the official CyberGym leaderboard. Precision not stated.

@@ -1,0 +1,30 @@
+# Site-wide settings. Everything else lives in data/.
+
+# Working title. Change it here and every page follows.
+name: Spark Index
+tagline: Capability rankings for DGX Spark owners
+
+repo: https://github.com/Arachnid/spark-index
+
+# Path the site is served from. "/spark-index/" suits GitHub Pages at
+# arachnid.github.io/spark-index; use "/" for a custom domain.
+# The BASE_PATH environment variable overrides this at build time.
+base_path: /spark-index/
+
+# Cluster sizes the leaderboard offers.
+spark_counts: [1, 2, 3, 4]
+
+ranking:
+  # A recipe needs scores that count on at least this share of a
+  # category's benchmarks to be ranked in that category.
+  min_coverage: 0.5
+
+# Benchmark categories, in display order. Each benchmark lists the
+# categories it belongs to.
+categories:
+  - id: coding
+    name: Coding
+  - id: agentic
+    name: Agentic
+  - id: security
+    name: Security

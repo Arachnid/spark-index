@@ -1,0 +1,29 @@
+name: Qwen3.8-27B
+developer: Qwen
+params_total_b: 27.8
+params_active_b: 27.8
+license: Apache-2.0
+released: "2026-08"
+url: https://huggingface.co/Qwen/Qwen3.8-27B
+builds:
+  release:
+    label: Qwen BF16
+    format: BF16
+    bits: 16
+    by: Qwen
+    url: https://huggingface.co/Qwen/Qwen3.8-27B
+    notes: Qwen also publishes an official FP8 copy.
+  vontra-mlx-4bit:
+    label: Vontra MLX 4-bit
+    format: MLX 4-bit
+    bits: 4
+    by: Vontra
+    url: https://huggingface.co/Vontra/Qwen3.8-27B-MLX-4bit
+    size_gb: 19
+  radixark-nvfp4:
+    label: RadixArk NVFP4
+    format: NVFP4 W4A4, BF16 output head
+    bits: 4
+    by: RadixArk
+    url: https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead
+    size_gb: 24

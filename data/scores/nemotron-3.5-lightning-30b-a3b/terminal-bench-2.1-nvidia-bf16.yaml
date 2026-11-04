@@ -1,0 +1,9 @@
+benchmark: terminal-bench
+benchmark_version: '2.1'
+value: 24.58
+provenance: lab
+setting: NeMo Evaluator
+source:
+  title: Nemotron 3.5 Lightning NVFP4 model card
+  url: https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4
+  date: 2026-08

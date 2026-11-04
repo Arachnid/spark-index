@@ -1,0 +1,10 @@
+benchmark: terminal-bench
+benchmark_version: '2.1'
+value: 10.86
+provenance: independent
+setting: Terminus 2
+source:
+  title: 'Vals AI: Nemotron 3.5 Lightning'
+  url: https://www.vals.ai/models/fireworks_nemotron-lightning-3p5-30b-a3b
+  date: '2026-10-01'
+notes: ±2.62. Run through an API; serving precision not stated.

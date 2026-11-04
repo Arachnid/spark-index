@@ -1,0 +1,9 @@
+benchmark: terminal-bench
+benchmark_version: '2.1'
+value: 88.2
+provenance: lab
+setting: Claude Code
+source:
+  title: GLM-5.3 model card
+  url: https://huggingface.co/zai-org/GLM-5.3
+  date: 2026-08

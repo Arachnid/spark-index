@@ -1,0 +1,21 @@
+name: Muse Glimmer 30B
+developer: Meta Superintelligence Lab
+params_total_b: 29.6
+params_active_b: 29.6
+license: Apache-2.0
+released: "2026-08"
+url: https://huggingface.co/meta-models/Muse-Glimmer-30B
+builds:
+  release:
+    label: Meta BF16
+    format: BF16
+    bits: 16
+    by: Meta
+    url: https://huggingface.co/meta-models/Muse-Glimmer-30B
+  redhat-nvfp4:
+    label: Red Hat NVFP4
+    format: NVFP4 W4A4, vision tower in BF16
+    bits: 4
+    by: Red Hat AI
+    url: https://huggingface.co/RedHatAI/Muse-Glimmer-30B-NVFP4
+    size_gb: 19

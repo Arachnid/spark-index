@@ -1,0 +1,9 @@
+benchmark: cybergym
+benchmark_version: not stated
+value: 80.0
+provenance: lab
+source:
+  title: Ornith-1.5-122B model card
+  url: https://huggingface.co/ornith-ai/Ornith-1.5-122B
+  date: 2026-10
+notes: The card doesn't give the CyberGym level, trials or agent.
