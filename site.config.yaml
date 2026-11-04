@@ -6,9 +6,8 @@ tagline: Capability rankings for DGX Spark owners
 
 repo: https://github.com/Arachnid/spark-index
 
-# Path the site is served from. "/spark-index/" suits GitHub Pages at
-# arachnid.github.io/spark-index; use "/" for a custom domain.
-# The BASE_PATH environment variable overrides this at build time.
+# The path the site is served under, for local builds. The deploy workflow
+# overrides it with the path GitHub Pages reports, so it follows a custom domain.
 base_path: /spark-index/
 
 # Cluster sizes the leaderboard offers.

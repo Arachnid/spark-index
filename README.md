@@ -4,7 +4,7 @@ Capability rankings for open-weight models that run on one or more NVIDIA DGX Sp
 
 The site ranks **recipes**: a specific build of a model, the engine that serves it, and the numbers of Sparks it supports. It ranks them on benchmark scores, not speed, and a score only counts if it was measured on the recipe's exact model version and build, on the benchmark version the site uses. Everything else is shown, labelled with what it was measured on, and left out of the ranking.
 
-Live site: https://arachnid.github.io/spark-index/
+Live site: https://sparkplug.sh/
 
 ## How it's built
 
