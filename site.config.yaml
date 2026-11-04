@@ -1,7 +1,7 @@
 # Site-wide settings. Everything else lives in data/.
 
-# Working title. Change it here and every page follows.
-name: Spark Index
+# The site name. Change it here and every page follows.
+name: Spark Plug
 tagline: Capability rankings for DGX Spark owners
 
 repo: https://github.com/Arachnid/spark-index

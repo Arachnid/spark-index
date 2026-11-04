@@ -1,4 +1,4 @@
-# Spark Index
+# Spark Plug
 
 Capability rankings for open-weight models that run on one or more NVIDIA DGX Sparks.
 
