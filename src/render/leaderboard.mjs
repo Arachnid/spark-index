@@ -5,7 +5,7 @@ import {
   MARKS, PROVENANCE_TEXT, leaderboardPath, recipePath, recipeLines, heatClass,
   statusTag, statusWhy, scoreSource, sectionHead
 } from './common.mjs';
-import { renderFrontier } from './frontier.mjs';
+import { renderPicks } from './frontier.mjs';
 
 const METHODS = [
   { id: 'percentile', label: 'Mean percentile' },
@@ -66,7 +66,6 @@ export function renderLeaderboard({ ix, url, n, category, method }) {
   const keysOf = (cat) => ix.benchmarkList.filter((b) => cat === 'all' || b.categories.includes(cat));
   const total = st.entries.length * keys.length;
   const countedCells = st.entries.reduce((sum, e) => sum + keys.filter((k) => counts(e.view, k)).length, 0);
-  const unit = method === 'percentile' ? 'index' : '% of match-ups won';
 
   const picker = html`<section class="wrap" aria-label="Your cluster">
   <div class="picker-head"><h2>How many Sparks do you have?</h2><p>More Sparks can unlock other recipes, and run the same recipe faster</p></div>
@@ -76,28 +75,6 @@ export function renderLeaderboard({ ix, url, n, category, method }) {
       return html`<a href="${url(leaderboardPath(c, category, method))}"${c === n ? html` aria-current="page"` : ''}><strong>${plural(c)}</strong><span>${fmt0(c * 128)} GB · ${fit} model${fit === 1 ? '' : 's'}</span></a>`;
     })}
   </nav>
-</section>`;
-
-  const picks = html`<section class="wrap section" aria-labelledby="picks-title" style="padding-top:40px">
-  <h2 id="picks-title" style="margin:0 0 14px;font-size:22px">Best picks for ${plural(n)}</h2>
-  <div class="picks">
-    ${categories.map((cat) => {
-      const r = st.ranking(cat.id, method);
-      const top = r.ranked[0];
-      const next = r.ranked[1];
-      if (!top) {
-        return html`<article class="pick"><span class="label">${cat.id === 'all' ? 'Overall' : cat.name}</span><p style="color:var(--ink-2);font-size:15px">No recipe that fits has enough ${cat.id === 'all' ? '' : `${cat.name.toLowerCase()} `}scores that count yet.</p></article>`;
-      }
-      const lines = recipeLines(ix, top.recipe, n);
-      return html`<article class="pick">
-        <span class="label">${cat.id === 'all' ? 'Overall' : cat.name}</span>
-        <h3><a href="${url(recipePath(top.recipe))}">${top.model.name}</a></h3>
-        <p class="value"><strong>${fmt0(top.score.value)}</strong><span>${unit} · ${top.score.have} of ${r.keys.length} count</span></p>
-        <p>${lines.name} · ${lines.range}${lines.run ? ` · ${lines.run}` : ''}</p>
-        <p>${next ? `Next: ${next.model.name} (${fmt0(next.score.value)})` : 'No runner-up with enough scores'}</p>
-      </article>`;
-    })}
-  </div>
 </section>`;
 
   const rows = [];
@@ -161,7 +138,7 @@ export function renderLeaderboard({ ix, url, n, category, method }) {
 
   const coverage = html`<div class="wrap section two-col" id="coverage">
   <section>
-    ${sectionHead('03', 'How complete the grid is')}
+    ${sectionHead('02', 'How complete the grid is')}
     <p class="section-intro">Of ${allTotal} possible scores for the ${st.entries.length} models that fit ${plural(n)}, ${allCounted} were measured on the recipe’s exact model and build. Another ${allFlagged} exist but were measured on something else.</p>
     <ol class="bars">
       ${ix.benchmarkList.map((b) => {
@@ -173,7 +150,7 @@ export function renderLeaderboard({ ix, url, n, category, method }) {
     </ol>
   </section>
   <section>
-    ${sectionHead('04', 'Scores we need next')}
+    ${sectionHead('03', 'Scores we need next')}
     <p class="section-intro">Benchmarks that don’t yet count for the top recipes. A run on the recipe’s exact build, on a Spark, is the most useful contribution.</p>
     <ul class="list">
       ${wanted.map(({ e, b, why }) => html`<li><span><a href="${url(recipePath(e.recipe))}">${e.model.name}</a> × ${b.name}<span class="why">${why}</span></span><a class="button secondary" href="${url('contribute/')}">Submit a score</a></li>`)}
@@ -189,9 +166,8 @@ export function renderLeaderboard({ ix, url, n, category, method }) {
   </div>
 </section>
 ${picker}
-${picks}
+${renderPicks({ ix, url, n, category, method })}
 ${board}
-${renderFrontier({ ix, url, n, category, method, num: '02' })}
 ${coverage}`;
 
   return layout({

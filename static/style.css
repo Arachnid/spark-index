@@ -70,14 +70,22 @@ p { text-wrap: pretty; }
 .spark-picker a[aria-current="page"] span { color: #C9C7BF; }
 
 /* Best picks */
-.picks { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 16px; }
-.pick { background: var(--panel); border: 1px solid var(--rule); border-top: 3px solid var(--ink); padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.pick h3 { margin: 0; font-size: 22px; line-height: 1.15; font-weight: 720; font-stretch: 108%; overflow-wrap: anywhere; }
-.pick h3 a { text-decoration: none; }
-.pick h3 a:hover { text-decoration: underline; }
-.pick .value { margin: 0; display: flex; align-items: baseline; gap: 8px; }
-.pick .value strong { font-family: var(--mono); font-size: 30px; font-weight: 500; letter-spacing: -0.02em; }
-.pick p { margin: 0; font-size: 14px; color: var(--muted); }
+.picks-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 24px; }
+.picks-head h2 { margin: 0; font-size: 22px; line-height: 1.2; font-weight: 720; font-stretch: 108%; }
+.picks-head p { margin: 0; font-size: 14px; color: var(--muted); }
+.picks-chips { padding: 14px 0 16px; }
+.picks-grid { display: flex; flex-wrap: wrap; align-items: stretch; gap: 16px; }
+.picks-chart { flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--rule); }
+.picks-chart .frontier-chart { margin: auto 0; }
+.picks-chart .chart-legend { padding: 14px 18px 0; }
+.pick-cards { flex: 1 1 300px; list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.pick-card { flex: 1 1 auto; background: var(--panel); border: 1px solid var(--rule); border-top: 3px solid var(--accent); padding: 12px 16px 14px; display: flex; flex-direction: column; justify-content: center; gap: 3px; min-width: 0; }
+.pick-card .name { font-size: 18px; line-height: 1.2; font-weight: 700; font-stretch: 108%; overflow-wrap: anywhere; text-decoration-color: var(--faint); text-underline-offset: 3px; }
+.pick-card p { margin: 0; font-size: 13px; color: var(--muted); }
+.pick-card .value { margin-top: 2px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font-size: 14px; color: var(--ink-2); }
+.pick-card .value strong { font-family: var(--mono); font-size: 24px; font-weight: 500; letter-spacing: -0.02em; color: var(--ink); }
+.pick-card .value .mono { color: var(--ink); }
+.pick-card .trade { color: var(--ink-2); }
 
 /* Sections */
 .section { padding-top: 56px; }
@@ -247,13 +255,11 @@ table.ranks td.speed { white-space: normal; min-width: 240px; }
 .empty { margin: 20px 0 0; padding: 28px 24px; border: 1px dashed var(--faint); background: var(--panel); max-width: 80ch; }
 
 /* Speed and score chart */
-.chart-legend { display: flex; flex-wrap: wrap; gap: 6px 24px; padding: 18px 0 10px; font-size: 13px; color: var(--ink-2); }
+.chart-legend { display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 13px; color: var(--ink-2); }
 .chart-legend span { display: inline-flex; align-items: center; gap: 8px; }
 .chart-legend .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--faint); }
 .chart-legend .dot.on { background: var(--accent); }
-.chart-wrap { background: var(--panel); border: 1px solid var(--rule); }
 .frontier-chart { display: block; width: 100%; max-width: 100%; height: auto; margin: 0 auto; }
-.frontier-chart.wide { max-width: 960px; }
 .frontier-chart.narrow { display: none; }
 @media (max-width: 700px) {
   .frontier-chart.wide { display: none; }
@@ -269,8 +275,7 @@ table.ranks td.speed { white-space: normal; min-width: 240px; }
 .frontier-chart .pt:hover circle, .frontier-chart .pt:focus-visible circle { r: 7.5; stroke: var(--ink); }
 .frontier-chart .callouts text { font-family: var(--sans); font-size: 12px; fill: var(--muted); paint-order: stroke; stroke: var(--panel); stroke-width: 3px; stroke-linejoin: round; }
 .frontier-chart .callouts text.on { fill: var(--ink); font-weight: 600; }
-.frontier-chart .callouts text.sub { font-family: var(--mono); font-size: 11px; fill: var(--ink-2); font-weight: 400; }
-.frontier-empty { position: relative; min-height: 360px; margin-top: 18px; background: var(--panel); border: 1px solid var(--rule); display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
+.frontier-empty { position: relative; min-height: 340px; background: var(--panel); border: 1px solid var(--rule); display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
 .frontier-ghost { position: absolute; inset: 0; width: 100%; height: 100%; }
 .frontier-ghost .grid line { stroke: var(--rule-soft); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .frontier-ghost .base { stroke: var(--rule-strong); stroke-width: 1; vector-effect: non-scaling-stroke; }

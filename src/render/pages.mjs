@@ -24,6 +24,7 @@ export function renderMethodology({ ix, url }) {
       <h3>Ranking with gaps</h3>
       <p>Each counted score becomes a percentile among the models that fit your cluster, so a hard benchmark weighs the same as an easy one. A recipe’s index is the mean of those percentiles, and it needs scores that count on at least ${Math.round(config.ranking.min_coverage * 100)}% of a category’s benchmarks to be ranked.</p>
       <p>Head-to-head ranking instead counts wins on benchmarks both recipes have scores for, so a recipe can’t rise by skipping hard benchmarks.</p>
+      <p>The best picks at the top of each leaderboard are the recipes on the frontier of measured decode speed against that score: no other recipe that fits is both faster and ranked higher. Every recipe that fits is considered, not only the one representing its model.</p>
     </div>
     <div>
       <h3>Provenance</h3>
