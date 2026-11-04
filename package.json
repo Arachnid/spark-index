@@ -12,6 +12,7 @@
     "test": "node --test \"test/**/*.test.mjs\"",
     "build": "node src/build.mjs",
     "serve": "node src/serve.mjs",
+    "bench": "node src/bench/cli.mjs",
     "check": "npm run validate && npm test && npm run build"
   },
   "dependencies": {

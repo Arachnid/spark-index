@@ -1,0 +1,4 @@
+# Optional. Everything here has a default.
+port: 8000              # the port the recipe serves the OpenAI API on, on the head
+ready_timeout_s: 3600   # how long to wait for it after start.sh returns
+# served_model: name    # the model id to benchmark, if the API lists more than one

@@ -1,3 +1,8 @@
 node_modules/
 dist/
 .DS_Store
+
+# Benchmark runs: the record (run.json) is committed, the logs and the
+# harness output stay local.
+runs/**/logs/
+runs/**/out/

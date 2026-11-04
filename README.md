@@ -22,7 +22,7 @@ Node 20 or later. The site needs no JavaScript to read; a small script adds colu
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the file formats and the rules for what counts. The most useful contribution is a run of an existing recipe, on a Spark, on one of the ranked benchmarks.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the file formats and the rules for what counts. The most useful contribution is a run of an existing recipe, on a Spark, on one of the ranked benchmarks. `npm run bench` automates one: see [bench/README.md](bench/README.md).
 
 ## Settings
 
