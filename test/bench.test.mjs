@@ -355,3 +355,93 @@ test('--recipe-dir uses a checkout as it is', async (t) => {
   assert.equal(fs.existsSync(path.join(root, 'sparks', recipeId, 'recipe')), false);
   assert.equal(JSON.parse(fs.readFileSync(path.join(plan.runDir, 'run.json'), 'utf8')).recipe_revision, repo.revision);
 });
+
+// The benchmark scripts' own scoring, run on output shaped like each harness's.
+const BENCHMARKS = path.join(ROOT, 'bench/benchmarks');
+const python = (script, ...args) => JSON.parse(execFileSync('python3', [path.join(BENCHMARKS, script), ...args.map(String)], { encoding: 'utf8' }).split('\n')[0].replace(/\) *$/, '').replace(/ \(\d+ of \d+ solved$/, ''));
+const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
+const write = (file, text) => { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, text); };
+
+test('a Harbor job is scored by its mean, with errors noted and a short job a subset', (t) => {
+  const dir = tempDir(t, 'harbor-');
+  const job = (trials, errors, mean) => write(path.join(dir, 'job/result.json'), JSON.stringify({
+    id: 'x', started_at: '2026-11-04T00:00:00Z', n_total_trials: trials,
+    stats: { n_completed_trials: trials, evals: { 'terminus-2__m__terminal-bench': { n_trials: trials, n_errors: errors, metrics: [{ mean }] } } }
+  }));
+  job(330, 3, 0.3);
+  python('_shared/harbor_score.py', path.join(dir, 'job'), path.join(dir, 'result.json'), 330, 'Harbor, terminus-2');
+  assert.deepEqual(readJson(path.join(dir, 'result.json')), {
+    value: 30, setting: 'Harbor, terminus-2', notes: '3 of 330 trials ended in an error and count as unsolved.'
+  });
+  job(100, 0, 0.5);
+  python('_shared/harbor_score.py', path.join(dir, 'job'), path.join(dir, 'result.json'), 330, 's');
+  assert.deepEqual(readJson(path.join(dir, 'result.json')), { value: 50, setting: 's', subset: '100 of 330 trials' });
+});
+
+test('LiveCodeBench is scored by lcb_runner\'s pass@1', (t) => {
+  const out = tempDir(t, 'lcb-');
+  write(path.join(out, 'output/sparkplug/codegeneration_1_0.2_eval.json'), JSON.stringify([
+    { 'pass@1': 0.4567, detail: { 'pass@1': Object.fromEntries(Array.from({ length: 1055 }, (_, i) => [`q${i}`, i % 2])) } }, {}, []
+  ]));
+  python('livecodebench/score.py', out, 'release_v6', 1, 0.2, 'abc123');
+  assert.deepEqual(readJson(path.join(out, 'result.json')), {
+    value: 45.67, setting: 'lcb_runner at abc123, codegeneration release_v6, n=1, temperature 0.2'
+  });
+});
+
+test('Cybench is patched to run the recipe\'s model, and scored from its run logs', (t) => {
+  const repo = tempDir(t, 'cybench-');
+  const mapping = (cls) => `class ${cls}:\n    mapping: ClassVar[Dict[DeploymentName, str]] = {\n        DeploymentName.GPT_4O: "x",\n    }\n`;
+  write(path.join(repo, 'agent/dataclasses/agent_spec.py'), `from enum import Enum\nfrom typing import ClassVar, Dict\nclass DeploymentName(Enum):\n    GPT_4O = "openai/gpt-4o"\n\n${mapping('TokenizerMapping')}\n${mapping('ModelMapping')}\n${mapping('NonHELMMapping')}`);
+  write(path.join(repo, 'agent/models/non_helm.py'), 'import tiktoken\ndef count(model_name, s):\n    return len(tiktoken.encoding_for_model(model_name).encode(s))\n');
+  write(path.join(repo, 'run_task.sh'), 'docker run \\\n\t--name x \\\n\t-it \\\n\timage\n');
+  execFileSync('python3', [path.join(BENCHMARKS, 'cybench/patch.py'), repo, 'openai/org/Model-1', 'org/Model-1']);
+  const spec = fs.readFileSync(path.join(repo, 'agent/dataclasses/agent_spec.py'), 'utf8');
+  const loaded = JSON.parse(execFileSync('python3', ['-c', `
+import json, runpy
+ns = runpy.run_path(${JSON.stringify(path.join(repo, 'agent/dataclasses/agent_spec.py'))})
+D = ns["DeploymentName"]
+print(json.dumps([D("openai/org/Model-1").name, ns["TokenizerMapping"].mapping[D.SPARKPLUG], ns["ModelMapping"].mapping[D.SPARKPLUG], ns["NonHELMMapping"].mapping[D.SPARKPLUG]]))
+`], { encoding: 'utf8' }));
+  assert.deepEqual(loaded, ['SPARKPLUG', 'openai/o200k_base', 'openai/org/Model-1', 'org/Model-1'], spec);
+  assert.match(fs.readFileSync(path.join(repo, 'agent/models/non_helm.py'), 'utf8'), /_sparkplug_encoding\(model_name\)\.encode[\s\S]*get_encoding\('o200k_base'\)/);
+  assert.equal(fs.readFileSync(path.join(repo, 'run_task.sh'), 'utf8'), 'docker run \\\n\t--name x \\\n\t-i \\\n\timage\n');
+
+  write(path.join(repo, 'task_list.txt'), 'benchmark/a/[Easy] Solved\nbenchmark/b/Failed\nbenchmark/c/Crashed\n');
+  const logs = (task, run, label) => write(path.join(repo, 'logs', task, 'openai/org/Model-1', run, `openai/org/Model-1_${label}_${task}_run_log.json`), '{}');
+  logs('[Easy]_Solved', 'run1', 'success');
+  logs('Failed', 'run1', 'fail');
+  logs('Failed', 'older-run', 'success');
+  const out = tempDir(t, 'cybench-out-');
+  python('cybench/score.py', repo, 'run1', out, 15, 6000, 2000, 'abc123');
+  assert.deepEqual(readJson(path.join(out, 'result.json')), {
+    value: 33.33,
+    setting: 'Cybench agent at abc123, unguided, 15 iterations, 6000 input / 2000 output tokens',
+    notes: '1 of 3 tasks wrote no run log and count as unsolved.'
+  });
+});
+
+test('CyberGym is scored by each agent\'s final submission', (t) => {
+  const out = tempDir(t, 'cybergym-');
+  for (const dir of ['arvo_1-aaa', 'arvo_2-bbb', 'arvo_3-ccc', 'oss-fuzz_4-ddd']) write(path.join(out, 'agents', dir, 'args.json'), '{}');
+  fs.mkdirSync(path.join(out, 'server'));
+  execFileSync('python3', ['-c', `
+import sqlite3, sys
+db = sqlite3.connect(sys.argv[1])
+db.execute("CREATE TABLE poc_records (id INTEGER PRIMARY KEY, agent_id TEXT, vul_exit_code INT, fix_exit_code INT, created_at TEXT)")
+rows = [
+  ("aaa", 1, 1, "2026-01-01 00:00:00"), ("aaa", 1, 0, "2026-01-01 00:05:00"),  # last one crashes only the vulnerable build
+  ("bbb", 1, 0, "2026-01-01 00:00:00"), ("bbb", 0, 0, "2026-01-01 00:05:00"),  # crashed, then submitted one that doesn't
+  ("ccc", 1, 1, "2026-01-01 00:00:00"),                                         # crashes the fixed build too
+]
+db.executemany("INSERT INTO poc_records (agent_id, vul_exit_code, fix_exit_code, created_at) VALUES (?, ?, ?, ?)", rows)
+db.commit()
+`, path.join(out, 'server/poc.db')]);
+  python('cybergym/score.py', out, '-', 1507, 5, 100, 1200, 'abc123');
+  assert.deepEqual(readJson(path.join(out, 'result.json')), {
+    value: 20,
+    setting: 'OpenHands (CyberGym example agent) at abc123, level 1, final submission, 100 iterations, 1200 s per task',
+    subset: 'the first 5 of 1507 tasks',
+    notes: '1 of 5 tasks wrote no agent log and count as unsolved.'
+  });
+});

@@ -8,6 +8,8 @@
 #   MODEL              the model id the API serves
 #   OUT_DIR            an empty directory for the harness's output; also the working directory
 #   BENCHMARK_VERSION  the version data/benchmarks/<id>.yaml ranks on
+#   BENCHMARK_TASKS    the task count in that file, if it gives one
+#   BENCH_SHARED       bench/benchmarks/_shared: harbor_score.py turns a Harbor job into result.json
 #   BENCHMARK_ID, SPARKPLUG_RECIPE, SPARKPLUG_SPARKS, BENCH_LIB, and every --env
 #
 # Run the benchmark's own harness at BENCHMARK_VERSION on the full task set,

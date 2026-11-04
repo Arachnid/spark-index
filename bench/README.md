@@ -81,9 +81,25 @@ A recipe directory can hold its own `install.sh`, `start.sh` or `stop.sh`, each 
 
 A custom `start.sh` should start the server with `run_detached server <command>`, so the wait can watch it and the default stop step can clean up after it.
 
+## The benchmarks
+
+Each runs the harness named in its file in `data/benchmarks/`, at the version the site ranks on, on every task, with that benchmark's standard settings. Each records what it ran (harness, agent, commit, trials) as the score's `setting`. A script clones the harness into `~/.cache/spark-plug/` (or `$SPARKPLUG_CACHE`) and keeps it up to date; `*_REF` pins a commit. Each script's header lists its settings, all passed with `--env`.
+
+| Benchmark | Harness and agent | Needs on this machine | Scored as |
+|---|---|---|---|
+| `terminal-bench` | Harbor, `terminal-bench@4.0`, Terminus-2, 5 trials per task | `harbor`, Docker | Harbor's mean over all trials; errored trials count as unsolved |
+| `swe-bench-pro` | Harbor on the repository's `v2/tasks`, under its locked protocol: mini-swe-agent run host-side (`v2/tooling/host_mini_swe.py`), no network in the task containers, every patch re-graded on a fresh image | `harbor` with mini-swe-agent (`uv tool install harbor --with mini-swe-agent`), Docker on amd64, room for 642 images | the re-graded job's mean |
+| `livecodebench` | `lcb_runner`, code generation, `release_v6`, the runner's own prompts for chat models | `uv`; its environment includes torch and vLLM, several GB | `pass@1` |
+| `cybergym` | CyberGym's OpenHands example agent, level 1, against a CyberGym server this script starts on the Docker bridge | Docker on amd64, `uv`, `poetry` and Node (to build OpenHands once), and the data: the dataset (~240 GB) in `CYBERGYM_DATA_DIR`, and the binary-only PoC runners (~130 GB) in `CYBERGYM_SERVER_DATA_DIR` or the full runner images | the final submission: each agent's last PoC, solved if it crashes the vulnerable build and not the fixed one |
+| `cybench` | the Cybench agent in its own container, unguided, the paper's 15 iterations and 6,000 / 2,000 token limits | Docker on amd64; **`--api-url`** with the head's address, since the agent's container can't reach the tunnel on `127.0.0.1` | tasks whose run log says success |
+
+**Where the model is called from matters.** The SSH tunnel listens on `127.0.0.1` on this machine. That address works for an agent whose LLM loop runs here: Terminus-2, the host-side mini-swe-agent, OpenHands' controller and `lcb_runner`. It doesn't work for an agent that runs inside a container, like Cybench's, or Harbor agents installed in the task container (`claude-code`, `codex`). For those, pass `--api-url http://<head address>:8888`; the recipes listen on every interface by default.
+
+Two harnesses only accept models they know, so their scripts register ours. `lcb_runner` gets the model in its model list at run time, as an OpenAI-style chat model. Cybench gets it added to `agent_spec.py` in the cached checkout, which the next run resets. Cybench's `run_benchmark.py` is not used, because it removes every container on the machine between tasks. Each script's scoring is in a `score.py` beside it, tested in `test/bench.test.mjs` on output shaped like the harness's own.
+
 ## Scripting a benchmark
 
-Copy `benchmarks/_template/` to `benchmarks/<benchmark-id>/` and write `run.sh`. It runs on this machine, in an empty output directory, with `OPENAI_BASE_URL` (ending in `/v1`), `OPENAI_API_KEY`, `MODEL` and `BENCHMARK_VERSION` set. Run the harness named in the benchmark's file, at the version the site ranks on, on every task, then write `$OUT_DIR/result.json`:
+Copy `benchmarks/_template/` to `benchmarks/<benchmark-id>/` and write `run.sh`. It runs on this machine, in an empty output directory, with `OPENAI_BASE_URL` (ending in `/v1`), `OPENAI_API_KEY`, `MODEL` and `BENCHMARK_VERSION` set. A harness on Harbor can end with `$BENCH_SHARED/harbor_score.py`, as `terminal-bench` and `swe-bench-pro` do. Run the harness named in the benchmark's file, at the version the site ranks on, on every task, then write `$OUT_DIR/result.json`:
 
 ```json
 {
@@ -103,4 +119,6 @@ Copy `benchmarks/_template/` to `benchmarks/<benchmark-id>/` and write `run.sh`.
 
 ## Status
 
-The orchestration is tested end to end on one machine. `test/bench.test.mjs` runs a stand-in recipe repository through every step: the sparkDash-style start-and-return, a start command that fails, one that serves in the foreground, and `--recipe-dir`. The `bench.yaml` files follow each recipe's own README and scripts, but none has yet been run on real Sparks. Nor has `benchmarks/terminal-bench`, which drives Harbor: check its flags, and where it writes its job summary, against the Harbor version you install. The other four benchmarks need scripts.
+The orchestration is tested end to end on one machine. `test/bench.test.mjs` runs a stand-in recipe repository through every step: the sparkDash-style start-and-return, a start command that fails, one that serves in the foreground, and `--recipe-dir`. The benchmarks' scoring and Cybench's patch are tested on synthetic output.
+
+None of it has run on real Sparks or a real harness yet. Each script's commands were written from the harness's current repository (Harbor's CLI and job format, SWE-bench Pro's v2 tooling, `lcb_runner`'s runner, CyberGym's server, PoC database and example agent, Cybench's `run_task.sh` and model list), so a harness release can move them. A script fails rather than guessing when what it reads isn't where it expects. The `bench.yaml` files follow each recipe's own README and scripts.

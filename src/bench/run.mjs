@@ -445,6 +445,8 @@ export async function runBench(options, ctx) {
       BENCH_LIB: benchPaths(root).lib,
       BENCHMARK_ID: plan.benchmark.id,
       BENCHMARK_VERSION: plan.benchmark.version,
+      ...(plan.benchmark.tasks ? { BENCHMARK_TASKS: String(plan.benchmark.tasks) } : {}),
+      BENCH_SHARED: path.join(benchPaths(root).benchmarks, '_shared'),
       SPARKPLUG_RECIPE: plan.recipe.id,
       SPARKPLUG_SPARKS: String(plan.sparks)
     };
