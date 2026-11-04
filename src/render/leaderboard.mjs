@@ -5,6 +5,7 @@ import {
   MARKS, PROVENANCE_TEXT, leaderboardPath, recipePath, recipeLines, heatClass,
   statusTag, statusWhy, scoreSource, sectionHead
 } from './common.mjs';
+import { renderFrontier } from './frontier.mjs';
 
 const METHODS = [
   { id: 'percentile', label: 'Mean percentile' },
@@ -160,7 +161,7 @@ export function renderLeaderboard({ ix, url, n, category, method }) {
 
   const coverage = html`<div class="wrap section two-col" id="coverage">
   <section>
-    ${sectionHead('02', 'How complete the grid is')}
+    ${sectionHead('03', 'How complete the grid is')}
     <p class="section-intro">Of ${allTotal} possible scores for the ${st.entries.length} models that fit ${plural(n)}, ${allCounted} were measured on the recipe’s exact model and build. Another ${allFlagged} exist but were measured on something else.</p>
     <ol class="bars">
       ${ix.benchmarkList.map((b) => {
@@ -172,7 +173,7 @@ export function renderLeaderboard({ ix, url, n, category, method }) {
     </ol>
   </section>
   <section>
-    ${sectionHead('03', 'Scores we need next')}
+    ${sectionHead('04', 'Scores we need next')}
     <p class="section-intro">Benchmarks that don’t yet count for the top recipes. A run on the recipe’s exact build, on a Spark, is the most useful contribution.</p>
     <ul class="list">
       ${wanted.map(({ e, b, why }) => html`<li><span><a href="${url(recipePath(e.recipe))}">${e.model.name}</a> × ${b.name}<span class="why">${why}</span></span><a class="button secondary" href="${url('contribute/')}">Submit a score</a></li>`)}
@@ -190,6 +191,7 @@ export function renderLeaderboard({ ix, url, n, category, method }) {
 ${picker}
 ${picks}
 ${board}
+${renderFrontier({ ix, url, n, category, method, num: '02' })}
 ${coverage}`;
 
   return layout({

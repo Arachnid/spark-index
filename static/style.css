@@ -245,3 +245,27 @@ table.ranks td.speed { white-space: normal; min-width: 240px; }
 .bench-rows .result p.src { font-size: 12px; color: var(--muted); }
 .bench-rows .also { width: 100%; margin: 0; padding: 0 0 0 0; list-style: none; font-size: 13px; color: var(--muted); }
 .empty { margin: 20px 0 0; padding: 28px 24px; border: 1px dashed var(--faint); background: var(--panel); max-width: 80ch; }
+
+/* Speed and score chart */
+.chart-legend { display: flex; flex-wrap: wrap; gap: 6px 24px; padding: 18px 0 10px; font-size: 13px; color: var(--ink-2); }
+.chart-legend span { display: inline-flex; align-items: center; gap: 8px; }
+.chart-legend .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--faint); }
+.chart-legend .dot.on { background: var(--accent); }
+.chart-wrap { background: var(--panel); border: 1px solid var(--rule); }
+.frontier-chart { display: block; width: 100%; max-width: 100%; height: auto; margin: 0 auto; }
+.frontier-chart.wide { max-width: 960px; }
+.frontier-chart.narrow { display: none; }
+@media (max-width: 700px) {
+  .frontier-chart.wide { display: none; }
+  .frontier-chart.narrow { display: block; }
+}
+.frontier-chart .grid line { stroke: var(--rule-soft); stroke-width: 1; }
+.frontier-chart .axis line { stroke: var(--rule-strong); stroke-width: 1; }
+.frontier-chart .axis text { font-family: var(--mono); font-size: 12px; fill: var(--muted); }
+.frontier-chart .axis text.title { font-family: var(--sans); font-size: 13px; fill: var(--ink-2); }
+.frontier-chart .frontier-line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; }
+.frontier-chart .pt circle { fill: var(--faint); stroke: var(--panel); stroke-width: 2; }
+.frontier-chart .pt.on circle { fill: var(--accent); }
+.frontier-chart .pt:hover circle, .frontier-chart .pt:focus-visible circle { r: 7.5; stroke: var(--ink); }
+.frontier-chart .labels text { font-family: var(--sans); font-size: 12px; fill: var(--ink); paint-order: stroke; stroke: var(--panel); stroke-width: 3px; stroke-linejoin: round; }
+.frontier-list { margin-top: 16px; }

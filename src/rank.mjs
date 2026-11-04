@@ -235,3 +235,19 @@ export function standings(ix, n, { forced = null, minCoverage = ix.config.rankin
 
   return { n, entries, byModel, pct, keysFor, scoreOf, ranking };
 }
+
+// The points no other point beats on both axes: nothing is at least as fast
+// and scores higher, or is faster and scores at least as well. Returned from
+// slowest to fastest, which is also highest score to lowest.
+export function paretoFrontier(points) {
+  const bySpeed = [...points].sort((a, b) => (b.x - a.x) || (b.y - a.y));
+  const frontier = [];
+  let best = -Infinity;
+  for (const p of bySpeed) {
+    if (p.y > best) {
+      frontier.push(p);
+      best = p.y;
+    }
+  }
+  return frontier.reverse();
+}

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  buildIndex, scoreStatus, cellFor, usedSparks, sparkRange, chooseRecipes, standings
+  buildIndex, scoreStatus, cellFor, usedSparks, sparkRange, chooseRecipes, standings, paretoFrontier
 } from '../src/rank.mjs';
 import { validate } from '../src/validate.mjs';
 import { loadData } from '../src/load.mjs';
@@ -172,4 +172,12 @@ test('the repository data is valid and every recipe page has a model', () => {
   const ix = buildIndex(data);
   for (const r of data.recipes) assert.ok(ix.models.get(r.model), r.id);
   for (const n of data.config.spark_counts) assert.doesNotThrow(() => standings(ix, n).ranking('all'));
+});
+
+test('paretoFrontier keeps only points nothing beats on both speed and score', () => {
+  const p = (x, y, id) => ({ x, y, id });
+  const points = [p(30, 90, 'slow-best'), p(60, 70, 'mid'), p(50, 60, 'beaten'), p(90, 40, 'fast'), p(90, 30, 'fast-worse'), p(20, 90, 'slower-same')];
+  assert.deepEqual(paretoFrontier(points).map((q) => q.id), ['slow-best', 'mid', 'fast']);
+  assert.deepEqual(paretoFrontier([p(10, 50, 'only')]).map((q) => q.id), ['only']);
+  assert.deepEqual(paretoFrontier([]), []);
 });
