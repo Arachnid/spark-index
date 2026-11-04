@@ -1,0 +1,11 @@
+name: SWE-bench Pro
+short: SWE Pro
+version: v2
+categories: [coding, agentic]
+metric: resolved rate, pass@1 (%)
+description: Resolve real issues in professional open-source repositories, checked by the projects' own tests. Long-horizon tasks that often span several files. The site ranks on the v2 public set of 642 tasks from 11 repositories; scores on the original 731-task public set (v1) are shown but not ranked.
+url: https://github.com/scaleapi/SWE-bench_Pro-os
+paper: https://arxiv.org/abs/2509.16941
+leaderboard: https://scale.com/leaderboard/swe_bench_pro_public
+tasks: 642
+harness: scaleapi/SWE-bench_Pro-os (v2), with the submitter's agent named in each score's setting
