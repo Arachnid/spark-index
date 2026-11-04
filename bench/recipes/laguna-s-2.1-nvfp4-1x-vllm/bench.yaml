@@ -1,0 +1,3 @@
+repo: https://github.com/MiaAI-Lab/Laguna-S-2.1-DGX-Spark-RTX-6000-PRO.git
+# The checkpoint is gated: pass --env HF_TOKEN.
+setup: ./start.sh --download-only

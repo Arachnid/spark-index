@@ -1,0 +1,2 @@
+repo: https://github.com/MiaAI-Lab/Ling-3.0-Flash-SGLang-DSpark-DGX-Spark.git
+setup: ./start.sh --download-only

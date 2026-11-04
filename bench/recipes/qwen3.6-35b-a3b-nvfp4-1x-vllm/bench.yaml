@@ -1,0 +1,2 @@
+repo: https://github.com/MiaAI-Lab/Unsloth-Qwen3.6-35b-NVFP4-DGX-Spark.git
+# ./start.sh downloads the weights itself.

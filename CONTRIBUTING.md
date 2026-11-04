@@ -67,6 +67,10 @@ notes: Optional. Anything a reader should know, e.g. tasks that timed out.
 | `source.date` | no | When it was published or run: `"2026-11"` or `"2026-11-04"`, in quotes. |
 | `notes` | no | Free text. |
 
+### Run a benchmark on your own Sparks
+
+`npm run bench -- <recipe-id> <benchmark-id> --head spark1` installs the recipe on your head Spark, runs the benchmark against it and writes this file for you, with a record of the run in `runs/` for the score to link to. Every recipe has a `bench/recipes/<id>/bench.yaml` saying how to start and stop it; a benchmark needs a script, and [bench/README.md](bench/README.md) says how to write one.
+
 When a recipe has several scores that count on one benchmark, the site uses the most independent one (`spark`, then `independent`, then `lab`, then `other-lab`), then the highest value, then the newest.
 
 ## Add a recipe
@@ -193,6 +197,7 @@ The code is plain Node with one dependency (`yaml`):
 - `src/load.mjs` reads `data/`.
 - `src/validate.mjs` checks it. Add a check here when you add a field.
 - `src/rank.mjs` holds all the ranking rules, as pure functions; `test/rank.test.mjs` tests them.
+- `src/bench/` is `npm run bench`, which runs the scripts in `bench/` and writes score files; `test/bench.test.mjs` tests it.
 - `src/render/` turns the results into HTML, and `src/build.mjs` writes every page to `dist/`.
 - `static/` is copied as is.
 

@@ -3,7 +3,8 @@
 // that exists. Run with `npm run validate`; CI runs it on every pull request.
 
 import { pathToFileURL } from 'node:url';
-import { loadData } from './load.mjs';
+import { loadData, ROOT } from './load.mjs';
+import { checkBenchScripts } from './bench/scripts.mjs';
 
 export const PROVENANCE = ['lab', 'independent', 'other-lab', 'spark'];
 
@@ -234,7 +235,7 @@ export function validate(data) {
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const data = loadData();
-  const errors = validate(data);
+  const errors = [...validate(data), ...checkBenchScripts(data, ROOT)];
   if (errors.length) {
     console.error(`${errors.length} problem(s) found:\n`);
     for (const e of errors) console.error(`  ${e}`);

@@ -1,0 +1,3 @@
+repo: https://github.com/MiaAI-Lab/GLM-5.3-EXL3-3x-DGX-Sparks-TensorFold.git
+# WORKER, WORKER2 and the NFS settings from scripts/local.sh, or --env.
+setup: ./scripts/prepare.sh

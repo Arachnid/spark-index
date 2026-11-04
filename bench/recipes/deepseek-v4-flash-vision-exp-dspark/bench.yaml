@@ -1,0 +1,15 @@
+repo: https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark.git
+# Fabric settings (WORKER_HOST, MASTER_ADDR, NCCL_*, WORKER2_HOST for 3) go in
+# the checkout's .env.dspark, which setup creates from the example on the first
+# run. The image has to be on every node; the recipe doesn't pull it there.
+setup: |
+  [ -f .env.dspark ] || cp .env.dspark.example .env.dspark
+  set -a; . ./.env.dspark; set +a
+  image=${DSPARK_VLLM_IMAGE:-ghcr.io/anemll/dspark-vllm-gx10:0.1.1}
+  docker pull "$image"
+  for w in ${WORKER_HOST:-} ${WORKER2_HOST:-}; do ssh -o BatchMode=yes "$w" docker pull "$image"; done
+  ./prepare-dspark-model-cache.sh --official --yes
+start:
+  2: ./start-deepseek-v4-flash-dspark.sh
+  3: ./start-tp3.sh
+stop: ./stop-deepseek-v4-flash-dspark.sh

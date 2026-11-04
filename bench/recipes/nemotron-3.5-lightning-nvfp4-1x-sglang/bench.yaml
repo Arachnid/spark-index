@@ -1,0 +1,2 @@
+repo: https://github.com/MiaAI-Lab/Nemotron3.5-Lightning-DGX-Spark-RTX-5090-6000-PRO.git
+setup: ./start.sh --download-only

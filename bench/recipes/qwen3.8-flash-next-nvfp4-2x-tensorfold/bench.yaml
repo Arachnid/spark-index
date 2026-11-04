@@ -1,0 +1,4 @@
+repo: https://github.com/MiaAI-Lab/Qwen3.8-Flash-Dual-DGX-Sparks-TensorFold.git
+# WORKER from scripts/local.sh, or --env. QUANT=int4ar would serve a different
+# build: leave it unset.
+setup: ./scripts/prepare.sh

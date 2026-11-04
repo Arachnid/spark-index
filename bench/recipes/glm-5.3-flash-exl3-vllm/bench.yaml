@@ -1,0 +1,10 @@
+repo: https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks.git
+# HEAD_IP, WORKER_IP and the CX7 interfaces go in the checkout's .env (and
+# .env.tp3 or .env.tp4 for the third and fourth Sparks).
+setup: '[ -f .env ] || cp .env.example .env'
+start:
+  2: ./start.sh
+  3: ./start-tp3.sh
+  4: ./start-tp4.sh
+# ./stop.sh knows the two- and three-Spark containers, not the four-Spark ones.
+stop: '[ "$SPARKPLUG_SPARKS" = 4 ] && ./start-tp4.sh stop || ./stop.sh'

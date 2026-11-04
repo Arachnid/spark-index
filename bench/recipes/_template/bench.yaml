@@ -1,0 +1,36 @@
+# Copy this directory to bench/recipes/<recipe-id>/. Only repo is required.
+#
+# Everything runs on the head Spark. A recipe for several Sparks starts and
+# stops its own workers from there; their addresses are the recipe's own
+# settings (scripts/local.sh, .env), kept in its checkout or passed with --env.
+
+# The recipe's repository, cloned on the head into ~/spark-plug/<recipe-id>/recipe
+# and fast-forwarded on later runs. Files you add to it (local.sh, .env) stay.
+repo: https://github.com/OWNER/RECIPE.git
+
+# Optional: a branch, tag or commit to check out. This, setup and start can
+# each be one value, or a map from the number of Sparks to a value:
+# ref:
+#   4: tp4
+
+# Optional: run in the checkout once it is up to date, before starting: copy
+# config templates, download weights, build images. Must be safe to run again.
+# setup: |
+#   [ -f .env ] || cp .env.example .env
+#   ./download.sh
+
+# What starts the server, run in the checkout, detached (as sparkDash runs a
+# start.sh). It may return once the API answers, or serve in the foreground.
+# Default: ./start.sh
+# start:
+#   2: ./start.sh
+#   3: ./start-tp3.sh
+
+# What stops it, on every Spark. Default: ./stop.sh. null if the recipe has
+# none: then the containers the start command started on the head are stopped.
+# stop: ./stop.sh
+
+# port: 8888              # the OpenAI API's port on the head (default 8888)
+# ready_timeout_s: 900    # how long the API may take to answer once start has returned
+# start_timeout_s: 86400  # how long the start command may run, downloads and all
+# served_model: name      # the model to benchmark, if the API lists several
