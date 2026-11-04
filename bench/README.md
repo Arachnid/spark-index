@@ -1,62 +1,85 @@
 # Running a benchmark on your Sparks
 
-`npm run bench` takes a recipe and a benchmark, installs and starts the recipe on your Sparks, runs the benchmark against it, stops it, and writes the result to `data/scores/` as a `spark` score. It needs a script per recipe and a script per benchmark, which live here.
+`npm run bench` takes a recipe and a benchmark, installs and starts the recipe on your Sparks, runs the benchmark against it, stops it, and writes the result to `data/scores/` as a `spark` score.
 
 ```sh
-npm run bench -- qwen3.8-27b-nvfp4-1x-sglang terminal-bench --hosts spark1
+npm run bench -- qwen3.8-27b-nvfp4-1x-sglang terminal-bench --head spark1
+npm run bench -- deepseek-v4.1-flash-1017-4x-tensorfold terminal-bench --head spark1 \
+  --env WORKER=me@10.0.0.2 --env WORKER2=me@10.0.0.3 --env WORKER3=me@10.0.0.4
 npm run bench -- --list                 # what has scripts
 npm run bench -- --help                 # every option
 ```
 
 Then commit the score file and the run's record in `runs/`, and open a pull request. The score links to that record, so it resolves once the pull request is merged.
 
+## How it fits the recipes
+
+Every recipe on the site is one of Mia's AI Lab's, and they share a shape, the one [sparkDash](https://github.com/MiaAI-Lab/sparkDash)'s model launchers rely on:
+
+- **One checkout, on the head Spark.** A recipe for two, three or four Sparks is run from the first. Its scripts set up the workers themselves over SSH (building or copying the image, sharing the weights over NFS, starting each rank), so nothing here touches a worker.
+- **`./start.sh` and `./stop.sh`.** The start script prepares whatever is missing, starts the server, waits until the OpenAI API answers and returns. The stop script stops it on every Spark. A few recipes name them differently, or have one per Spark count (`start-tp3.sh`).
+- **Settings in the checkout.** The workers' addresses and fabric settings go in a file the recipe tells you to create (`scripts/local.sh`, `.env`), and most recipes let the environment override it.
+- **The API on port 8888.**
+
+So a recipe is described by a `bench/recipes/<recipe-id>/bench.yaml`, not scripted:
+
+```yaml
+repo: https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold.git
+setup: ./scripts/prepare.sh       # optional: run after cloning, before starting
+ref:                              # optional: a branch, tag or commit
+  4: tp4
+start:                            # default ./start.sh
+  2: ./start.sh
+  3: ./start-tp3.sh
+  4: ./start-tp4-switchless.sh
+stop: ./stop.sh                   # the default
+port: 8888                        # the default
+```
+
+`ref`, `setup` and `start` are each a command, or a map from the number of Sparks to one. [`recipes/_template/bench.yaml`](recipes/_template/bench.yaml) lists every field. Each of the 21 recipes has one, written from its repository's own instructions.
+
 ## What it does
 
-1. Runs the recipe's `install.sh` on every Spark, in parallel.
-2. Runs its `start.sh` on the first Spark given, the head. That starts the server and returns.
-3. Opens an SSH tunnel to the head and polls `/v1/models` until the server lists a model.
-4. Runs the benchmark's `run.sh` on this machine, pointed at the tunnel.
-5. Runs the recipe's `stop.sh` on the head, whether the benchmark passed, failed, or you pressed Ctrl-C.
-6. Writes `runs/<recipe>/<benchmark>/<time>/run.json`: what ran, the hashes of the scripts it ran, the served model, the result, and any error.
-7. Writes `data/scores/<model>/<benchmark>-spark-<recipe>.yaml`, after checking it validates. If a file is already there from an earlier run, it is updated: the new run's numbers replace the old, and comments and notes someone added are kept.
+1. **Install**, on the head: clones the recipe's repository into `~/spark-plug/<recipe-id>/recipe` (or fast-forwards it, keeping the files you added), checks out `ref`, and runs `setup` there. With `--recipe-dir`, it uses your own checkout as it is instead, settings and all, and only runs `setup`.
+2. **Start**, on the head: runs the start command in the checkout, detached in its own session, the way sparkDash runs a launcher, with its output in `~/spark-plug/<recipe-id>/server.log`.
+3. **Wait**: polls `/v1/models` through an SSH tunnel to the head, and watches the start command. A start command that fails ends the run at once, with its last lines. One still running (setting up, downloading, loading) may take `start_timeout_s`. Once it has returned, the API has `ready_timeout_s` to answer. A start command that serves in the foreground works too.
+4. **Benchmark**: runs `bench/benchmarks/<benchmark-id>/run.sh` on this machine, pointed at the tunnel.
+5. **Stop**, whether the benchmark passed, failed or you pressed Ctrl-C: runs the stop command, then stops anything the start command left running on the head (a start interrupted mid-download, say).
+6. **Record**: writes `runs/<recipe>/<benchmark>/<time>/run.json`. It holds what ran: the recipe checkout's commit (and whether it had local changes), the start command, the hashes of the scripts, the served model, the result and any error. Then it writes `data/scores/<model>/<benchmark>-spark-<recipe>.yaml`, after checking it validates. A file an earlier run wrote is updated: the new numbers replace the old, and comments and notes someone added are kept.
 
-The model runs on the Sparks; the benchmark's harness, and any containers its tasks need, run on the machine you run `npm run bench` from. That machine needs SSH access to each Spark without a password prompt (keys, an agent, `~/.ssh/config` aliases all work). To run everything on a Spark itself, use `--hosts local`.
+The model runs on the Sparks. The benchmark's harness, and any containers its tasks need, run on the machine you run `npm run bench` from. That machine needs SSH access to the head without a password prompt (keys, an agent and `~/.ssh/config` aliases all work); the head needs the same to its workers, as the recipe already requires. To run everything on the head itself, use `--head local`.
 
 Logs go to `runs/<…>/logs/` and the harness's output to `runs/<…>/out/`. Both stay on your machine (they are in `.gitignore`); `run.json` is what gets committed. If you upload the full logs somewhere, pass `--source-url` to link the score to them instead.
 
-Useful while getting a script right: `--dry-run` prints the plan, `--skip-install` reuses the last install, `--keep-running` leaves the server up, and `--skip-start` benchmarks a server that is already running (it doesn't stop it afterwards either).
+## Your cluster's settings
 
-## Scripting a recipe
+What differs between clusters (the workers' addresses, the CX7 interfaces, whether four Sparks are on a switch or a ring) is the recipe's own configuration. There are three ways to give it:
 
-Copy `recipes/_template/` to `recipes/<recipe-id>/`, where `<recipe-id>` is the recipe's file name in `data/recipes/`, and fill in:
+- **`--env KEY=VALUE`**, for recipes that read settings from the environment first, which includes all the TensorFold ones (`WORKER`, `WORKER2`, `WORKER3`, `FABRIC_PEER`; `FABRIC_EXPECT=ring` for the four-Spark DeepSeek on a ring). `--env HF_TOKEN` passes your own token, for gated checkpoints.
+- **The config file in `~/spark-plug/<recipe-id>/recipe`** (`scripts/local.sh`, `.env`): write it once after the first run clones the repository, and later runs keep it. `setup` creates `.env` from the recipe's example where the recipe needs one.
+- **`--recipe-dir ~/where/you/keep/it`**, if you already run the recipe on that Spark, from sparkDash or by hand: your checkout is used as it is.
 
-| File | Runs on | Job |
-|---|---|---|
-| `install.sh` | every Spark | Get the recipe, its images and its weights onto the Spark. Safe to run twice. |
-| `start.sh` | the head | Start the server so it answers the OpenAI API on `$PORT`, and return. |
-| `stop.sh` | the head | Stop everything `start.sh` started, on every Spark. |
-| `bench.yaml` | | Optional: `port` (default 8000), `ready_timeout_s` (default 3600), `served_model`. |
+Our own variables are all named `SPARKPLUG_*` (and `PORT`), so they never collide with a recipe's settings. Mia's recipes read `MODEL_ID`, `HOST`, `WORKER` and dozens more from the environment, and an unprefixed `MODEL_ID` would have replaced the checkpoint the recipe downloads.
 
-The scripts run under `bash` with `set -euo pipefail`, in a directory of their own on each Spark (`~/spark-plug/<recipe-id>`, or under `--bench-root`), with these set:
+## Builds
+
+A score counts only for the recipe's build, so leave the recipe's checkpoint switches at their defaults: `NVFP4=1`, `DERISKED=1`, `ABLIT=1`, `CHECKPOINT=int4` and `QUANT=int4ar` each serve a different build. Speed settings (drafters, context, parallelism) don't change what the model computes, and are fine to change.
+
+## When a recipe needs more
+
+A recipe directory can hold its own `install.sh`, `start.sh` or `stop.sh`, each replacing the default step of the same name in [`default/`](default). They run on the head, in `~/spark-plug/<recipe-id>`, with the helpers in [`lib.sh`](lib.sh) loaded (`clone_or_update`, `run_detached`, `stop_detached`, `set_env_var`, `need_cmd`, `recipe_dir`) and these set:
 
 | Variable | |
 |---|---|
-| `RECIPE_ID`, `MODEL_ID`, `BUILD` | From the recipe file. |
-| `SPARK_COUNT` | Sparks in this run. |
-| `SPARK_HOSTS` | Their hosts as given to `--hosts`, the head first, space separated. |
-| `SPARK_INDEX` | This Spark's place in that list; 0 is the head. |
-| `PORT` | The API port, from `bench.yaml`. |
-| `WORKDIR` | The directory the script runs in. |
-| anything from `--env` | `--env HF_TOKEN` passes your own; `--env WORKER_IP=10.0.0.2` sets one. |
+| `SPARKPLUG_RECIPE`, `SPARKPLUG_MODEL`, `SPARKPLUG_BUILD` | From the recipe file. |
+| `SPARKPLUG_SPARKS` | How many Sparks the run uses. |
+| `SPARKPLUG_WORKDIR` | `~/spark-plug/<recipe-id>`, where the script runs. |
+| `SPARKPLUG_RECIPE_DIR` | `--recipe-dir`, if given. `recipe_dir` gives the checkout either way. |
+| `SPARKPLUG_REPO`, `_REF`, `_SETUP`, `_START`, `_STOP` | From `bench.yaml`, for this many Sparks. |
+| `PORT` | From `bench.yaml`. |
+| anything from `--env` | |
 
-The functions in [`lib.sh`](lib.sh) are already loaded: `clone_or_update`, `set_env_var` for `.env` files, `need_cmd`, `on_head`, `worker_hosts`, `log`, `die`, and the two that most recipes need:
-
-- `run_detached <name> <command…>` starts a command in the background, logging to `$WORKDIR/<name>.log`. It works whether the recipe's own start script serves in the foreground or starts containers and exits, and it records what it started.
-- `stop_detached <name>` stops it again: the process group, and any Docker containers that started after `run_detached` ran.
-
-So a recipe whose instructions are "clone it and run `./start.sh`" is a few lines; see [`recipes/qwen3.8-27b-nvfp4-1x-sglang/`](recipes/qwen3.8-27b-nvfp4-1x-sglang). A recipe for more than one Spark usually starts its workers itself, from the head, so its `start.sh` looks the same; what changes is the recipe's own settings for the other Sparks' interconnect addresses, which belong in `--env` rather than in the script, since they differ between clusters.
-
-Script the recipe as its README describes. If you change a setting that changes the model's outputs (a different quantization, say), the run is no longer of that recipe's build, and the score will be wrong.
+A custom `start.sh` should start the server with `run_detached server <command>`, so the wait can watch it and the default stop step can clean up after it.
 
 ## Scripting a benchmark
 
@@ -72,13 +95,12 @@ Copy `benchmarks/_template/` to `benchmarks/<benchmark-id>/` and write `run.sh`.
 }
 ```
 
-`value` and `setting` are required. `value` is the benchmark's headline metric as a percentage, and `setting` is what a reader needs to compare it with other scores: the harness, the agent, the number of trials. `benchmark_version` defaults to the version the site ranks on; set it if you ran another. A run that didn't finish every task must say so in `subset`, so it is shown and not ranked; better still, exit with an error and write nothing.
+`value` and `setting` are required:
+- `value` is the benchmark's headline metric as a percentage.
+- `setting` is what a reader needs to compare it with other scores: the harness, the agent, the number of trials.
+
+`benchmark_version` defaults to the version the site ranks on; set it if you ran another. A run that didn't finish every task must say so in `subset`, so it is shown and not ranked. Better still, exit with an error and write nothing.
 
 ## Status
 
-The orchestration is tested end to end on one machine (`test/bench.test.mjs` runs a fake recipe and benchmark through every step). These scripts have not yet been run on real Sparks:
-
-- `recipes/qwen3.8-27b-nvfp4-1x-sglang` and `recipes/ling-3.0-flash-int4-1x-sglang` follow the commands in their recipe files.
-- `benchmarks/terminal-bench` drives Harbor. Check its flags, and where it writes its job summary, against the Harbor version you install; the script says where.
-
-The other recipes and benchmarks need scripts. `npm run validate` checks that every directory here names a recipe or benchmark that exists and has its scripts.
+The orchestration is tested end to end on one machine. `test/bench.test.mjs` runs a stand-in recipe repository through every step: the sparkDash-style start-and-return, a start command that fails, one that serves in the foreground, and `--recipe-dir`. The `bench.yaml` files follow each recipe's own README and scripts, but none has yet been run on real Sparks. Nor has `benchmarks/terminal-bench`, which drives Harbor: check its flags, and where it writes its job summary, against the Harbor version you install. The other four benchmarks need scripts.

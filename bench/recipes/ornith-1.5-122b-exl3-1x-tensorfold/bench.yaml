@@ -1,0 +1,2 @@
+repo: https://github.com/MiaAI-Lab/Ornith-1.5-122B-TensorFold.git
+setup: ./scripts/prepare.sh

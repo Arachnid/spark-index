@@ -1,0 +1,10 @@
+repo: https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold.git
+# WORKER (WORKER2, WORKER3) from scripts/local.sh, or --env. Four Sparks run
+# from the tp4 branch, on a ring. The start scripts run scripts/prepare.sh,
+# for the right number of Sparks, when it is needed.
+ref:
+  4: tp4
+start:
+  2: ./start.sh
+  3: ./start-tp3.sh
+  4: ./start-tp4-switchless.sh

@@ -1,0 +1,6 @@
+repo: https://github.com/MiaAI-Lab/DeepSeek-V4.1-Flash-1017-4x-DGX-Sparks-TensorFold.git
+# WORKER, WORKER2 and WORKER3 come from scripts/local.sh in the checkout, or
+# --env (the environment wins over local.sh). On a ring rather than a switch,
+# pass --env FABRIC_EXPECT=ring, which is all ./start-switchless.sh does.
+# prepare.sh sets up the workers itself, over SSH from the head.
+setup: ./scripts/prepare.sh

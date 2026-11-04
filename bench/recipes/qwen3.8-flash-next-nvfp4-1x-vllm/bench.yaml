@@ -1,0 +1,4 @@
+repo: https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark.git
+setup: |
+  [ -f .env ] || cp .env.sample .env
+  ./download.sh

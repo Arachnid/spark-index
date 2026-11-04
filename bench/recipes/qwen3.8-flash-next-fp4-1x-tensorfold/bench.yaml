@@ -1,0 +1,3 @@
+repo: https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark-TensorFold.git
+# CHECKPOINT=int4 would serve a different build: leave it unset.
+setup: ./scripts/prepare.sh

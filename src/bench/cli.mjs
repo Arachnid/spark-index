@@ -1,4 +1,4 @@
-// npm run bench -- <recipe-id> <benchmark-id> --hosts spark1[,spark2...] [options]
+// npm run bench -- <recipe-id> <benchmark-id> --head spark1 [options]
 // See bench/README.md.
 
 import { parseArgs } from 'node:util';
@@ -6,15 +6,22 @@ import { ROOT } from '../load.mjs';
 import { runBench } from './run.mjs';
 import { scriptedBenchmarks, scriptedRecipes } from './scripts.mjs';
 
-const USAGE = `Usage: npm run bench -- <recipe-id> <benchmark-id> --hosts <spark>[,<spark>...] [options]
+const USAGE = `Usage: npm run bench -- <recipe-id> <benchmark-id> --head <spark> [options]
 
-Installs the recipe on the Sparks, starts it, runs the benchmark against it,
-stops it, and writes the result to data/scores/.
+Installs the recipe on the head Spark, starts it (the recipe starts its own
+workers), runs the benchmark against it, stops it, and writes the result to
+data/scores/.
 
-  --hosts a,b        SSH hosts of the Sparks, the head first ("local" runs here).
-                     Defaults to $SPARK_HOSTS (comma or space separated).
-  --sparks N         How many of them to use. Default: the most the recipe supports.
-  --env KEY=VALUE    Passed to the recipe and benchmark scripts. Repeatable.
+  --head HOST        SSH host of the head Spark ("local" runs here).
+                     Defaults to $SPARK_HEAD.
+  --sparks N         How many Sparks the recipe runs on. Needed when it supports
+                     more than one count. The workers are the recipe's own
+                     settings (e.g. WORKER in scripts/local.sh, or --env).
+  --recipe-dir DIR   Use your own checkout of the recipe on the head, with your
+                     settings in it, as it is. Default: ~/spark-plug/<recipe>/recipe,
+                     cloned and kept up to date.
+  --env KEY=VALUE    Passed to the recipe's and the benchmark's scripts, and so to
+                     the recipe's own (e.g. --env WORKER=me@10.0.0.2). Repeatable.
                      --env KEY alone passes KEY from your environment.
   --skip-install     Don't run install.sh (it ran before).
   --skip-start       Don't run start.sh or stop.sh: the server is already up.
@@ -25,7 +32,7 @@ stops it, and writes the result to data/scores/.
   --source-url URL   Link the score to this (e.g. uploaded logs). Default: the run's
                      record in runs/, on GitHub.
   --source-title T   The title for that link.
-  --bench-root DIR   Where recipes are installed on the Sparks. Default: ~/spark-plug.
+  --bench-root DIR   Where recipes are installed on the head. Default: ~/spark-plug.
   --no-score         Record the run, but don't write a score file.
   --dry-run          Print the plan and stop.
   --list             List the recipes and benchmarks that have scripts.`;
@@ -47,15 +54,12 @@ function parseEnv(values) {
   return env;
 }
 
-function splitHosts(value) {
-  return (value ?? '').split(/[\s,]+/).filter(Boolean);
-}
-
 async function main() {
   const { values, positionals } = parseArgs({
     allowPositionals: true,
     options: {
-      hosts: { type: 'string' },
+      head: { type: 'string' },
+      'recipe-dir': { type: 'string' },
       sparks: { type: 'string' },
       env: { type: 'string', multiple: true },
       'skip-install': { type: 'boolean' },
@@ -107,7 +111,8 @@ async function main() {
   await runBench({
     recipeId,
     benchmarkId,
-    hosts: splitHosts(values.hosts ?? process.env.SPARK_HOSTS),
+    head: values.head ?? process.env.SPARK_HEAD,
+    recipeDir: values['recipe-dir'],
     sparks,
     env: parseEnv(values.env),
     skipInstall: values['skip-install'],

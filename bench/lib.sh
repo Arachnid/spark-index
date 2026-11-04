@@ -1,18 +1,22 @@
-# Helpers for recipe and benchmark scripts. `npm run bench` puts this in front
-# of every recipe script it runs on a Spark, so recipe scripts can call these
-# functions directly. Benchmark scripts run on the machine you run `npm run bench`
-# from, and get them with `source "$BENCH_LIB"`.
+# Helpers for the scripts `npm run bench` runs. They are put in front of every
+# recipe script it runs on the head Spark, so recipe scripts can call them
+# directly; benchmark scripts get them with `source "$BENCH_LIB"`.
 #
-# Recipe scripts run with `set -euo pipefail`, in $WORKDIR, with these set:
-#   RECIPE_ID    the recipe's id, e.g. qwen3.8-27b-nvfp4-1x-sglang
-#   MODEL_ID     the model id from the recipe file
-#   BUILD        the build id from the recipe file
-#   SPARK_COUNT  how many Sparks this run uses
-#   SPARK_HOSTS  those Sparks' hosts, space separated, the head first, as given to --hosts
-#   SPARK_INDEX  this host's place in SPARK_HOSTS, 0 for the head
-#   PORT         the port the OpenAI-compatible API must listen on, on the head
-#   WORKDIR      a directory of this recipe's own on this Spark ($BENCH_ROOT/$RECIPE_ID,
-#                with BENCH_ROOT defaulting to ~/spark-plug)
+# Recipe scripts run with `set -euo pipefail`, in $SPARKPLUG_WORKDIR, with:
+#   SPARKPLUG_RECIPE      the recipe's id, e.g. deepseek-v4.1-flash-1017-4x-tensorfold
+#   SPARKPLUG_MODEL       the model id from the recipe file
+#   SPARKPLUG_BUILD       the build id from the recipe file
+#   SPARKPLUG_SPARKS      how many Sparks this run uses
+#   SPARKPLUG_WORKDIR     a directory of this recipe's own on the head (~/spark-plug/<recipe>)
+#   SPARKPLUG_RECIPE_DIR  the recipe's checkout: --recipe-dir, else $SPARKPLUG_WORKDIR/recipe
+#   SPARKPLUG_REPO, SPARKPLUG_REF, SPARKPLUG_SETUP, SPARKPLUG_START, SPARKPLUG_STOP
+#                         from bench.yaml, for this many Sparks
+#   PORT                  the port the API is expected on (bench.yaml), for recipes that read it
+#   and every --env.
+#
+# Everything of ours is named SPARKPLUG_*, so it can't change what a recipe's own
+# settings mean: Mia's recipes read MODEL_ID, WORKER, HOST and many more from the
+# environment ahead of their own config files.
 
 set -euo pipefail
 
@@ -26,18 +30,35 @@ need_cmd() {
   done
 }
 
+# The recipe's checkout, with a leading ~/ expanded.
+recipe_dir() {
+  local dir=${SPARKPLUG_RECIPE_DIR:-$SPARKPLUG_WORKDIR/recipe}
+  case "$dir" in "~/"*) dir="$HOME/${dir#\~/}" ;; esac
+  printf '%s\n' "$dir"
+}
+
 # clone_or_update <url> <dir> [ref]
 # Clones a repository, or fetches and fast-forwards a clone that is already
 # there. With a ref, checks that ref out instead (a tag, branch or commit).
+# Files the recipe tells you to create in its checkout (scripts/local.sh,
+# .env) are untracked, so they survive.
 clone_or_update() {
   local url=$1 dir=$2 ref=${3:-}
   if [ -d "$dir/.git" ]; then
     git -C "$dir" fetch --tags --quiet origin
-    if [ -z "$ref" ]; then git -C "$dir" pull --ff-only --quiet; fi
+    if [ -n "$ref" ]; then
+      git -C "$dir" checkout --quiet "$ref"
+      if git -C "$dir" symbolic-ref -q HEAD >/dev/null; then git -C "$dir" merge --ff-only --quiet "origin/$ref"; fi
+    else
+      local branch
+      branch=$(git -C "$dir" symbolic-ref --short refs/remotes/origin/HEAD | sed 's#^origin/##')
+      git -C "$dir" checkout --quiet "$branch"
+      git -C "$dir" merge --ff-only --quiet "origin/$branch"
+    fi
   else
     git clone --quiet "$url" "$dir"
+    if [ -n "$ref" ]; then git -C "$dir" checkout --quiet "$ref"; fi
   fi
-  if [ -n "$ref" ]; then git -C "$dir" checkout --quiet "$ref"; fi
   log "$(basename "$dir") at $(git -C "$dir" rev-parse --short HEAD)"
 }
 
@@ -54,62 +75,61 @@ set_env_var() {
 docker_up() { command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; }
 
 # run_detached <name> <command...>
-# Starts a command in the background, in its own process group, logging to
-# $WORKDIR/<name>.log, and returns at once. Works whether the command serves in
-# the foreground or starts containers and exits. Records what it started so
-# stop_detached can take it down again: the process group, and any Docker
-# containers that appear while it runs (checked again by stop_detached).
+# Starts a command in the background, in a session of its own (as sparkDash
+# runs a start.sh), logging to $SPARKPLUG_WORKDIR/<name>.log, and returns at
+# once. Works whether the command returns once the server is up, as Mia's
+# start scripts do, or serves in the foreground. Its exit code goes to
+# .<name>.exit when it ends, which detached_state reads.
 run_detached() {
   local name=$1; shift
-  local logfile="$WORKDIR/$name.log"
-  # Only if Docker is up; a recipe without containers needn't care.
-  if docker_up; then
-    docker ps -q --no-trunc | sort >"$WORKDIR/.$name.containers-before"
-  fi
-  if command -v setsid >/dev/null 2>&1; then
-    setsid nohup "$@" >"$logfile" 2>&1 </dev/null &
-  else
-    nohup "$@" >"$logfile" 2>&1 </dev/null &
-  fi
-  echo $! >"$WORKDIR/.$name.pid"
-  log "started $name (pid $!), logging to $logfile"
+  local dir=$SPARKPLUG_WORKDIR
+  rm -f "$dir/.$name.exit"
+  if docker_up; then docker ps -q --no-trunc | sort >"$dir/.$name.containers-before"; fi
+  local launch=(nohup)
+  if command -v setsid >/dev/null 2>&1; then launch=(setsid nohup); fi
+  "${launch[@]}" bash -c '"$@"; echo $? > "$0"' "$dir/.$name.exit" "$@" >"$dir/$name.log" 2>&1 </dev/null &
+  echo $! >"$dir/.$name.pid"
+  log "started $name (pid $!): $*"
+  log "its output: $dir/$name.log"
 }
 
-# stop_detached <name>
-# Stops what run_detached <name> started: the process group, then any Docker
-# containers that were not running before it.
+# detached_state <name>: "running", "exited <code>", or "unknown".
+detached_state() {
+  local dir=$SPARKPLUG_WORKDIR name=$1
+  if [ -f "$dir/.$name.exit" ]; then echo "exited $(cat "$dir/.$name.exit")"
+  elif [ -f "$dir/.$name.pid" ] && kill -0 "$(cat "$dir/.$name.pid")" 2>/dev/null; then echo running
+  else echo unknown
+  fi
+}
+
+# stop_detached <name> [--containers]
+# Stops what run_detached <name> started that is still running: its whole
+# process group, which takes in a start script interrupted part way through
+# and anything it left in the background. With --containers, also stops any
+# Docker container that started on this Spark after run_detached ran; that is
+# only for recipes with no stop script of their own, since it can't see the
+# workers and can't tell the recipe's containers from anyone else's.
 stop_detached() {
-  local name=$1 pid before
-  if [ -f "$WORKDIR/.$name.pid" ]; then
-    pid=$(cat "$WORKDIR/.$name.pid")
-    if kill -0 "$pid" 2>/dev/null; then
+  local name=$1 dir=$SPARKPLUG_WORKDIR pid
+  if [ -f "$dir/.$name.pid" ]; then
+    pid=$(cat "$dir/.$name.pid")
+    if kill -0 -- "-$pid" 2>/dev/null || kill -0 "$pid" 2>/dev/null; then
+      log "stopping what is left of $name (process group $pid)"
       kill -TERM -- "-$pid" 2>/dev/null || kill -TERM "$pid" 2>/dev/null || true
-      for _ in $(seq 1 30); do kill -0 "$pid" 2>/dev/null || break; sleep 1; done
+      for _ in $(seq 1 30); do kill -0 -- "-$pid" 2>/dev/null || break; sleep 1; done
       kill -KILL -- "-$pid" 2>/dev/null || true
     fi
-    rm -f "$WORKDIR/.$name.pid"
+    rm -f "$dir/.$name.pid"
   fi
-  before="$WORKDIR/.$name.containers-before"
-  if [ -f "$before" ] && docker_up; then
+  local before="$dir/.$name.containers-before"
+  if [ "${2:-}" = --containers ] && [ -f "$before" ] && docker_up; then
     local started
     started=$(comm -13 "$before" <(docker ps -q --no-trunc | sort))
     if [ -n "$started" ]; then
-      log "stopping containers started by $name"
+      log "stopping the containers $name started"
       # shellcheck disable=SC2086
       docker stop $started >/dev/null
     fi
-    rm -f "$before"
   fi
-}
-
-# on_head: true on the first host of SPARK_HOSTS.
-on_head() { [ "${SPARK_INDEX:-0}" = 0 ]; }
-
-# worker_hosts: SPARK_HOSTS without the head, one per line.
-worker_hosts() {
-  local h i=0
-  for h in $SPARK_HOSTS; do
-    if [ "$i" -gt 0 ]; then echo "$h"; fi
-    i=$((i + 1))
-  done
+  rm -f "$before"
 }

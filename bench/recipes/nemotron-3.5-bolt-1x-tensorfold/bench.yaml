@@ -1,0 +1,2 @@
+repo: https://github.com/MiaAI-Lab/Nemotron-3.5-Bolt-TensorFold-DGX-Spark.git
+setup: ./scripts/prepare.sh

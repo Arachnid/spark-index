@@ -1,0 +1,2 @@
+repo: https://github.com/MiaAI-Lab/Qwen3.8-27B-DGX-Spark-TensorFold.git
+setup: ./scripts/prepare.sh

@@ -1,0 +1,5 @@
+repo: https://github.com/MiaAI-Lab/MiMo-V2.6-Flash-2x-DGX-Sparks.git
+# The worker's address goes in the checkout's .env, which ./start.sh creates
+# from .env.example on the first run. ./start.sh alone runs doctor, image,
+# share and serve; the download is separate.
+setup: ./start.sh download

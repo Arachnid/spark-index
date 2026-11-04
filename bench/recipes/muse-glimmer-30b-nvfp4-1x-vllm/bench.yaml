@@ -1,0 +1,2 @@
+repo: https://github.com/MiaAI-Lab/Muse-Glimmer-30B-DGX-Spark-RTX-5090-6000-PRO.git
+# ./start.sh installs the vLLM fork and downloads the weights itself.

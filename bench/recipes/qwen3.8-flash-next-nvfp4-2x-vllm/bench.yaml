@@ -1,0 +1,6 @@
+repo: https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks.git
+# WORKER_IP and the CX7 interface go in the checkout's .env.
+setup: |
+  [ -f .env ] || cp .env.sample .env
+  ./download.sh
+start: ./start.sh --no-download

@@ -1,1 +1,5 @@
-port: 8888
+repo: https://github.com/MiaAI-Lab/Qwen3.8-27B-SGLang-DGX-Spark.git
+setup: '[ -f .env ] || cp .env.sample .env'
+# DSpark speculative decoding, the recipe's first-listed mode. ./start.sh (MTP)
+# and ./start-dflash.sh serve the same weights.
+start: ./start-dspark.sh

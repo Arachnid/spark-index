@@ -69,7 +69,7 @@ notes: Optional. Anything a reader should know, e.g. tasks that timed out.
 
 ### Run a benchmark on your own Sparks
 
-`npm run bench -- <recipe-id> <benchmark-id> --hosts spark1[,spark2…]` installs the recipe, runs the benchmark against it and writes this file for you, with a record of the run in `runs/` for the score to link to. It needs a script for the recipe and one for the benchmark; [bench/README.md](bench/README.md) says how to write them, and `npm run bench -- --list` shows which exist.
+`npm run bench -- <recipe-id> <benchmark-id> --head spark1` installs the recipe on your head Spark, runs the benchmark against it and writes this file for you, with a record of the run in `runs/` for the score to link to. Every recipe has a `bench/recipes/<id>/bench.yaml` saying how to start and stop it; a benchmark needs a script, and [bench/README.md](bench/README.md) says how to write one.
 
 When a recipe has several scores that count on one benchmark, the site uses the most independent one (`spark`, then `independent`, then `lab`, then `other-lab`), then the highest value, then the newest.
 
