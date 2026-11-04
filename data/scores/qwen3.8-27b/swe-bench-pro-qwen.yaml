@@ -1,0 +1,10 @@
+benchmark: swe-bench-pro
+benchmark_version: Qwen-corrected public set
+value: 61.7
+provenance: lab
+setting: Claude Code, temperature 1.0, 256K context
+source:
+  title: Qwen3.8-27B model card
+  url: https://huggingface.co/Qwen/Qwen3.8-27B
+  date: '2026-08-14'
+notes: Qwen corrected some tasks in the original public set and re-ran every model, so this is neither plain v1 nor v2.

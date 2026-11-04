@@ -1,0 +1,9 @@
+benchmark: swe-bench-pro
+benchmark_version: v1
+value: 51.2
+provenance: lab
+setting: Meta's own scaffold (bash and file-edit tools), high reasoning, mean of 4 runs
+source:
+  title: Muse Glimmer methodology
+  url: https://research.meta.ai/static/muse-glimmer-methodology
+  date: '2026-08-10'

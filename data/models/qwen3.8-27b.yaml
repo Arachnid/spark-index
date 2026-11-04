@@ -18,8 +18,9 @@ builds:
     format: MLX 4-bit
     bits: 4
     by: Vontra
-    url: https://huggingface.co/Vontra/Qwen3.8-27B-MLX-4bit
+    url: https://huggingface.co/TensorFold/Qwen3.8-27B-MLX-4bit
     size_gb: 19
+    notes: Formerly Vontra/Qwen3.8-27B-MLX-4bit, which now redirects here.
   radixark-nvfp4:
     label: RadixArk NVFP4
     format: NVFP4 W4A4, BF16 output head

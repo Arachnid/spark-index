@@ -1,0 +1,9 @@
+benchmark: terminal-bench
+benchmark_version: '2.1'
+value: 83.9
+provenance: lab
+setting: DeepSeek Harness, minimal mode, max effort
+source:
+  title: DeepSeek-V4-Flash-Vision-Exp model card
+  url: https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-Vision-Exp
+  date: '2026-08-31'

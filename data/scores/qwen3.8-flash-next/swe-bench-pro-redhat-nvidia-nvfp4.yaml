@@ -1,0 +1,11 @@
+benchmark: swe-bench-pro
+benchmark_version: not stated
+value: 62.8
+build: nvidia-nvfp4
+provenance: independent
+setting: Inspect with vLLM, one seed
+source:
+  title: Red Hat Qwen3.8-Flash-Next-NVFP4 model card
+  url: https://huggingface.co/RedHatAI/Qwen3.8-Flash-Next-NVFP4
+  date: '2026-10-05'
+notes: Published after v2 was released, but the card does not say which set.

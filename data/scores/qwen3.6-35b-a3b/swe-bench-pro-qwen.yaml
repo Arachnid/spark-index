@@ -1,0 +1,9 @@
+benchmark: swe-bench-pro
+benchmark_version: Qwen-corrected public set
+value: 49.5
+provenance: lab
+setting: bash and file-edit tools, temperature 1.0, 200K context
+source:
+  title: Qwen3.6-35B-A3B model card
+  url: https://huggingface.co/Qwen/Qwen3.6-35B-A3B
+  date: '2026-04-15'

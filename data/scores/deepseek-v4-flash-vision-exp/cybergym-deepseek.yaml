@@ -1,0 +1,10 @@
+benchmark: cybergym
+benchmark_version: not stated
+value: 75.3
+provenance: lab
+setting: DeepSeek Harness, minimal mode, max effort
+source:
+  title: DeepSeek-V4-Flash-Vision-Exp model card
+  url: https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-Vision-Exp
+  date: '2026-08-31'
+notes: The card doesn't give the CyberGym level or trials.

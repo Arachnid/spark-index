@@ -1,0 +1,10 @@
+benchmark: swe-bench-pro
+benchmark_version: v2
+value: 95.6
+provenance: independent
+setting: mini-SWE-agent, max effort, Scale v2 protocol
+source:
+  title: Scale SWE-Bench Pro v2 leaderboard
+  url: https://labs.scale.com/leaderboard/swe_bench_pro_public_v2
+  date: '2026-10-07'
+notes: ±1.3. Precision not stated. Far above every v1 figure on this site, and the same board gives 84.3 on its HARD-51 subset, which it defines as tasks most model families fail; treat with care.

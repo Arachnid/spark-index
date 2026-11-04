@@ -1,0 +1,9 @@
+benchmark: swe-bench-pro
+benchmark_version: not stated
+value: 76.9
+provenance: lab
+setting: OpenHands, temperature 1.0, 256K context; model warned against reward hacking, hacked solutions marked incorrect
+source:
+  title: Ornith-1.5-122B model card
+  url: https://huggingface.co/ornith-ai/Ornith-1.5-122B
+  date: '2026-10-16'

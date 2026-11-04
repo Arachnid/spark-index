@@ -21,6 +21,7 @@ builds:
     by: NVIDIA
     url: https://huggingface.co/nvidia/Qwen3.8-Flash-Next-FP4-Local
     size_gb: 103
+    notes: Trained with quantization-aware distillation, so it is not a plain quantization of the release.
   nvidia-nvfp4:
     label: NVIDIA NVFP4
     format: NVFP4 experts, BF16 dense layers, FP8 n-gram table
@@ -35,3 +36,4 @@ builds:
     by: Mia's AI Lab
     url: https://huggingface.co/Mia-AiLab/Qwen3.8-Flash-Next-NVFP4
     size_gb: 106
+    notes: The repository is not public as of November 2026.
