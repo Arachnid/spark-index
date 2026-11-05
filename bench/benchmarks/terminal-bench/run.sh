@@ -33,6 +33,33 @@ tasks=${BENCHMARK_TASKS:-66}
 
 harbor_docker
 
+# Pull every task's images first, a few at a time and with retries. Left to
+# Harbor, the first trials pull them all at once, and Docker Hub resets enough
+# of those connections that trials fail before their agent runs.
+log "pulling the images of $dataset"
+harbor dataset download "$dataset" -o "$OUT_DIR/tasks" >/dev/null
+python3 -c '
+import sys, tomllib, pathlib
+images = set()
+for f in pathlib.Path(sys.argv[1]).rglob("task.toml"):
+    def walk(d):
+        for k, v in d.items():
+            if isinstance(v, dict): walk(v)
+            elif k == "docker_image" and v: images.add(v)
+    walk(tomllib.loads(f.read_text()))
+print("\n".join(sorted(images)))
+' "$OUT_DIR/tasks" >"$OUT_DIR/images.txt"
+pull() {
+  for attempt in 1 2 3 4 5 6 7 8; do
+    docker pull --quiet "$1" >/dev/null 2>&1 && return 0
+    sleep $((attempt * 15))
+  done
+  echo "could not pull $1" >&2; return 1
+}
+export -f pull
+xargs -P 3 -I{} bash -c 'pull "$1"' _ {} <"$OUT_DIR/images.txt" || die "some images could not be pulled (above)"
+log "$(wc -l <"$OUT_DIR/images.txt") images ready"
+
 log "harbor run -d $dataset -a $agent -m openai/$MODEL, $trials trial(s) per task, $concurrency at once"
 # shellcheck disable=SC2086
 harbor run \
