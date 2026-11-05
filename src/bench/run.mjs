@@ -54,6 +54,10 @@ export function remoteScript({ env, lib, script }) {
     .join('\n');
   return [
     '#!/usr/bin/env bash',
+    // SSH runs this in a shell that hasn't read ~/.profile, so tools installed
+    // with pip --user (the recipes' `hf`) aren't on PATH as they are when you
+    // log in.
+    'case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) [ -d "$HOME/.local/bin" ] && PATH="$HOME/.local/bin:$PATH" ;; esac',
     exports,
     'export SPARKPLUG_WORKDIR="${SPARKPLUG_ROOT:-$HOME/spark-plug}/$SPARKPLUG_RECIPE"',
     'mkdir -p "$SPARKPLUG_WORKDIR" && cd "$SPARKPLUG_WORKDIR"',
