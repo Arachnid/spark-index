@@ -18,6 +18,11 @@
 #   TB_DATASET      the Harbor dataset (default terminal-bench/terminal-bench@<version>.0:
 #                   the hub wants the org prefix and three-part versions, and an
 #                   unprefixed terminal-bench is Terminal-Bench 2)
+#   TB_LLM_TIMEOUT  seconds Terminus-2 waits for one reply (default 3600). LiteLLM's
+#                   own 600 is too short for a Spark: a recipe serving 8 at once
+#                   decodes ~17 tokens/s a request, so a long think (up to the
+#                   server's 32,768-token reply budget) takes half an hour; at
+#                   600 s it times out three times and the trial ends in an error
 #   TB_HARBOR_ARGS  anything else to pass to `harbor run`
 
 source "$BENCH_LIB"
@@ -30,6 +35,8 @@ version=$BENCHMARK_VERSION
 while [ "$(printf '%s' "$version" | tr -cd . | wc -c)" -lt 2 ]; do version=$version.0; done
 dataset=${TB_DATASET:-terminal-bench/terminal-bench@$version}
 tasks=${BENCHMARK_TASKS:-66}
+agent_args=()
+[ "$agent" = terminus-2 ] && agent_args=(--ak "llm_kwargs={\"timeout\": ${TB_LLM_TIMEOUT:-3600}}")
 
 harbor_docker
 
@@ -72,6 +79,7 @@ harbor run \
   --jobs-dir "$OUT_DIR/jobs" \
   --job-name sparkplug \
   --yes \
+  "${agent_args[@]}" \
   ${TB_HARBOR_ARGS:-}
 
 plural=s; [ "$trials" = 1 ] && plural=
