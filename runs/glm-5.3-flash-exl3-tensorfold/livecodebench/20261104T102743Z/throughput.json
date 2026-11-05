@@ -1,0 +1,120 @@
+{
+ "1": {
+  "wall_s": 45.25095009803772,
+  "tokens": 4096,
+  "aggregate_tps": 90.51743645439215,
+  "per_stream_tps": 90.52177805642445,
+  "mean_ttft_s": 0.0,
+  "requests": [
+   {
+    "seconds": 45.24877977371216,
+    "completion_tokens": 4096,
+    "prompt_tokens": 374,
+    "ttft": null,
+    "server_tps": null
+   }
+  ]
+ },
+ "4": {
+  "wall_s": 106.51221299171448,
+  "tokens": 16384,
+  "aggregate_tps": 153.8227358141033,
+  "per_stream_tps": 40.85196335851322,
+  "mean_ttft_s": 0.0,
+  "requests": [
+   {
+    "seconds": 95.29198145866394,
+    "completion_tokens": 4096,
+    "prompt_tokens": 374,
+    "ttft": null,
+    "server_tps": null
+   },
+   {
+    "seconds": 98.41372585296631,
+    "completion_tokens": 4096,
+    "prompt_tokens": 1011,
+    "ttft": null,
+    "server_tps": null
+   },
+   {
+    "seconds": 106.51107406616211,
+    "completion_tokens": 4096,
+    "prompt_tokens": 513,
+    "ttft": null,
+    "server_tps": null
+   },
+   {
+    "seconds": 101.51713585853577,
+    "completion_tokens": 4096,
+    "prompt_tokens": 540,
+    "ttft": null,
+    "server_tps": null
+   }
+  ]
+ },
+ "8": {
+  "wall_s": 170.3939380645752,
+  "tokens": 32768,
+  "aggregate_tps": 192.3073107658426,
+  "per_stream_tps": 25.422234989471736,
+  "mean_ttft_s": 0.0,
+  "requests": [
+   {
+    "seconds": 168.18881058692932,
+    "completion_tokens": 4096,
+    "prompt_tokens": 374,
+    "ttft": null,
+    "server_tps": null
+   },
+   {
+    "seconds": 152.51385688781738,
+    "completion_tokens": 4096,
+    "prompt_tokens": 1010,
+    "ttft": null,
+    "server_tps": null
+   },
+   {
+    "seconds": 163.39981937408447,
+    "completion_tokens": 4096,
+    "prompt_tokens": 512,
+    "ttft": null,
+    "server_tps": null
+   },
+   {
+    "seconds": 170.3919198513031,
+    "completion_tokens": 4096,
+    "prompt_tokens": 540,
+    "ttft": null,
+    "server_tps": null
+   },
+   {
+    "seconds": 144.45959949493408,
+    "completion_tokens": 4096,
+    "prompt_tokens": 617,
+    "ttft": null,
+    "server_tps": null
+   },
+   {
+    "seconds": 163.2587525844574,
+    "completion_tokens": 4096,
+    "prompt_tokens": 955,
+    "ttft": null,
+    "server_tps": null
+   },
+   {
+    "seconds": 168.58543634414673,
+    "completion_tokens": 4096,
+    "prompt_tokens": 352,
+    "ttft": null,
+    "server_tps": null
+   },
+   {
+    "seconds": 161.7537989616394,
+    "completion_tokens": 4096,
+    "prompt_tokens": 581,
+    "ttft": null,
+    "server_tps": null
+   }
+  ]
+ }
+}

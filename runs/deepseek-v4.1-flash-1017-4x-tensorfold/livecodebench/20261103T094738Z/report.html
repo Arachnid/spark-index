@@ -1,0 +1,383 @@
+<title>DeepSeek vs GLM LiveCodeBench</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Serif:wght@500;600&display=swap">
+<style>
+/* Layout: single measured column like a lab run report; tables and charts may break out to a wider band. */
+:root {
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --fg: #151a22;
+  --fg2: #475063;
+  --muted: #6c7484;
+  --rule: #dde1e8;
+  --grid: #e9ecf1;
+  --ds: #2a78d6;
+  --glm: #eb6834;
+  --nmark: #a3aab6;
+  --tag-bg: #e8edf5;
+  --f-display: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111318; --surface: #191c22; --fg: #eceef2; --fg2: #b5bcc9; --muted: #8a92a1;
+    --rule: #2d323b; --grid: #242931; --ds: #3987e5; --glm: #d95926; --nmark: #5f6673; --tag-bg: #232a36;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111318; --surface: #191c22; --fg: #eceef2; --fg2: #b5bcc9; --muted: #8a92a1;
+  --rule: #2d323b; --grid: #242931; --ds: #3987e5; --glm: #d95926; --nmark: #5f6673; --tag-bg: #232a36;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font: 400 15px/1.6 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+main { max-width: 860px; margin: 0 auto; padding-block: 40px 64px; display: grid; gap: 44px; }
+section { display: grid; gap: 14px; min-width: 0; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 600; text-wrap: balance; margin: 0; line-height: 1.2; }
+h1 { font-size: clamp(1.7rem, 4.5vw, 2.4rem); letter-spacing: -0.01em; }
+h2 { font-size: 1.4rem; padding-top: 18px; border-top: 1px solid var(--rule); }
+h3 { font-size: 1.05rem; font-family: var(--f-body); font-weight: 600; }
+p { margin: 0; max-width: 68ch; color: var(--fg2); }
+p b, li b { color: var(--fg); font-weight: 600; }
+.eyebrow { font: 500 12px/1.4 var(--f-data); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+header { display: grid; gap: 12px; }
+.lede { font-size: 1.07rem; color: var(--fg); }
+.mut { color: var(--muted); }
+.num, td, .kpi .v, .bval { font-variant-numeric: tabular-nums; }
+
+/* KPI tiles */
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; }
+.kpi { background: var(--surface); padding: 14px 16px; display: grid; gap: 2px; align-content: start; }
+.kpi .k { font: 500 11px/1.3 var(--f-data); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+.kpi .v { font: 500 1.9rem/1.1 var(--f-data); }
+.kpi .s { font-size: 12.5px; color: var(--muted); }
+.kpi.sub .v { font-size: 1.45rem; color: var(--fg2); }
+@media (max-width: 640px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.key { display: inline-block; width: 10px; height: 10px; border-radius: 2px; flex: none; vertical-align: -1px; margin-right: 6px; }
+.key.ds { background: var(--ds); } .key.glm { background: var(--glm); }
+.key.ext.ds { background: color-mix(in srgb, var(--ds) 38%, var(--surface)); }
+.key.ext.glm { background: color-mix(in srgb, var(--glm) 38%, var(--surface)); }
+.key.dot { border-radius: 50%; }
+.key.both { background: var(--nmark); }
+.key.none { background: transparent; box-shadow: inset 0 0 0 2px var(--nmark); }
+
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 18px 18px 14px; display: grid; gap: 12px; min-width: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--fg2); }
+.legend span { display: inline-flex; align-items: center; }
+.cap { font-size: 13px; color: var(--muted); max-width: 72ch; }
+
+/* score bars */
+.bars { display: grid; gap: 16px; }
+.bgroup { display: grid; gap: 5px; }
+.glabel { font-weight: 600; font-size: 14px; }
+.glabel span { font: 400 12px var(--f-data); color: var(--muted); margin-left: 6px; }
+.brow { display: grid; grid-template-columns: 76px minmax(0, 1fr) 150px; gap: 10px; align-items: center; cursor: default; }
+.bname { font-size: 13px; color: var(--fg2); }
+.btrack { display: flex; gap: 2px; height: 20px; background: var(--grid); border-radius: 0 4px 4px 0; }
+.seg { display: block; height: 100%; }
+.seg:first-child { border-radius: 0; }
+.seg.ext { border-radius: 0 4px 4px 0; }
+.seg[style*="width:0.00%"] { display: none; }
+.seg.ds { background: var(--ds); } .seg.glm { background: var(--glm); }
+.seg.ext.ds { background: color-mix(in srgb, var(--ds) 38%, var(--surface)); }
+.seg.ext.glm { background: color-mix(in srgb, var(--glm) 38%, var(--surface)); }
+.brow:hover .btrack { outline: 1px solid var(--fg2); outline-offset: 2px; }
+.bval { font: 400 13px var(--f-data); white-space: nowrap; }
+.bval b { font-weight: 500; color: var(--fg); }
+.bval i { font-style: normal; color: var(--muted); font-size: 12px; margin-left: 4px; }
+@media (max-width: 520px) {
+  .brow { grid-template-columns: 64px minmax(0, 1fr); }
+  .bval { grid-column: 2; margin-top: -2px; }
+}
+
+/* tables */
+.tw { overflow-x: auto; min-width: 0; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { padding: 6px 10px; text-align: right; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+td { font-family: var(--f-data); font-size: 13px; }
+thead th { white-space: normal; min-width: 64px; font: 500 11px/1.3 var(--f-data); letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--rule); vertical-align: bottom; }
+th:first-child, td.l, tbody th { text-align: left; }
+tbody th { font-weight: 500; }
+td.l { font-family: var(--f-body); font-size: 13.5px; }
+tr.sep td, tr.sep th { border-top: 1px solid var(--rule); }
+th.mname { vertical-align: top; border-bottom: 1px solid var(--rule); }
+.tag { font: 500 10.5px var(--f-data); background: var(--tag-bg); color: var(--fg2); padding: 1px 6px; border-radius: 3px; margin-left: 6px; letter-spacing: 0.02em; }
+
+/* charts */
+.chart { overflow-x: auto; min-width: 0; }
+.chart svg { display: block; width: 100%; height: auto; min-width: 520px; }
+#scatterwrap svg { max-width: 600px; margin: 0 auto; }
+svg .grid { stroke: var(--grid); stroke-width: 1; }
+svg .ref { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+svg .diag { stroke: var(--rule); stroke-width: 1.5; }
+svg .ax { fill: var(--muted); font: 400 12px var(--f-data); }
+svg .ax.strong { fill: var(--fg2); }
+svg .dl { fill: var(--fg); font: 500 13px var(--f-body); }
+svg .ln { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+svg .ln.ds { stroke: var(--ds); } svg .ln.glm { stroke: var(--glm); }
+svg .xh { stroke: var(--fg2); stroke-width: 1; }
+svg .dot { stroke: var(--surface); stroke-width: 2; }
+svg .dot.ds { fill: var(--ds); } svg .dot.glm { fill: var(--glm); }
+svg .pt { stroke: var(--surface); stroke-width: 1.5; }
+svg .pt.both { fill: var(--nmark); }
+svg .pt.ds { fill: var(--ds); }
+svg .pt.glm { fill: var(--glm); }
+svg .pt.none { fill: var(--surface); stroke: var(--fg2); stroke-width: 1.5; }
+svg .pt:hover { stroke: var(--fg); stroke-width: 2; }
+
+.split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 700px) { .split { grid-template-columns: minmax(0, 1fr); } }
+.facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 18px; margin: 0; font-size: 14px; }
+.facts dt { color: var(--muted); font: 500 12px/1.9 var(--f-data); text-transform: uppercase; letter-spacing: 0.04em; }
+.facts dd { margin: 0; color: var(--fg2); min-width: 0; }
+@media (max-width: 560px) { .facts { grid-template-columns: minmax(0, 1fr); gap: 0; } .facts dd { margin-bottom: 8px; } }
+ul { margin: 0; padding-left: 1.2em; color: var(--fg2); display: grid; gap: 6px; max-width: 72ch; }
+.note { font-size: 13.5px; border-left: 2px solid var(--rule); padding-left: 12px; color: var(--fg2); max-width: 72ch; }
+footer { font-size: 13px; color: var(--muted); display: grid; gap: 8px; border-top: 1px solid var(--rule); padding-top: 16px; }
+footer p { color: var(--muted); }
+sup { font-size: 0.7em; }
+a { color: var(--ds); }
+:focus-visible { outline: 2px solid var(--ds); outline-offset: 2px; }
+
+#tip { position: fixed; z-index: 20; pointer-events: none; max-width: 300px; background: var(--fg); color: var(--bg); font: 400 12.5px/1.45 var(--f-data); padding: 7px 9px; border-radius: 5px; box-shadow: 0 4px 14px rgba(0,0,0,.18); }
+</style>
+
+<main>
+<header>
+  <div class="eyebrow">LiveCodeBench v6 · code generation · 4× DGX Spark, TP4 · Nov 2026</div>
+  <h1>DeepSeek V4.1 Flash vs GLM-5.3 Flash on LiveCodeBench</h1>
+  <p class="lede">At a 128K-token budget, DeepSeek-V4.1-Flash solved <b>159 of 175</b> problems (90.9%) and GLM-5.3-Flash solved <b>131</b> (74.9%). The gap is 16.0 points and it is real. GLM also spent about <b>3.13× as many tokens</b> to get there.</p>
+  <p>On easy and medium problems both models finished inside 32K tokens and were nearly identical. The difference sits in the hard tail: DeepSeek usually finishes there, while GLM often reasons until it hits the 128K cap.</p>
+</header>
+
+<div class="kpis" aria-label="Headline scores">
+  <div class="kpi"><div class="k"><i class="key ds"></i>DeepSeek · 128K</div><div class="v">90.9%</div><div class="s">159/175 · ±2.2 SE</div></div>
+  <div class="kpi"><div class="k"><i class="key glm"></i>GLM · 128K</div><div class="v">74.9%</div><div class="s">131/175 · ±3.3 SE</div></div>
+  <div class="kpi sub"><div class="k"><i class="key ext ds"></i>DeepSeek · 32K</div><div class="v">78.3%</div><div class="s">137/175 · first run</div></div>
+  <div class="kpi sub"><div class="k"><i class="key ext glm"></i>GLM · 32K equiv.</div><div class="v">52.0%</div><div class="s">91/175 · passes ≤ 32,768 tok</div></div>
+</div>
+
+<section id="scores">
+  <h2>Scores by difficulty</h2>
+  <p>pass@1 with one sample per problem. The solid part of each bar is what the model solved within 32K tokens; the lighter extension is what it needed more than 32K tokens for. DeepSeek's 32K figure comes from its actual 32K run; GLM's is derived from its 128K run by counting only passes that used 32,768 tokens or fewer.</p>
+  <div class="panel">
+    <div class="legend">
+      <span><i class="key ds"></i>DeepSeek</span><span><i class="key glm"></i>GLM</span>
+      <span class="mut">solid = solved within 32K · light = solved only with 32K–128K tokens</span>
+    </div>
+    <div class="bars"><div class="bgroup"><div class="glabel">All problems <span>n=175</span></div><div class="brow" data-tip="DeepSeek · All problems: 159/175 = 90.9% at 128k; 137/175 = 78.3% within 32k">
+  <span class="bname">DeepSeek</span>
+  <div class="btrack"><span class="seg ds" style="width:78.29%"></span><span class="seg ds ext" style="width:12.57%"></span></div>
+  <span class="bval"><b>90.9%</b> <i>78.3% at 32k</i></span>
+</div><div class="brow" data-tip="GLM · All problems: 131/175 = 74.9% at 128k; 91/175 = 52.0% within 32k">
+  <span class="bname">GLM</span>
+  <div class="btrack"><span class="seg glm" style="width:52.00%"></span><span class="seg glm ext" style="width:22.86%"></span></div>
+  <span class="bval"><b>74.9%</b> <i>52.0% at 32k</i></span>
+</div></div><div class="bgroup"><div class="glabel">Easy <span>n=43</span></div><div class="brow" data-tip="DeepSeek · Easy: 43/43 = 100.0% at 128k; 43/43 = 100.0% within 32k">
+  <span class="bname">DeepSeek</span>
+  <div class="btrack"><span class="seg ds" style="width:100.00%"></span><span class="seg ds ext" style="width:0.00%"></span></div>
+  <span class="bval"><b>100.0%</b> <i>100.0% at 32k</i></span>
+</div><div class="brow" data-tip="GLM · Easy: 43/43 = 100.0% at 128k; 43/43 = 100.0% within 32k">
+  <span class="bname">GLM</span>
+  <div class="btrack"><span class="seg glm" style="width:100.00%"></span><span class="seg glm ext" style="width:0.00%"></span></div>
+  <span class="bval"><b>100.0%</b> <i>100.0% at 32k</i></span>
+</div></div><div class="bgroup"><div class="glabel">Medium <span>n=52</span></div><div class="brow" data-tip="DeepSeek · Medium: 49/52 = 94.2% at 128k; 47/52 = 90.4% within 32k">
+  <span class="bname">DeepSeek</span>
+  <div class="btrack"><span class="seg ds" style="width:90.38%"></span><span class="seg ds ext" style="width:3.85%"></span></div>
+  <span class="bval"><b>94.2%</b> <i>90.4% at 32k</i></span>
+</div><div class="brow" data-tip="GLM · Medium: 44/52 = 84.6% at 128k; 35/52 = 67.3% within 32k">
+  <span class="bname">GLM</span>
+  <div class="btrack"><span class="seg glm" style="width:67.31%"></span><span class="seg glm ext" style="width:17.31%"></span></div>
+  <span class="bval"><b>84.6%</b> <i>67.3% at 32k</i></span>
+</div></div><div class="bgroup"><div class="glabel">Hard <span>n=80</span></div><div class="brow" data-tip="DeepSeek · Hard: 67/80 = 83.8% at 128k; 47/80 = 58.8% within 32k">
+  <span class="bname">DeepSeek</span>
+  <div class="btrack"><span class="seg ds" style="width:58.75%"></span><span class="seg ds ext" style="width:25.00%"></span></div>
+  <span class="bval"><b>83.8%</b> <i>58.8% at 32k</i></span>
+</div><div class="brow" data-tip="GLM · Hard: 44/80 = 55.0% at 128k; 13/80 = 16.2% within 32k">
+  <span class="bname">GLM</span>
+  <div class="btrack"><span class="seg glm" style="width:16.25%"></span><span class="seg glm ext" style="width:38.75%"></span></div>
+  <span class="bval"><b>55.0%</b> <i>16.2% at 32k</i></span>
+</div></div></div>
+  </div>
+  <div class="tw"><table>
+    <thead><tr><th>Slice</th><th>n</th><th>DeepSeek 128K</th><th>GLM 128K</th><th>DeepSeek 32K</th><th>GLM 32K equiv.</th></tr></thead>
+    <tbody><tr><th>All problems</th><td>175</td><td>159 <span class='mut'>(90.9%)</span></td><td>131 <span class='mut'>(74.9%)</span></td><td>137 <span class='mut'>(78.3%)</span></td><td>91 <span class='mut'>(52.0%)</span></td></tr><tr><th>Easy</th><td>43</td><td>43 <span class='mut'>(100.0%)</span></td><td>43 <span class='mut'>(100.0%)</span></td><td>43 <span class='mut'>(100.0%)</span></td><td>43 <span class='mut'>(100.0%)</span></td></tr><tr><th>Medium</th><td>52</td><td>49 <span class='mut'>(94.2%)</span></td><td>44 <span class='mut'>(84.6%)</span></td><td>47 <span class='mut'>(90.4%)</span></td><td>35 <span class='mut'>(67.3%)</span></td></tr><tr><th>Hard</th><td>80</td><td>67 <span class='mut'>(83.8%)</span></td><td>44 <span class='mut'>(55.0%)</span></td><td>47 <span class='mut'>(58.8%)</span></td><td>13 <span class='mut'>(16.2%)</span></td></tr></tbody>
+  </table></div>
+  <h3>Is the gap meaningful?</h3>
+  <p>With n = 175 and one sample each, a single score has a standard error of about ±3.3 points near 75% (±2.2 near 91%). Taken as two independent scores, a 16.0-point gap is roughly four standard errors. The paired view is stronger: both models saw the same problems, and they disagreed on 31+3 of them, with DeepSeek winning 31 and GLM 3 (exact McNemar p ≈ 8×10⁻⁷). At 32K the split is 48 to 2 (p ≈ 2×10⁻¹²). Easy problems are saturated for both models at 43/43, so they carry no signal.</p>
+</section>
+
+<section id="tokens">
+  <h2>Tokens per problem</h2>
+  <p>Completion tokens include the reasoning trace. All figures are from the final 128K results; for DeepSeek that means its 32K answers plus the 26 reruns that replaced the answers cut off at 32K.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Model</th><th>Slice</th><th>n</th><th>Total</th><th>Mean</th><th>Median</th><th>p90</th></tr></thead>
+    <tbody><tr><th rowspan='6' class='mname'><i class='key ds'></i>DeepSeek</th><td class='l'>All</td><td>175</td><td>2,611,572</td><td>14,923</td><td>5,497</td><td>37,101</td></tr><tr class="sep"><td class='l'>Easy</td><td>43</td><td>16,330</td><td>380</td><td>311</td><td>758</td></tr><tr><td class='l'>Medium</td><td>52</td><td>363,976</td><td>7,000</td><td>3,302</td><td>18,758</td></tr><tr><td class='l'>Hard</td><td>80</td><td>2,231,266</td><td>27,891</td><td>18,964</td><td>57,801</td></tr><tr class="sep"><td class='l'>Passed</td><td>159</td><td>2,012,023</td><td>12,654</td><td>4,599</td><td>35,596</td></tr><tr><td class='l'>Failed</td><td>16</td><td>599,549</td><td>37,472</td><td>12,818</td><td>128,221</td></tr><tr><th rowspan='6' class='mname'><i class='key glm'></i>GLM</th><td class='l'>All</td><td>175</td><td>8,169,730</td><td>46,684</td><td>23,726</td><td>131,072</td></tr><tr class="sep"><td class='l'>Easy</td><td>43</td><td>63,544</td><td>1,478</td><td>1,067</td><td>2,682</td></tr><tr><td class='l'>Medium</td><td>52</td><td>1,291,701</td><td>24,840</td><td>8,988</td><td>57,819</td></tr><tr><td class='l'>Hard</td><td>80</td><td>6,814,485</td><td>85,181</td><td>86,822</td><td>131,072</td></tr><tr class="sep"><td class='l'>Passed</td><td>131</td><td>3,345,064</td><td>25,535</td><td>5,353</td><td>82,581</td></tr><tr><td class='l'>Failed</td><td>44</td><td>4,824,666</td><td>109,652</td><td>131,072</td><td>131,072</td></tr></tbody>
+  </table></div>
+  <div class="panel">
+    <h3>Cumulative share of problems finished by a given token count</h3>
+    <div class="legend"><span><i class="key ds"></i>DeepSeek (128K final)</span><span><i class="key glm"></i>GLM (128K)</span><span class="mut">hover for exact shares</span></div>
+    <div class="chart"><svg id="cdf" viewBox="0 0 640 330" role="img" aria-label="Cumulative distribution of tokens per problem, DeepSeek vs GLM">
+<line x1="52" x2="620" y1="286.0" y2="286.0" class="grid"/><text x="44" y="290.0" class="ax" text-anchor="end">0%</text><line x1="52" x2="620" y1="220.0" y2="220.0" class="grid"/><text x="44" y="224.0" class="ax" text-anchor="end">25%</text><line x1="52" x2="620" y1="154.0" y2="154.0" class="grid"/><text x="44" y="158.0" class="ax" text-anchor="end">50%</text><line x1="52" x2="620" y1="88.0" y2="88.0" class="grid"/><text x="44" y="92.0" class="ax" text-anchor="end">75%</text><line x1="52" x2="620" y1="22.0" y2="22.0" class="grid"/><text x="44" y="26.0" class="ax" text-anchor="end">100%</text><line x1="101.1" x2="101.1" y1="22" y2="286" class="grid"/><text x="101.1" y="304" class="ax" text-anchor="middle">100</text><line x1="264.4" x2="264.4" y1="22" y2="286" class="grid"/><text x="264.4" y="304" class="ax" text-anchor="middle">1K</text><line x1="427.7" x2="427.7" y1="22" y2="286" class="grid"/><text x="427.7" y="304" class="ax" text-anchor="middle">10K</text><line x1="511.8" x2="511.8" y1="22" y2="286" class="ref"/><text x="511.8" y="304" class="ax strong" text-anchor="middle">32K cap</text><line x1="610.1" x2="610.1" y1="22" y2="286" class="ref"/><text x="610.1" y="304" class="ax strong" text-anchor="middle">128K cap</text><text x="336.0" y="324" class="ax" text-anchor="middle">completion tokens per problem (log scale)</text>
+<path d="M52.0,286.0 H72.8 V284.5 H75.9 V283.0 H88.8 V281.5 H95.2 V280.0 H112.3 V278.5 H118.6 V276.9 H121.4 V275.4 H124.0 V273.9 H126.0 V272.4 H130.4 V270.9 H132.7 V269.4 H138.8 V267.9 H146.7 V266.4 H156.4 V264.9 H163.8 V263.4 H171.6 V261.9 H176.4 V260.4 H176.9 V258.8 H178.6 V257.3 H178.8 V255.8 H181.6 V254.3 H181.6 V252.8 H182.9 V251.3 H183.2 V249.8 H189.8 V248.3 H194.1 V246.8 H196.7 V245.3 H198.5 V243.8 H199.6 V242.3 H200.7 V240.7 H201.7 V239.2 H202.2 V237.7 H205.4 V236.2 H206.7 V234.7 H217.2 V233.2 H223.7 V231.7 H224.7 V230.2 H225.8 V228.7 H227.3 V227.2 H228.7 V225.7 H229.8 V224.1 H232.6 V222.6 H232.8 V221.1 H235.8 V219.6 H240.6 V218.1 H246.8 V216.6 H247.9 V215.1 H251.0 V213.6 H257.0 V212.1 H261.4 V210.6 H265.5 V209.1 H267.0 V207.6 H267.2 V206.0 H270.5 V204.5 H275.2 V203.0 H277.2 V201.5 H277.7 V200.0 H282.4 V198.5 H289.9 V197.0 H290.3 V195.5 H298.2 V194.0 H304.8 V192.5 H306.3 V191.0 H307.1 V189.5 H307.3 V187.9 H308.7 V186.4 H312.4 V184.9 H315.7 V183.4 H321.1 V181.9 H321.2 V180.4 H332.1 V178.9 H334.1 V177.4 H334.8 V175.9 H336.1 V174.4 H337.3 V172.9 H347.0 V171.3 H350.5 V169.8 H351.1 V168.3 H355.6 V166.8 H357.6 V165.3 H364.1 V163.8 H368.8 V162.3 H371.6 V160.8 H372.6 V159.3 H373.6 V157.8 H377.2 V156.3 H380.6 V154.8 H385.2 V153.2 H386.1 V151.7 H391.5 V150.2 H391.8 V148.7 H393.6 V147.2 H397.7 V145.7 H401.4 V144.2 H401.6 V142.7 H402.5 V141.2 H402.9 V139.7 H408.7 V138.2 H409.1 V136.7 H413.6 V135.1 H416.8 V133.6 H416.8 V132.1 H419.0 V130.6 H419.2 V129.1 H421.7 V127.6 H422.8 V126.1 H425.5 V124.6 H431.1 V123.1 H431.7 V121.6 H436.5 V120.1 H436.9 V118.5 H438.2 V117.0 H440.9 V115.5 H445.2 V114.0 H446.3 V112.5 H448.3 V111.0 H451.1 V109.5 H451.4 V108.0 H452.0 V106.5 H453.2 V105.0 H459.3 V103.5 H460.0 V102.0 H463.1 V100.4 H463.2 V98.9 H464.0 V97.4 H464.7 V95.9 H465.0 V94.4 H469.1 V92.9 H472.8 V91.4 H473.0 V89.9 H473.3 V88.4 H474.0 V86.9 H477.7 V85.4 H480.4 V83.9 H480.8 V82.3 H481.6 V80.8 H481.9 V79.3 H484.8 V77.8 H486.9 V76.3 H489.0 V74.8 H490.4 V73.3 H492.0 V71.8 H496.3 V70.3 H497.4 V68.8 H497.6 V67.3 H499.3 V65.7 H502.1 V64.2 H505.1 V62.7 H510.1 V61.2 H512.1 V59.7 H513.1 V58.2 H513.7 V56.7 H514.6 V55.2 H517.5 V53.7 H518.2 V52.2 H518.4 V50.7 H519.2 V49.2 H521.6 V47.6 H523.0 V46.1 H524.2 V44.6 H525.2 V43.1 H525.8 V41.6 H536.0 V40.1 H536.6 V38.6 H538.3 V37.1 H548.5 V35.6 H549.4 V34.1 H572.1 V32.6 H577.7 V31.1 H579.0 V29.5 H580.1 V28.0 H599.5 V26.5 H606.9 V25.0 H610.1 V23.5 H610.1 V22.0" class="ln ds"/>
+<path d="M52.0,286.0 H131.3 V284.5 H155.1 V283.0 H157.7 V281.5 H162.0 V280.0 H166.1 V278.5 H167.8 V276.9 H168.1 V275.4 H176.6 V273.9 H180.9 V272.4 H182.7 V270.9 H184.1 V269.4 H188.3 V267.9 H211.0 V266.4 H218.4 V264.9 H232.3 V263.4 H236.8 V261.9 H254.0 V260.4 H255.7 V258.8 H256.5 V257.3 H258.4 V255.8 H263.8 V254.3 H265.8 V252.8 H269.0 V251.3 H276.2 V249.8 H279.0 V248.3 H279.8 V246.8 H279.9 V245.3 H281.6 V243.8 H283.7 V242.3 H284.0 V240.7 H284.4 V239.2 H285.6 V237.7 H286.1 V236.2 H287.8 V234.7 H288.6 V233.2 H289.8 V231.7 H294.1 V230.2 H300.9 V228.7 H301.4 V227.2 H307.4 V225.7 H309.6 V224.1 H312.3 V222.6 H314.8 V221.1 H315.7 V219.6 H316.5 V218.1 H322.6 V216.6 H325.3 V215.1 H328.4 V213.6 H328.7 V212.1 H330.2 V210.6 H330.6 V209.1 H331.9 V207.6 H332.3 V206.0 H332.8 V204.5 H335.4 V203.0 H342.9 V201.5 H351.0 V200.0 H352.3 V198.5 H352.8 V197.0 H355.6 V195.5 H357.7 V194.0 H366.6 V192.5 H366.9 V191.0 H369.3 V189.5 H378.7 V187.9 H379.2 V186.4 H383.3 V184.9 H384.1 V183.4 H394.5 V181.9 H397.6 V180.4 H418.6 V178.9 H421.6 V177.4 H429.2 V175.9 H434.6 V174.4 H444.0 V172.9 H448.3 V171.3 H449.2 V169.8 H449.8 V168.3 H462.7 V166.8 H464.9 V165.3 H466.9 V163.8 H468.8 V162.3 H469.8 V160.8 H474.1 V159.3 H479.8 V157.8 H482.5 V156.3 H485.1 V154.8 H488.9 V153.2 H491.9 V151.7 H498.3 V150.2 H498.9 V148.7 H503.7 V147.2 H506.0 V145.7 H507.9 V144.2 H509.4 V142.7 H514.6 V141.2 H524.4 V139.7 H524.6 V138.2 H525.0 V136.7 H525.9 V135.1 H530.6 V133.6 H531.4 V132.1 H531.7 V130.6 H535.1 V129.1 H535.2 V127.6 H535.6 V126.1 H536.4 V124.6 H537.6 V123.1 H541.2 V121.6 H542.3 V120.1 H542.6 V118.5 H546.0 V117.0 H548.0 V115.5 H549.3 V114.0 H549.3 V112.5 H549.9 V111.0 H550.9 V109.5 H551.2 V108.0 H552.4 V106.5 H553.6 V105.0 H557.2 V103.5 H560.8 V102.0 H561.3 V100.4 H563.0 V98.9 H565.8 V97.4 H569.5 V95.9 H573.0 V94.4 H577.3 V92.9 H577.6 V91.4 H578.5 V89.9 H580.5 V88.4 H581.3 V86.9 H582.2 V85.4 H583.8 V83.9 H584.4 V82.3 H593.0 V80.8 H597.7 V79.3 H599.0 V77.8 H603.8 V76.3 H608.8 V74.8 H609.3 V73.3 H609.5 V71.8 H610.1 V70.3 H610.1 V68.8 H610.1 V67.3 H610.1 V65.7 H610.1 V64.2 H610.1 V62.7 H610.1 V61.2 H610.1 V59.7 H610.1 V58.2 H610.1 V56.7 H610.1 V55.2 H610.1 V53.7 H610.1 V52.2 H610.1 V50.7 H610.1 V49.2 H610.1 V47.6 H610.1 V46.1 H610.1 V44.6 H610.1 V43.1 H610.1 V41.6 H610.1 V40.1 H610.1 V38.6 H610.1 V37.1 H610.1 V35.6 H610.1 V34.1 H610.1 V32.6 H610.1 V31.1 H610.1 V29.5 H610.1 V28.0 H610.1 V26.5 H610.1 V25.0 H610.1 V23.5 H610.1 V22.0" class="ln glm"/>
+<text x="329.4" y="74.8" class="dl" text-anchor="end">DeepSeek</text>
+<text x="505.5" y="191.0" class="dl" text-anchor="start">GLM</text>
+<g id="cdfx" style="display:none"><line y1="22" y2="286" class="xh"/><circle r="4.5" class="dot ds"/><circle r="4.5" class="dot glm"/></g>
+<rect x="52" y="22" width="568" height="264" fill="transparent" id="cdfhit"/>
+</svg></div>
+    <p class="cap">Read across at 50% to compare medians: about 5,497 tokens for DeepSeek against about 23,726 for GLM. GLM's line ends with a vertical jump at the 128K cap, where its unfinished answers pile up.</p>
+  </div>
+  <div class="split">
+    <div class="tw"><table>
+      <thead><tr><th>Difficulty</th><th>DeepSeek &gt;32K</th><th>GLM &gt;32K</th><th>DeepSeek hit 128K</th><th>GLM hit 128K</th></tr></thead>
+      <tbody><tr><td class='l'>All</td><td>26</td><td>80</td><td>2</td><td>33</td></tr><tr><td class='l'>Easy</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td class='l'>Medium</td><td>1</td><td>14</td><td>0</td><td>3</td></tr><tr><td class='l'>Hard</td><td>25</td><td>66</td><td>2</td><td>30</td></tr></tbody>
+    </table></div>
+    <p class="note">DeepSeek's 32K run was cut off on <b>26</b> problems. Rerun at 128K, 21 of them passed, 3 finished but failed, and 2 hit the 128K cap again. GLM went past 32K on <b>80</b> problems and hit the 128K cap on <b>33</b>, all but a few of them hard. Across the whole job DeepSeek actually generated 3,463,540 tokens, because the 26 cut-off 32K attempts were thrown away.</p>
+  </div>
+</section>
+
+<section id="speed">
+  <h2>Speed and time to solve</h2>
+  <p>The primary efficiency figure is tokens per problem, because it does not depend on the hardware: divide it by any projected tok/s to get time. The throughput below was measured separately on an idle server with 16 hard LCB prompts and 4,096 output tokens per request.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Streams</th><th>DeepSeek total tok/s</th><th>DeepSeek per stream</th><th>DeepSeek TTFT (s)</th><th>GLM total tok/s</th><th>GLM per stream</th></tr></thead>
+    <tbody><tr><td class='l'>1</td><td>61.1</td><td>61.1</td><td>0.32</td><td>90.5</td><td>90.5</td></tr><tr><td class='l'>4</td><td>123.0</td><td>32.3</td><td>0.91</td><td>153.8</td><td>40.9</td></tr><tr><td class='l'>8 <span class=tag>GLM serving</span></td><td>152.0</td><td>19.7</td><td>1.84</td><td>192.3</td><td>25.4</td></tr><tr><td class='l'>16 <span class=tag>DeepSeek serving</span></td><td>147.2</td><td>9.8</td><td>3.40</td><td><span class='mut'>not run</span></td><td><span class='mut'>not run</span></td></tr></tbody>
+  </table></div>
+  <p class="cap">GLM was not measured at 16 streams, and its TTFT was not recorded. DeepSeek's aggregate peaks at 8 streams; going to 16 adds nothing and halves per-stream speed.</p>
+  <h3>Derived time to solve all 175 problems (tokens ÷ tok/s)</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Measure</th><th>DeepSeek</th><th>GLM</th><th>GLM ÷ DeepSeek</th></tr></thead>
+    <tbody><tr><td class='l'>Completion tokens, all 175</td><td>2,611,572</td><td>8,169,730</td><td><b>3.13×</b></td></tr><tr><td class='l'>Tokens per solved problem</td><td>16,425</td><td>62,364</td><td><b>3.80×</b></td></tr><tr><td class='l'>Single stream: tokens ÷ 1-stream tok/s</td><td>11h 53m</td><td>25h 04m</td><td><b>2.11×</b></td></tr><tr><td class='l'>Serving: tokens ÷ aggregate tok/s (DeepSeek 16, GLM 8)</td><td>4h 56m</td><td>11h 48m</td><td><b>2.39×</b></td></tr><tr><td class='l'>Same 8 streams: tokens ÷ 8-stream tok/s</td><td>4h 46m</td><td>11h 48m</td><td><b>2.47×</b></td></tr><tr><td class='l'>Mean latency per problem at serving concurrency</td><td>25 min</td><td>31 min</td><td><b>1.21×</b></td></tr></tbody>
+  </table></div>
+  <p>GLM decodes faster, about 1.5× at one stream and 1.3× at 8 streams, but it writes 3.13× the tokens, so it still takes roughly <b>2.1× to 2.5×</b> as long to solve the set.</p>
+  <p class="note"><b>Wall clock, secondary.</b> DeepSeek: 3h 39m for the 32K run plus 3h 02m for the 128K rerun, 6h 41m in total. GLM: 11h 41m in one 128K pass, 1.75× DeepSeek. DeepSeek's real wall time includes the discarded 32K attempts (3,463,540 tokens ÷ 147 tok/s ≈ 6h 32m) and a long tail in the rerun, where the last answers ran alone for hours. A single 128K pass would likely have been shorter. GLM's measured wall time matches its projection closely.</p>
+</section>
+
+<section id="h2h">
+  <h2>Head to head, problem by problem</h2>
+  <div class="kpis">
+    <div class="kpi"><div class="k"><i class="key dot both"></i>Both solved</div><div class="v">128</div></div>
+    <div class="kpi"><div class="k"><i class="key dot ds"></i>DeepSeek only</div><div class="v">31</div></div>
+    <div class="kpi"><div class="k"><i class="key dot glm"></i>GLM only</div><div class="v">3</div></div>
+    <div class="kpi"><div class="k"><i class="key dot none"></i>Neither</div><div class="v">13</div></div>
+  </div>
+  <div class="panel" id="scatterwrap">
+    <h3>Tokens used on each problem</h3>
+    <div class="legend"><span><i class="key dot both"></i>both solved</span><span><i class="key dot ds"></i>DeepSeek only</span><span><i class="key dot glm"></i>GLM only</span><span><i class="key dot none"></i>neither</span></div>
+    <div class="chart"><svg viewBox="0 0 560 500" role="img" aria-label="Per-problem tokens, DeepSeek vs GLM, coloured by outcome"><line x1="97.4" x2="97.4" y1="16" y2="452" class="grid"/><text x="97.4" y="470" class="ax" text-anchor="middle">100</text><line x1="56" x2="540" y1="414.7" y2="414.7" class="grid"/><text x="48" y="418.7" class="ax" text-anchor="end">100</text><line x1="235.1" x2="235.1" y1="16" y2="452" class="grid"/><text x="235.1" y="470" class="ax" text-anchor="middle">1K</text><line x1="56" x2="540" y1="290.6" y2="290.6" class="grid"/><text x="48" y="294.6" class="ax" text-anchor="end">1K</text><line x1="372.8" x2="372.8" y1="16" y2="452" class="grid"/><text x="372.8" y="470" class="ax" text-anchor="middle">10K</text><line x1="56" x2="540" y1="166.6" y2="166.6" class="grid"/><text x="48" y="170.6" class="ax" text-anchor="end">10K</text><line x1="443.8" x2="443.8" y1="16" y2="452" class="ref"/><text x="443.8" y="470" class="ax" text-anchor="middle">32K</text><line x1="56" x2="540" y1="102.7" y2="102.7" class="ref"/><text x="48" y="106.7" class="ax" text-anchor="end">32K</text><line x1="526.7" x2="526.7" y1="16" y2="452" class="ref"/><text x="526.7" y="470" class="ax" text-anchor="middle">128K</text><line x1="56" x2="540" y1="28.0" y2="28.0" class="ref"/><text x="48" y="32.0" class="ax" text-anchor="end">128K</text><line x1="56.0" y1="452.0" x2="540.0" y2="16.0" class="diag"/><text x="479.9" y="86.1" class="ax" text-anchor="start" transform="rotate(-42 479.9 86.1)">equal tokens</text><text x="298.0" y="494" class="ax" text-anchor="middle">DeepSeek tokens (log)</text><text x="14" y="234.0" class="ax" text-anchor="middle" transform="rotate(-90 14 234.0)">GLM tokens (log)</text><circle cx="417.6" cy="56.2" r="4.5" class="pt both" data-tip="3674 (hard, leetcode) · solved by both · DeepSeek 21,157 tok · GLM 77,649 tok"/><circle cx="330.2" cy="93.0" r="4.5" class="pt both" data-tip="3677 (medium, leetcode) · solved by both · DeepSeek 4,906 tok · GLM 39,223 tok"/><circle cx="392.8" cy="123.0" r="4.5" class="pt both" data-tip="3687 (hard, leetcode) · solved by both · DeepSeek 13,980 tok · GLM 22,488 tok"/><circle cx="404.3" cy="73.7" r="4.5" class="pt both" data-tip="3692 (hard, leetcode) · solved by both · DeepSeek 16,936 tok · GLM 56,090 tok"/><circle cx="307.7" cy="83.1" r="4.5" class="pt both" data-tip="3696 (hard, leetcode) · solved by both · DeepSeek 3,368 tok · GLM 47,158 tok"/><circle cx="350.6" cy="68.2" r="4.5" class="pt both" data-tip="3697 (hard, leetcode) · solved by both · DeepSeek 6,904 tok · GLM 62,178 tok"/><circle cx="442.4" cy="29.0" r="4.5" class="pt both" data-tip="3701 (hard, leetcode) · solved by both · DeepSeek 32,009 tok · GLM 128,624 tok"/><circle cx="161.3" cy="262.9" r="4.5" class="pt both" data-tip="3704 (easy, leetcode) · solved by both · DeepSeek 291 tok · GLM 1,674 tok"/><circle cx="208.4" cy="279.5" r="4.5" class="pt both" data-tip="3705 (easy, leetcode) · solved by both · DeepSeek 640 tok · GLM 1,229 tok"/><circle cx="237.3" cy="276.0" r="4.5" class="pt both" data-tip="3708 (easy, leetcode) · solved by both · DeepSeek 1,037 tok · GLM 1,313 tok"/><circle cx="201.6" cy="246.5" r="4.5" class="pt both" data-tip="3709 (easy, leetcode) · solved by both · DeepSeek 571 tok · GLM 2,271 tok"/><circle cx="350.9" cy="200.3" r="4.5" class="pt both" data-tip="3714 (medium, leetcode) · solved by both · DeepSeek 6,928 tok · GLM 5,353 tok"/><circle cx="381.7" cy="73.0" r="4.5" class="pt both" data-tip="3717 (hard, leetcode) · solved by both · DeepSeek 11,606 tok · GLM 56,884 tok"/><circle cx="363.7" cy="138.3" r="4.5" class="pt both" data-tip="3720 (medium, leetcode) · solved by both · DeepSeek 8,583 tok · GLM 16,909 tok"/><circle cx="308.3" cy="191.8" r="4.5" class="pt both" data-tip="3721 (medium, leetcode) · solved by both · DeepSeek 3,398 tok · GLM 6,266 tok"/><circle cx="342.3" cy="105.7" r="4.5" class="pt both" data-tip="3722 (medium, leetcode) · solved by both · DeepSeek 6,007 tok · GLM 31,007 tok"/><circle cx="221.2" cy="281.7" r="4.5" class="pt both" data-tip="3723 (easy, leetcode) · solved by both · DeepSeek 792 tok · GLM 1,181 tok"/><circle cx="380.2" cy="124.9" r="4.5" class="pt both" data-tip="3725 (hard, leetcode) · solved by both · DeepSeek 11,322 tok · GLM 21,676 tok"/><circle cx="166.6" cy="296.6" r="4.5" class="pt both" data-tip="3731 (easy, leetcode) · solved by both · DeepSeek 318 tok · GLM 895 tok"/><circle cx="150.3" cy="289.6" r="4.5" class="pt both" data-tip="3736 (easy, leetcode) · solved by both · DeepSeek 242 tok · GLM 1,020 tok"/><circle cx="293.9" cy="120.1" r="4.5" class="pt both" data-tip="3737 (medium, leetcode) · solved by both · DeepSeek 2,671 tok · GLM 23,726 tok"/><circle cx="270.4" cy="242.0" r="4.5" class="pt both" data-tip="3739 (hard, leetcode) · solved by both · DeepSeek 1,805 tok · GLM 2,466 tok"/><circle cx="323.2" cy="161.3" r="4.5" class="pt both" data-tip="3743 (medium, leetcode) · solved by both · DeepSeek 4,360 tok · GLM 11,032 tok"/><circle cx="337.0" cy="136.8" r="4.5" class="pt both" data-tip="3744 (hard, leetcode) · solved by both · DeepSeek 5,497 tok · GLM 17,392 tok"/><circle cx="135.8" cy="357.3" r="4.5" class="pt both" data-tip="3747 (easy, leetcode) · solved by both · DeepSeek 190 tok · GLM 290 tok"/><circle cx="245.9" cy="239.4" r="4.5" class="pt both" data-tip="3748 (medium, leetcode) · solved by both · DeepSeek 1,198 tok · GLM 2,590 tok"/><circle cx="283.0" cy="244.3" r="4.5" class="pt both" data-tip="3750 (medium, leetcode) · solved by both · DeepSeek 2,226 tok · GLM 2,362 tok"/><circle cx="313.7" cy="135.3" r="4.5" class="pt both" data-tip="3751 (medium, leetcode) · solved by both · DeepSeek 3,723 tok · GLM 17,876 tok"/><circle cx="195.3" cy="275.8" r="4.5" class="pt both" data-tip="3753 (easy, leetcode) · solved by both · DeepSeek 514 tok · GLM 1,318 tok"/><circle cx="327.2" cy="117.8" r="4.5" class="pt both" data-tip="3754 (medium, leetcode) · solved by both · DeepSeek 4,666 tok · GLM 24,731 tok"/><circle cx="263.6" cy="251.1" r="4.5" class="pt both" data-tip="3759 (medium, leetcode) · solved by both · DeepSeek 1,611 tok · GLM 2,085 tok"/><circle cx="250.3" cy="254.3" r="4.5" class="pt both" data-tip="3760 (medium, leetcode) · solved by both · DeepSeek 1,289 tok · GLM 1,965 tok"/><circle cx="202.6" cy="271.4" r="4.5" class="pt both" data-tip="3764 (medium, leetcode) · solved by both · DeepSeek 580 tok · GLM 1,430 tok"/><circle cx="384.0" cy="100.6" r="4.5" class="pt both" data-tip="3765 (hard, leetcode) · solved by both · DeepSeek 12,051 tok · GLM 34,067 tok"/><circle cx="156.8" cy="315.0" r="4.5" class="pt both" data-tip="3768 (easy, leetcode) · solved by both · DeepSeek 270 tok · GLM 636 tok"/><circle cx="388.6" cy="85.0" r="4.5" class="pt both" data-tip="3771 (medium, leetcode) · solved by both · DeepSeek 13,017 tok · GLM 45,500 tok"/><circle cx="256.6" cy="274.5" r="4.5" class="pt both" data-tip="3773 (easy, leetcode) · solved by both · DeepSeek 1,433 tok · GLM 1,349 tok"/><circle cx="394.4" cy="36.4" r="4.5" class="pt both" data-tip="3776 (medium, leetcode) · solved by both · DeepSeek 14,339 tok · GLM 112,109 tok"/><circle cx="175.8" cy="351.7" r="4.5" class="pt both" data-tip="3778 (easy, leetcode) · solved by both · DeepSeek 371 tok · GLM 322 tok"/><circle cx="411.1" cy="165.4" r="4.5" class="pt both" data-tip="3779 (medium, leetcode) · solved by both · DeepSeek 18,968 tok · GLM 10,225 tok"/><circle cx="474.7" cy="28.6" r="4.5" class="pt both" data-tip="3781 (hard, leetcode) · solved by both · DeepSeek 55,007 tok · GLM 129,562 tok"/><circle cx="344.1" cy="131.3" r="4.5" class="pt both" data-tip="3783 (hard, leetcode) · solved by both · DeepSeek 6,183 tok · GLM 19,262 tok"/><circle cx="400.0" cy="52.9" r="4.5" class="pt both" data-tip="3784 (hard, leetcode) · solved by both · DeepSeek 15,773 tok · GLM 82,581 tok"/><circle cx="236.0" cy="272.9" r="4.5" class="pt both" data-tip="3785 (medium, leetcode) · solved by both · DeepSeek 1,015 tok · GLM 1,391 tok"/><circle cx="228.9" cy="219.7" r="4.5" class="pt both" data-tip="3788 (easy, leetcode) · solved by both · DeepSeek 901 tok · GLM 3,729 tok"/><circle cx="376.2" cy="87.8" r="4.5" class="pt both" data-tip="3789 (hard, leetcode) · solved by both · DeepSeek 10,592 tok · GLM 43,215 tok"/><circle cx="240.3" cy="150.2" r="4.5" class="pt both" data-tip="3791 (medium, leetcode) · solved by both · DeepSeek 1,090 tok · GLM 13,557 tok"/><circle cx="232.6" cy="268.1" r="4.5" class="pt both" data-tip="3793 (medium, leetcode) · solved by both · DeepSeek 958 tok · GLM 1,520 tok"/><circle cx="418.3" cy="71.9" r="4.5" class="pt both" data-tip="3794 (medium, leetcode) · solved by both · DeepSeek 21,408 tok · GLM 58,065 tok"/><circle cx="387.6" cy="210.9" r="4.5" class="pt both" data-tip="3795 (medium, leetcode) · solved by both · DeepSeek 12,808 tok · GLM 4,392 tok"/><circle cx="185.4" cy="272.2" r="4.5" class="pt both" data-tip="3799 (easy, leetcode) · solved by both · DeepSeek 435 tok · GLM 1,407 tok"/><circle cx="430.7" cy="41.0" r="4.5" class="pt both" data-tip="3801 (hard, leetcode) · solved by both · DeepSeek 26,348 tok · GLM 102,999 tok"/><circle cx="403.5" cy="87.6" r="4.5" class="pt both" data-tip="3805 (medium, leetcode) · solved by both · DeepSeek 16,706 tok · GLM 43,378 tok"/><circle cx="208.3" cy="277.6" r="4.5" class="pt both" data-tip="3809 (medium, leetcode) · solved by both · DeepSeek 639 tok · GLM 1,275 tok"/><circle cx="116.7" cy="354.1" r="4.5" class="pt both" data-tip="3811 (easy, leetcode) · solved by both · DeepSeek 138 tok · GLM 308 tok"/><circle cx="106.8" cy="325.6" r="4.5" class="pt both" data-tip="3817 (easy, leetcode) · solved by both · DeepSeek 117 tok · GLM 523 tok"/><circle cx="220.3" cy="154.2" r="4.5" class="pt both" data-tip="3832 (easy, leetcode) · solved by both · DeepSeek 780 tok · GLM 12,595 tok"/><circle cx="76.1" cy="365.3" r="4.5" class="pt both" data-tip="abc387_a (easy, atcoder) · solved by both · DeepSeek 70 tok · GLM 250 tok"/><circle cx="162.7" cy="311.6" r="4.5" class="pt both" data-tip="abc387_b (easy, atcoder) · solved by both · DeepSeek 298 tok · GLM 678 tok"/><circle cx="319.2" cy="171.2" r="4.5" class="pt both" data-tip="abc387_c (medium, atcoder) · solved by both · DeepSeek 4,079 tok · GLM 9,178 tok"/><circle cx="367.8" cy="75.2" r="4.5" class="pt both" data-tip="abc387_f (hard, atcoder) · solved by both · DeepSeek 9,190 tok · GLM 54,634 tok"/><circle cx="73.5" cy="373.7" r="4.5" class="pt both" data-tip="abc388_a (easy, atcoder) · solved by both · DeepSeek 67 tok · GLM 214 tok"/><circle cx="160.9" cy="291.1" r="4.5" class="pt both" data-tip="abc388_b (easy, atcoder) · solved by both · DeepSeek 289 tok · GLM 992 tok"/><circle cx="272.5" cy="199.7" r="4.5" class="pt both" data-tip="abc388_c (medium, atcoder) · solved by both · DeepSeek 1,867 tok · GLM 5,407 tok"/><circle cx="365.7" cy="134.6" r="4.5" class="pt both" data-tip="abc388_d (medium, atcoder) · solved by both · DeepSeek 8,879 tok · GLM 18,129 tok"/><circle cx="351.9" cy="107.1" r="4.5" class="pt both" data-tip="abc388_e (hard, atcoder) · solved by both · DeepSeek 7,049 tok · GLM 30,174 tok"/><circle cx="449.3" cy="52.0" r="4.5" class="pt both" data-tip="abc388_g (hard, atcoder) · solved by both · DeepSeek 35,974 tok · GLM 83,994 tok"/><circle cx="92.5" cy="363.8" r="4.5" class="pt both" data-tip="abc389_a (easy, atcoder) · solved by both · DeepSeek 92 tok · GLM 257 tok"/><circle cx="165.3" cy="298.5" r="4.5" class="pt both" data-tip="abc389_b (easy, atcoder) · solved by both · DeepSeek 311 tok · GLM 864 tok"/><circle cx="325.6" cy="112.5" r="4.5" class="pt both" data-tip="abc389_d (medium, atcoder) · solved by both · DeepSeek 4,538 tok · GLM 27,326 tok"/><circle cx="375.7" cy="52.7" r="4.5" class="pt both" data-tip="abc389_e (hard, atcoder) · solved by both · DeepSeek 10,499 tok · GLM 82,837 tok"/><circle cx="181.4" cy="241.8" r="4.5" class="pt both" data-tip="abc390_a (easy, atcoder) · solved by both · DeepSeek 407 tok · GLM 2,476 tok"/><circle cx="180.5" cy="256.3" r="4.5" class="pt both" data-tip="abc390_b (easy, atcoder) · solved by both · DeepSeek 401 tok · GLM 1,892 tok"/><circle cx="246.3" cy="213.0" r="4.5" class="pt both" data-tip="abc390_c (medium, atcoder) · solved by both · DeepSeek 1,206 tok · GLM 4,226 tok"/><circle cx="347.5" cy="104.5" r="4.5" class="pt both" data-tip="abc390_e (hard, atcoder) · solved by both · DeepSeek 6,552 tok · GLM 31,696 tok"/><circle cx="363.7" cy="127.0" r="4.5" class="pt both" data-tip="abc390_f (hard, atcoder) · solved by both · DeepSeek 8,583 tok · GLM 20,871 tok"/><circle cx="129.2" cy="348.4" r="4.5" class="pt both" data-tip="abc391_a (easy, atcoder) · solved by both · DeepSeek 170 tok · GLM 342 tok"/><circle cx="178.1" cy="278.9" r="4.5" class="pt both" data-tip="abc391_b (easy, atcoder) · solved by both · DeepSeek 385 tok · GLM 1,243 tok"/><circle cx="425.8" cy="93.1" r="4.5" class="pt both" data-tip="abc391_d (medium, atcoder) · solved by both · DeepSeek 24,246 tok · GLM 39,153 tok"/><circle cx="361.0" cy="140.0" r="4.5" class="pt both" data-tip="abc391_e (hard, atcoder) · solved by both · DeepSeek 8,203 tok · GLM 16,405 tok"/><circle cx="445.4" cy="47.5" r="4.5" class="pt both" data-tip="abc391_f (hard, atcoder) · solved by both · DeepSeek 33,652 tok · GLM 91,226 tok"/><circle cx="365.5" cy="65.1" r="4.5" class="pt both" data-tip="abc391_g (hard, atcoder) · solved by both · DeepSeek 8,848 tok · GLM 65,843 tok"/><circle cx="114.5" cy="251.7" r="4.5" class="pt both" data-tip="abc392_a (easy, atcoder) · solved by both · DeepSeek 133 tok · GLM 2,062 tok"/><circle cx="182.2" cy="258.0" r="4.5" class="pt both" data-tip="abc392_b (easy, atcoder) · solved by both · DeepSeek 413 tok · GLM 1,834 tok"/><circle cx="205.0" cy="223.5" r="4.5" class="pt both" data-tip="abc392_c (medium, atcoder) · solved by both · DeepSeek 604 tok · GLM 3,478 tok"/><circle cx="179.6" cy="295.2" r="4.5" class="pt both" data-tip="abc393_a (easy, atcoder) · solved by both · DeepSeek 395 tok · GLM 919 tok"/><circle cx="172.2" cy="223.9" r="4.5" class="pt both" data-tip="abc393_b (easy, atcoder) · solved by both · DeepSeek 349 tok · GLM 3,453 tok"/><circle cx="269.2" cy="274.2" r="4.5" class="pt both" data-tip="abc393_d (hard, atcoder) · solved by both · DeepSeek 1,767 tok · GLM 1,358 tok"/><circle cx="418.5" cy="48.0" r="4.5" class="pt both" data-tip="abc393_e (hard, atcoder) · solved by both · DeepSeek 21,486 tok · GLM 90,505 tok"/><circle cx="283.0" cy="108.9" r="4.5" class="pt both" data-tip="abc393_f (hard, atcoder) · solved by both · DeepSeek 2,227 tok · GLM 29,217 tok"/><circle cx="87.0" cy="262.5" r="4.5" class="pt both" data-tip="abc394_a (easy, atcoder) · solved by both · DeepSeek 84 tok · GLM 1,686 tok"/><circle cx="118.4" cy="391.8" r="4.5" class="pt both" data-tip="abc394_b (easy, atcoder) · solved by both · DeepSeek 142 tok · GLM 153 tok"/><circle cx="368.7" cy="61.7" r="4.5" class="pt both" data-tip="abc394_c (medium, atcoder) · solved by both · DeepSeek 9,333 tok · GLM 70,191 tok"/><circle cx="422.8" cy="58.8" r="4.5" class="pt both" data-tip="abc394_e (hard, atcoder) · solved by both · DeepSeek 23,057 tok · GLM 73,988 tok"/><circle cx="393.3" cy="79.5" r="4.5" class="pt both" data-tip="abc394_f (hard, atcoder) · solved by both · DeepSeek 14,101 tok · GLM 50,404 tok"/><circle cx="124.0" cy="352.7" r="4.5" class="pt both" data-tip="abc395_a (easy, atcoder) · solved by both · DeepSeek 156 tok · GLM 316 tok"/><circle cx="203.9" cy="240.7" r="4.5" class="pt both" data-tip="abc395_b (easy, atcoder) · solved by both · DeepSeek 593 tok · GLM 2,528 tok"/><circle cx="206.0" cy="203.8" r="4.5" class="pt both" data-tip="abc395_c (medium, atcoder) · solved by both · DeepSeek 614 tok · GLM 5,011 tok"/><circle cx="296.6" cy="88.4" r="4.5" class="pt both" data-tip="abc395_e (hard, atcoder) · solved by both · DeepSeek 2,797 tok · GLM 42,741 tok"/><circle cx="371.0" cy="92.7" r="4.5" class="pt both" data-tip="abc395_f (hard, atcoder) · solved by both · DeepSeek 9,700 tok · GLM 39,481 tok"/><circle cx="144.0" cy="371.7" r="4.5" class="pt both" data-tip="abc396_a (easy, atcoder) · solved by both · DeepSeek 218 tok · GLM 222 tok"/><circle cx="162.9" cy="287.1" r="4.5" class="pt both" data-tip="abc396_b (easy, atcoder) · solved by both · DeepSeek 299 tok · GLM 1,067 tok"/><circle cx="294.5" cy="221.3" r="4.5" class="pt both" data-tip="abc396_c (medium, atcoder) · solved by both · DeepSeek 2,701 tok · GLM 3,621 tok"/><circle cx="244.3" cy="252.3" r="4.5" class="pt both" data-tip="abc396_d (medium, atcoder) · solved by both · DeepSeek 1,165 tok · GLM 2,036 tok"/><circle cx="326.4" cy="80.3" r="4.5" class="pt both" data-tip="abc396_f (hard, atcoder) · solved by both · DeepSeek 4,599 tok · GLM 49,618 tok"/><circle cx="342.5" cy="49.2" r="4.5" class="pt both" data-tip="abc396_g (hard, atcoder) · solved by both · DeepSeek 6,027 tok · GLM 88,482 tok"/><circle cx="165.3" cy="364.0" r="4.5" class="pt both" data-tip="abc397_a (easy, atcoder) · solved by both · DeepSeek 311 tok · GLM 256 tok"/><circle cx="292.2" cy="239.1" r="4.5" class="pt both" data-tip="abc397_b (medium, atcoder) · solved by both · DeepSeek 2,597 tok · GLM 2,604 tok"/><circle cx="237.5" cy="203.4" r="4.5" class="pt both" data-tip="abc397_c (medium, atcoder) · solved by both · DeepSeek 1,040 tok · GLM 5,047 tok"/><circle cx="417.3" cy="32.8" r="4.5" class="pt both" data-tip="abc397_e (hard, atcoder) · solved by both · DeepSeek 21,044 tok · GLM 119,919 tok"/><circle cx="211.0" cy="236.7" r="4.5" class="pt both" data-tip="abc398_a (easy, atcoder) · solved by both · DeepSeek 668 tok · GLM 2,721 tok"/><circle cx="200.8" cy="238.7" r="4.5" class="pt both" data-tip="abc398_b (medium, atcoder) · solved by both · DeepSeek 563 tok · GLM 2,625 tok"/><circle cx="182.7" cy="278.9" r="4.5" class="pt both" data-tip="abc398_c (medium, atcoder) · solved by both · DeepSeek 416 tok · GLM 1,244 tok"/><circle cx="112.2" cy="331.2" r="4.5" class="pt both" data-tip="abc399_a (easy, atcoder) · solved by both · DeepSeek 128 tok · GLM 471 tok"/><circle cx="166.4" cy="275.4" r="4.5" class="pt both" data-tip="abc399_b (easy, atcoder) · solved by both · DeepSeek 317 tok · GLM 1,326 tok"/><circle cx="223.8" cy="224.9" r="4.5" class="pt both" data-tip="abc399_c (medium, atcoder) · solved by both · DeepSeek 828 tok · GLM 3,390 tok"/><circle cx="404.1" cy="84.6" r="4.5" class="pt both" data-tip="abc399_d (medium, atcoder) · solved by both · DeepSeek 16,867 tok · GLM 45,810 tok"/><circle cx="122.1" cy="368.4" r="4.5" class="pt both" data-tip="abc400_a (easy, atcoder) · solved by both · DeepSeek 151 tok · GLM 236 tok"/><circle cx="186.4" cy="231.0" r="4.5" class="pt both" data-tip="abc400_b (easy, atcoder) · solved by both · DeepSeek 443 tok · GLM 3,026 tok"/><circle cx="295.6" cy="240.4" r="4.5" class="pt both" data-tip="abc400_c (medium, atcoder) · solved by both · DeepSeek 2,750 tok · GLM 2,543 tok"/><circle cx="312.0" cy="72.8" r="4.5" class="pt both" data-tip="abc400_e (hard, atcoder) · solved by both · DeepSeek 3,617 tok · GLM 57,115 tok"/><circle cx="431.7" cy="37.4" r="4.5" class="pt both" data-tip="arc190_d (hard, atcoder) · solved by both · DeepSeek 26,759 tok · GLM 110,122 tok"/><circle cx="380.6" cy="92.0" r="4.5" class="pt both" data-tip="arc194_a (medium, atcoder) · solved by both · DeepSeek 11,394 tok · GLM 39,949 tok"/><circle cx="411.9" cy="49.9" r="4.5" class="pt both" data-tip="arc194_d (hard, atcoder) · solved by both · DeepSeek 19,233 tok · GLM 87,280 tok"/><circle cx="271.1" cy="212.8" r="4.5" class="pt both" data-tip="arc195_a (medium, atcoder) · solved by both · DeepSeek 1,826 tok · GLM 4,244 tok"/><circle cx="433.2" cy="84.9" r="4.5" class="pt both" data-tip="arc195_b (hard, atcoder) · solved by both · DeepSeek 27,477 tok · GLM 45,558 tok"/><circle cx="390.2" cy="50.5" r="4.5" class="pt both" data-tip="arc195_e (hard, atcoder) · solved by both · DeepSeek 13,387 tok · GLM 86,365 tok"/><circle cx="392.6" cy="63.8" r="4.5" class="pt both" data-tip="arc196_a (hard, atcoder) · solved by both · DeepSeek 13,929 tok · GLM 67,477 tok"/><circle cx="304.8" cy="173.5" r="4.5" class="pt none" data-tip="3763 (medium, leetcode) · solved by neither · DeepSeek 3,207 tok · GLM 8,799 tok"/><circle cx="257.0" cy="149.8" r="4.5" class="pt none" data-tip="abc392_d (medium, atcoder) · solved by neither · DeepSeek 1,441 tok · GLM 13,660 tok"/><circle cx="275.6" cy="65.5" r="4.5" class="pt none" data-tip="abc392_f (hard, atcoder) · solved by neither · DeepSeek 1,968 tok · GLM 65,384 tok"/><circle cx="337.8" cy="74.2" r="4.5" class="pt none" data-tip="abc396_e (hard, atcoder) · solved by neither · DeepSeek 5,565 tok · GLM 55,612 tok"/><circle cx="333.1" cy="151.0" r="4.5" class="pt none" data-tip="abc397_d (hard, atcoder) · solved by neither · DeepSeek 5,148 tok · GLM 13,372 tok"/><circle cx="526.7" cy="28.0" r="4.5" class="pt none" data-tip="abc398_g (hard, atcoder) · solved by neither · DeepSeek 131,072 tok (cap) · GLM 131,072 tok (cap)"/><circle cx="475.5" cy="28.0" r="4.5" class="pt none" data-tip="arc190_a (hard, atcoder) · solved by neither · DeepSeek 55,701 tok · GLM 131,072 tok (cap)"/><circle cx="524.0" cy="28.0" r="4.5" class="pt none" data-tip="arc190_c (hard, atcoder) · solved by neither · DeepSeek 125,370 tok · GLM 131,072 tok (cap)"/><circle cx="435.6" cy="28.0" r="4.5" class="pt none" data-tip="arc191_a (medium, atcoder) · solved by neither · DeepSeek 28,590 tok · GLM 131,072 tok (cap)"/><circle cx="271.3" cy="28.5" r="4.5" class="pt none" data-tip="arc191_c (hard, atcoder) · solved by neither · DeepSeek 1,831 tok · GLM 129,933 tok"/><circle cx="407.7" cy="79.3" r="4.5" class="pt none" data-tip="arc192_b (hard, atcoder) · solved by neither · DeepSeek 17,938 tok · GLM 50,567 tok"/><circle cx="526.7" cy="28.0" r="4.5" class="pt none" data-tip="arc193_d (hard, atcoder) · solved by neither · DeepSeek 131,072 tok (cap) · GLM 131,072 tok (cap)"/><circle cx="438.1" cy="70.9" r="4.5" class="pt none" data-tip="arc195_c (hard, atcoder) · solved by neither · DeepSeek 29,823 tok · GLM 59,116 tok"/><circle cx="464.2" cy="76.7" r="4.5" class="pt glm" data-tip="abc392_g (hard, atcoder) · solved by GLM only · DeepSeek 46,116 tok · GLM 53,109 tok"/><circle cx="351.6" cy="189.4" r="4.5" class="pt glm" data-tip="abc398_d (hard, atcoder) · solved by GLM only · DeepSeek 7,009 tok · GLM 6,545 tok"/><circle cx="357.2" cy="112.9" r="4.5" class="pt glm" data-tip="abc398_f (hard, atcoder) · solved by GLM only · DeepSeek 7,698 tok · GLM 27,086 tok"/><circle cx="402.8" cy="28.0" r="4.5" class="pt ds" data-tip="3733 (hard, leetcode) · solved by DeepSeek only · DeepSeek 16,508 tok · GLM 131,072 tok (cap)"/><circle cx="454.2" cy="28.0" r="4.5" class="pt ds" data-tip="3762 (hard, leetcode) · solved by DeepSeek only · DeepSeek 39,011 tok · GLM 131,072 tok (cap)"/><circle cx="453.2" cy="28.0" r="4.5" class="pt ds" data-tip="3770 (hard, leetcode) · solved by DeepSeek only · DeepSeek 38,381 tok · GLM 131,072 tok (cap)"/><circle cx="410.8" cy="28.0" r="4.5" class="pt ds" data-tip="3777 (hard, leetcode) · solved by DeepSeek only · DeepSeek 18,894 tok · GLM 131,072 tok (cap)"/><circle cx="356.8" cy="74.2" r="4.5" class="pt ds" data-tip="3786 (medium, leetcode) · solved by DeepSeek only · DeepSeek 7,649 tok · GLM 55,602 tok"/><circle cx="455.0" cy="28.0" r="4.5" class="pt ds" data-tip="abc388_f (hard, atcoder) · solved by DeepSeek only · DeepSeek 39,561 tok · GLM 131,072 tok (cap)"/><circle cx="449.1" cy="28.0" r="4.5" class="pt ds" data-tip="abc389_f (hard, atcoder) · solved by DeepSeek only · DeepSeek 35,843 tok · GLM 131,072 tok (cap)"/><circle cx="427.1" cy="28.0" r="4.5" class="pt ds" data-tip="abc389_g (hard, atcoder) · solved by DeepSeek only · DeepSeek 24,790 tok · GLM 131,072 tok (cap)"/><circle cx="402.7" cy="84.0" r="4.5" class="pt ds" data-tip="abc390_d (medium, atcoder) · solved by DeepSeek only · DeepSeek 16,491 tok · GLM 46,360 tok"/><circle cx="399.5" cy="28.0" r="4.5" class="pt ds" data-tip="abc390_g (hard, atcoder) · solved by DeepSeek only · DeepSeek 15,636 tok · GLM 131,072 tok (cap)"/><circle cx="215.1" cy="297.2" r="4.5" class="pt ds" data-tip="abc394_d (medium, atcoder) · solved by DeepSeek only · DeepSeek 715 tok · GLM 885 tok"/><circle cx="444.9" cy="28.0" r="4.5" class="pt ds" data-tip="abc394_g (hard, atcoder) · solved by DeepSeek only · DeepSeek 33,382 tok · GLM 131,072 tok (cap)"/><circle cx="464.7" cy="28.0" r="4.5" class="pt ds" data-tip="abc397_f (hard, atcoder) · solved by DeepSeek only · DeepSeek 46,490 tok · GLM 131,072 tok (cap)"/><circle cx="424.5" cy="28.0" r="4.5" class="pt ds" data-tip="abc397_g (hard, atcoder) · solved by DeepSeek only · DeepSeek 23,751 tok · GLM 131,072 tok (cap)"/><circle cx="466.1" cy="28.0" r="4.5" class="pt ds" data-tip="abc399_e (hard, atcoder) · solved by DeepSeek only · DeepSeek 47,609 tok · GLM 131,072 tok (cap)"/><circle cx="278.4" cy="28.0" r="4.5" class="pt ds" data-tip="abc399_f (hard, atcoder) · solved by DeepSeek only · DeepSeek 2,063 tok · GLM 131,072 tok (cap)"/><circle cx="421.0" cy="28.0" r="4.5" class="pt ds" data-tip="abc400_d (medium, atcoder) · solved by DeepSeek only · DeepSeek 22,382 tok · GLM 131,072 tok (cap)"/><circle cx="448.6" cy="28.0" r="4.5" class="pt ds" data-tip="abc400_g (hard, atcoder) · solved by DeepSeek only · DeepSeek 35,534 tok · GLM 131,072 tok (cap)"/><circle cx="517.7" cy="28.0" r="4.5" class="pt ds" data-tip="arc191_d (hard, atcoder) · solved by DeepSeek only · DeepSeek 112,921 tok · GLM 131,072 tok (cap)"/><circle cx="444.0" cy="28.0" r="4.5" class="pt ds" data-tip="arc192_a (medium, atcoder) · solved by DeepSeek only · DeepSeek 32,894 tok · GLM 131,072 tok (cap)"/><circle cx="415.0" cy="28.0" r="4.5" class="pt ds" data-tip="arc192_d (hard, atcoder) · solved by DeepSeek only · DeepSeek 20,263 tok · GLM 131,072 tok (cap)"/><circle cx="450.0" cy="28.0" r="4.5" class="pt ds" data-tip="arc192_e (hard, atcoder) · solved by DeepSeek only · DeepSeek 36,353 tok · GLM 131,072 tok (cap)"/><circle cx="452.0" cy="28.0" r="4.5" class="pt ds" data-tip="arc193_a (hard, atcoder) · solved by DeepSeek only · DeepSeek 37,599 tok · GLM 131,072 tok (cap)"/><circle cx="446.2" cy="28.0" r="4.5" class="pt ds" data-tip="arc193_b (hard, atcoder) · solved by DeepSeek only · DeepSeek 34,107 tok · GLM 131,072 tok (cap)"/><circle cx="411.3" cy="28.0" r="4.5" class="pt ds" data-tip="arc194_b (hard, atcoder) · solved by DeepSeek only · DeepSeek 19,035 tok · GLM 131,072 tok (cap)"/><circle cx="431.8" cy="28.0" r="4.5" class="pt ds" data-tip="arc194_c (hard, atcoder) · solved by DeepSeek only · DeepSeek 26,825 tok · GLM 131,072 tok (cap)"/><circle cx="500.4" cy="28.0" r="4.5" class="pt ds" data-tip="arc194_e (hard, atcoder) · solved by DeepSeek only · DeepSeek 84,502 tok · GLM 131,072 tok (cap)"/><circle cx="494.6" cy="28.0" r="4.5" class="pt ds" data-tip="arc195_d (hard, atcoder) · solved by DeepSeek only · DeepSeek 76,698 tok · GLM 131,072 tok (cap)"/><circle cx="455.6" cy="28.0" r="4.5" class="pt ds" data-tip="arc196_b (hard, atcoder) · solved by DeepSeek only · DeepSeek 39,934 tok · GLM 131,072 tok (cap)"/><circle cx="499.4" cy="28.0" r="4.5" class="pt ds" data-tip="arc196_c (hard, atcoder) · solved by DeepSeek only · DeepSeek 83,053 tok · GLM 131,072 tok (cap)"/><circle cx="501.4" cy="28.0" r="4.5" class="pt ds" data-tip="arc196_d (hard, atcoder) · solved by DeepSeek only · DeepSeek 85,917 tok · GLM 131,072 tok (cap)"/></svg></div>
+    <p class="cap">Points above the diagonal are problems where GLM used more tokens. The row along the top is GLM hitting the 128K cap. Hover a point for the problem ID.</p>
+  </div>
+  <p>On the 128 problems both models solved, GLM used more tokens on 120. The median per-problem ratio is <b>3.27×</b> and the ratio of totals is 3.80×. Of DeepSeek's 31 solo wins, 28 are problems where GLM ran out of budget at 128K rather than giving a wrong answer. GLM's 3 solo wins are all hard problems.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Solved by both</th><th>n</th><th>DeepSeek median tok</th><th>GLM median tok</th><th>Median GLM ÷ DeepSeek</th></tr></thead>
+    <tbody><tr><td class='l'>Easy</td><td>43</td><td>311</td><td>1,067</td><td>3.23×</td></tr><tr><td class='l'>Medium</td><td>44</td><td>2,726</td><td>5,380</td><td>2.56×</td></tr><tr><td class='l'>Hard</td><td>41</td><td>11,322</td><td>56,090</td><td>4.08×</td></tr><tr class='sep'><td class='l'><b>All</b></td><td>128</td><td>2,226</td><td>5,029</td><td><b>3.27×</b></td></tr></tbody>
+  </table></div>
+</section>
+
+<section id="within32">
+  <h2>Where the models agree and where they differ</h2>
+  <div class="split">
+    <div style="display:grid;gap:10px;min-width:0">
+      <p><b>Same accuracy when the problem fits in 32K.</b> On the 95 problems where both models finished within 32K tokens, DeepSeek solved 90 and GLM solved 91. They disagreed on only 3. GLM still used 626,697 tokens there against DeepSeek's 233,107.</p>
+      <p><b>The hard tail decides it.</b> On the other 80 problems, where at least one model needed more than 32K tokens, DeepSeek solved 69 and GLM solved 40.</p>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>Both ≤ 32K</th><th>n</th><th>DeepSeek</th><th>GLM</th></tr></thead>
+      <tbody><tr><td class='l'>Easy</td><td>43</td><td>43</td><td>43</td></tr><tr><td class='l'>Medium</td><td>38</td><td>36</td><td>35</td></tr><tr><td class='l'>Hard</td><td>14</td><td>11</td><td>13</td></tr><tr class='sep'><td class='l'><b>All</b></td><td>95</td><td><b>90</b></td><td><b>91</b></td></tr></tbody>
+    </table></div>
+  </div>
+</section>
+
+<section id="reference">
+  <h2>Published reference points</h2>
+  <ul>
+    <li>Aggregators list <b>GLM-5.3-Flash at 80.5%</b> on LiveCodeBench (the Vals version). It is unverified and probably uses a different LCB slice and token budget, so it is not directly comparable with the 74.9% here.</li>
+    <li>No published LiveCodeBench score was found for <b>DeepSeek-V4.1-Flash</b>.</li>
+    <li>These results differ from any vendor or leaderboard number in several ways: DeepSeek ran with abliterated weights, GLM ran as a 4-bit quantized checkpoint, the problem window is LCB v6 (Jan–Apr 2025), and each problem got one sample.</li>
+  </ul>
+</section>
+
+<section id="method">
+  <h2>Methodology</h2>
+  <dl class="facts">
+    <dt>Benchmark</dt><dd>LiveCodeBench v6 code generation, 175 problems with contest dates 2025-01-04 to 2025-04-06: 112 AtCoder and 63 LeetCode (43 easy, 52 medium, 80 hard). Official LCB prompt and system message.</dd>
+    <dt>Grading</dt><dd>Official <code>lcb_runner</code> grader (<code>codegen_metrics</code>, 6 s timeout) in a Docker sandbox with no network. One sample per problem, so pass@1 with n = 1.</dd>
+    <dt>Budget</dt><dd>LCB's own runner defaults to 2,000 max tokens, which predates reasoning models. 32K (32,768) was simply both recipes' server default, so 128K (131,072) was chosen as the headline budget.</dd>
+    <dt>Hardware</dt><dd>4× NVIDIA DGX Spark in a RoCE ring. Each model spans all four Sparks (TP4) with TensorFold-based recipes. One model was served at a time.</dd>
+    <dt>DeepSeek</dt><dd>DeepSeek-V4.1-Flash-1017 with an abliterated ("ablit") overlay, native FP8/MXFP4. Thinking on, reasoning_effort max, temperature 1.0, top_p 1.0, 16 concurrent requests, speculative drafts on. Run at 32K, then the 26 cut-off answers were rerun at max_tokens 131,072 and merged.</dd>
+    <dt>GLM</dt><dd>GLM-5.3-Flash, EXL3 4 bpw TensorFold checkpoint of the standard published weights. Thinking on, temperature 1.0, top_p 0.95, DFlash2 speculative drafts, 8 concurrent requests. Run once at 128K.</dd>
+    <dt>Scope</dt><dd>Aider Polyglot and Web-Bench were planned and then dropped; this report covers LiveCodeBench only.</dd>
+  </dl>
+</section>
+
+<section id="caveats">
+  <h2>Caveats and limitations</h2>
+  <ul>
+    <li><b>One sample per problem.</b> Sampling at temperature 1.0 means a rerun would move individual problems. The paired DeepSeek-vs-GLM gap is far outside that noise; differences of a few points within one model are not.</li>
+    <li><b>Different budgets in practice.</b> DeepSeek reached 128K through a rerun of its 26 cut-off answers, while GLM ran at 128K from the start. That should be equivalent per problem, but the reruns ran in a different session with a different load pattern.</li>
+    <li><b>GLM's 32K score is derived</b>, not measured. That is fair because the budget is a server-side cut-off the model never sees, but a real 32K run would still differ by sampling noise.</li>
+    <li><b>Non-standard weights.</b> DeepSeek is an abliterated variant and GLM is quantized to about 4 bits. Neither result stands in for the vendor's own model.</li>
+    <li><b>Grader timing.</b> The 6 s timeout makes borderline-slow Python solutions flaky. One DeepSeek answer (abc390_d, 16,491 tokens) was byte-for-byte the same in both DeepSeek runs but failed in the 32K grading and passed in the merged regrade.</li>
+    <li><b>Throughput is a separate controlled test</b> with 4,096-token outputs. Long reasoning runs push the KV cache much further, so real tok/s on 100K-token answers is likely lower for both models.</li>
+    <li><b>Contamination window.</b> Problems are from January to April 2025; both models may have seen some of them in training.</li>
+  </ul>
+</section>
+
+<footer>
+  <p><b>Footnote: GLM Ablit.</b> The abliterated GLM-5.3-Flash weights were tried first, with thinking forced on and a 32K budget. They scored 52.0% (91/175; easy 43, medium 33, hard 15) with 79 of 175 answers cut off at 32K. The recipe intends Ablit to run with thinking off. At 128K it looped heavily, so it was replaced by the standard weights. Its 32K score happens to equal the standard model's derived 32K score (91/175; easy 43, medium 35, hard 13).</p>
+  <p>All figures computed from the run files in <code>~/bench/results</code> on the cluster head node. DeepSeek's 32K run log has no per-request timestamps, so its wall time comes from the stage log. 3701 finished at 32,009 tokens in the 32K run, just under the cap, and counts as finished.</p>
+</footer>
+</main>
+<div id="tip" hidden></div>
+
+<script>
+(function () {
+  var tip = document.getElementById('tip');
+  function show(text, x, y) {
+    tip.textContent = text; tip.hidden = false;
+    var w = tip.offsetWidth, h = tip.offsetHeight;
+    var left = Math.min(x + 14, window.innerWidth - w - 8);
+    var top = y + 14 + h > window.innerHeight ? y - h - 10 : y + 14;
+    tip.style.left = Math.max(8, left) + 'px'; tip.style.top = top + 'px';
+  }
+  function hide() { tip.hidden = true; }
+  document.addEventListener('pointermove', function (e) {
+    var t = e.target.closest && e.target.closest('[data-tip]');
+    if (t) show(t.getAttribute('data-tip'), e.clientX, e.clientY);
+    else if (!e.target.closest || !e.target.closest('#cdf')) hide();
+  });
+  document.addEventListener('pointerleave', hide);
+
+  var C = {"L": 52, "R": 20, "W": 640, "T": 22, "B": 44, "H": 330, "lo": 1.6989700043360187, "hi": 5.178207766641292, "ds": [67, 70, 84, 92, 117, 128, 133, 138, 142, 151, 156, 170, 190, 218, 242, 270, 289, 291, 298, 299, 311, 311, 317, 318, 349, 371, 385, 395, 401, 407, 413, 416, 435, 443, 514, 563, 571, 580, 593, 604, 614, 639, 640, 668, 715, 780, 792, 828, 901, 958, 1015, 1037, 1040, 1090, 1165, 1198, 1206, 1289, 1433, 1441, 1611, 1767, 1805, 1826, 1831, 1867, 1968, 2063, 2226, 2227, 2597, 2671, 2701, 2750, 2797, 3207, 3368, 3398, 3617, 3723, 4079, 4360, 4538, 4599, 4666, 4906, 5148, 5497, 5565, 6007, 6027, 6183, 6552, 6904, 6928, 7009, 7049, 7649, 7698, 8203, 8583, 8583, 8848, 8879, 9190, 9333, 9700, 10499, 10592, 11322, 11394, 11606, 12051, 12808, 13017, 13387, 13929, 13980, 14101, 14339, 15636, 15773, 16491, 16508, 16706, 16867, 16936, 17938, 18894, 18968, 19035, 19233, 20263, 21044, 21157, 21408, 21486, 22382, 23057, 23751, 24246, 24790, 26348, 26759, 26825, 27477, 28590, 29823, 32009, 32894, 33382, 33652, 34107, 35534, 35843, 35974, 36353, 37599, 38381, 39011, 39561, 39934, 46116, 46490, 47609, 55007, 55701, 76698, 83053, 84502, 85917, 112921, 125370, 131072, 131072], "glm": [153, 214, 222, 236, 250, 256, 257, 290, 308, 316, 322, 342, 471, 523, 636, 678, 864, 885, 895, 919, 992, 1020, 1067, 1181, 1229, 1243, 1244, 1275, 1313, 1318, 1326, 1349, 1358, 1391, 1407, 1430, 1520, 1674, 1686, 1834, 1892, 1965, 2036, 2062, 2085, 2271, 2362, 2466, 2476, 2528, 2543, 2590, 2604, 2625, 2721, 3026, 3390, 3453, 3478, 3621, 3729, 4226, 4244, 4392, 5011, 5047, 5353, 5407, 6266, 6545, 8799, 9178, 10225, 11032, 12595, 13372, 13557, 13660, 16405, 16909, 17392, 17876, 18129, 19262, 20871, 21676, 22488, 23726, 24731, 27086, 27326, 29217, 30174, 31007, 31696, 34067, 39153, 39223, 39481, 39949, 42741, 43215, 43378, 45500, 45558, 45810, 46360, 47158, 49618, 50404, 50567, 53109, 54634, 55602, 55612, 56090, 56884, 57115, 58065, 59116, 62178, 65384, 65843, 67477, 70191, 73988, 77649, 82581, 82837, 83994, 86365, 87280, 88482, 90505, 91226, 102999, 110122, 112109, 119919, 128624, 129562, 129933, 131072, 131072, 131072, 131072, 131072, 131072, 131072, 131072, 131072, 131072, 131072, 131072, 131072, 131072, 131072, 131072, 131072, 131072, 131072, 131072, 131072, 131072, 131072, 131072, 131072, 131072, 131072, 131072, 131072, 131072, 131072, 131072, 131072]};
+  var svg = document.getElementById('cdf'), hit = document.getElementById('cdfhit'), g = document.getElementById('cdfx');
+  var line = g.querySelector('line'), dots = g.querySelectorAll('circle');
+  function X(t) { return C.L + (Math.log10(Math.max(t, 50)) - C.lo) / (C.hi - C.lo) * (C.W - C.L - C.R); }
+  function Y(f) { return C.T + (1 - f) * (C.H - C.T - C.B); }
+  function frac(arr, t) { var n = 0; for (var i = 0; i < arr.length; i++) if (arr[i] <= t) n++; return n / arr.length; }
+  function fmt(n) { return n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'K' : String(Math.round(n)); }
+  hit.addEventListener('pointermove', function (e) {
+    var pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+    var p = pt.matrixTransform(svg.getScreenCTM().inverse());
+    var t = Math.pow(10, C.lo + (p.x - C.L) / (C.W - C.L - C.R) * (C.hi - C.lo));
+    t = Math.min(t, 131072);
+    var a = frac(C.ds, t), b = frac(C.glm, t), x = X(t);
+    g.style.display = '';
+    line.setAttribute('x1', x); line.setAttribute('x2', x);
+    dots[0].setAttribute('cx', x); dots[0].setAttribute('cy', Y(a));
+    dots[1].setAttribute('cx', x); dots[1].setAttribute('cy', Y(b));
+    show('≤ ' + fmt(t) + ' tokens · DeepSeek ' + (a * 100).toFixed(0) + '% of problems · GLM ' + (b * 100).toFixed(0) + '%', e.clientX, e.clientY);
+  });
+  hit.addEventListener('pointerleave', function () { g.style.display = 'none'; hide(); });
+})();
+</script>

@@ -19,3 +19,10 @@ builds:
     by: Mia's AI Lab
     url: https://huggingface.co/Mia-AiLab/DeepSeek-V4.1-Flash-1017-EXL3-EAQ-v1-2.9-bpw
     size_gb: 210
+  keys-ablit:
+    label: Keys abliteration overlay
+    format: FP8, with MXFP4 experts; release weights with drowzeys's abliterated attn.wo_b for layers 10-35 grafted on
+    bits: 8
+    by: drowzeys
+    url: https://huggingface.co/drowzeys/keys-DeepSeek-V4.1-Flash-1017-Abliterated
+    notes: Served by the four-Spark TensorFold recipe with ABLIT=1, at overlay revision de412d22.
