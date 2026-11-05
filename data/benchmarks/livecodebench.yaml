@@ -3,9 +3,9 @@ short: LCB
 version: v6
 categories: [coding]
 metric: pass@1 (%)
-description: Code generation on LeetCode, AtCoder and Codeforces contest problems. v6 is the last release; its newest problems are from April 2025, before the training cutoff of current models, so its protection against contamination no longer holds and its scores are close to the ceiling. Kept because developers still report it.
+description: Code generation on LeetCode, AtCoder and Codeforces contest problems. Ranked on the 175 problems new in v6, the last release (LeetCode and AtCoder, 2025-01-04 to 2025-04-06), not all 1,055 since 2023, which take too long on a Spark. Those problems are before the training cutoff of current models, so its protection against contamination no longer holds and its scores are close to the ceiling. Kept because developers still report it; their v6 figures may cover a different window of dates.
 url: https://livecodebench.github.io/
 paper: https://arxiv.org/abs/2403.07974
 leaderboard: https://livecodebench.github.io/leaderboard.html
-tasks: 1055
-harness: lcb_runner, codegeneration scenario, release_v6
+tasks: 175
+harness: lcb_runner, codegeneration scenario, version v6 (the problems new in release_v6)

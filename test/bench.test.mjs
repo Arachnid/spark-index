@@ -381,11 +381,11 @@ test('a Harbor job is scored by its mean, with errors noted and a short job a su
 test('LiveCodeBench is scored by lcb_runner\'s pass@1', (t) => {
   const out = tempDir(t, 'lcb-');
   write(path.join(out, 'output/sparkplug/codegeneration_1_0.2_eval.json'), JSON.stringify([
-    { 'pass@1': 0.4567, detail: { 'pass@1': Object.fromEntries(Array.from({ length: 1055 }, (_, i) => [`q${i}`, i % 2])) } }, {}, []
+    { 'pass@1': 0.4567, detail: { 'pass@1': Object.fromEntries(Array.from({ length: 175 }, (_, i) => [`q${i}`, i % 2])) } }, {}, []
   ]));
-  python('livecodebench/score.py', out, 'release_v6', 1, 0.2, 'abc123');
+  python('livecodebench/score.py', out, 'v6', 1, 0.2, 'abc123');
   assert.deepEqual(readJson(path.join(out, 'result.json')), {
-    value: 45.67, setting: 'lcb_runner at abc123, codegeneration release_v6, n=1, temperature 0.2'
+    value: 45.67, setting: 'lcb_runner at abc123, codegeneration v6, n=1, temperature 0.2'
   });
 });
 

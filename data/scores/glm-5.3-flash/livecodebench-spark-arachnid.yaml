@@ -5,7 +5,6 @@ build: mia-exl3-4bpw
 provenance: spark
 sparks: 4
 setting: lcb_runner's chat prompts and grader (commit 28fef95), thinking on, the recipe's default sampling, 1 sample per problem, up to 131,072 tokens per answer
-subset: the 175 problems new in v6 (2025-01-04 to 2025-04-06), not all 1,055
 source:
   title: LiveCodeBench v6 run on four Sparks
   url: https://github.com/Arachnid/spark-index/tree/main/runs/glm-5.3-flash-exl3-tensorfold/livecodebench/20261104T102743Z
