@@ -26,6 +26,7 @@
 
 source "$BENCH_LIB"
 need_cmd harbor docker python3
+harbor_docker
 
 repo=$(harness_checkout https://github.com/scaleapi/SWE-bench_Pro-os.git SWE-bench_Pro-os "${SWEPRO_REF:-}")
 revision=$(git -C "$repo" rev-parse --short HEAD)

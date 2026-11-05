@@ -87,11 +87,13 @@ Each runs the harness named in its file in `data/benchmarks/`, at the version th
 
 | Benchmark | Harness and agent | Needs on this machine | Scored as |
 |---|---|---|---|
-| `terminal-bench` | Harbor, `terminal-bench@4.0`, Terminus-2, 5 trials per task | `harbor`, Docker | Harbor's mean over all trials; errored trials count as unsolved |
+| `terminal-bench` | Harbor, `terminal-bench/terminal-bench@4.0.0`, Terminus-2, 5 trials per task | `harbor`, Docker, and an NVIDIA GPU in Docker for three of the tasks | Harbor's mean over all trials; trials that error once the agent is running count as unsolved, and trials whose container never started are left out and make the score a subset |
 | `swe-bench-pro` | Harbor on the repository's `v2/tasks`, under its locked protocol: mini-swe-agent run host-side (`v2/tooling/host_mini_swe.py`), no network in the task containers, every patch re-graded on a fresh image | `harbor` with mini-swe-agent (`uv tool install harbor --with mini-swe-agent`), Docker on amd64, room for 642 images | the re-graded job's mean |
 | `livecodebench` | `lcb_runner`, code generation, the 175 problems new in v6 (version tag `v6`), the runner's own prompts for chat models, up to 131,072 tokens per answer | `uv`; its environment includes torch and vLLM, several GB | `pass@1` |
 | `cybergym` | CyberGym's OpenHands example agent, level 1, against a CyberGym server this script starts on the Docker bridge | Docker on amd64, `uv`, `poetry` and Node (to build OpenHands once), and the data: the dataset (~240 GB) in `CYBERGYM_DATA_DIR`, and the binary-only PoC runners (~130 GB) in `CYBERGYM_SERVER_DATA_DIR` or the full runner images | the final submission: each agent's last PoC, solved if it crashes the vulnerable build and not the fixed one |
 | `cybench` | the Cybench agent in its own container, unguided, the paper's 15 iterations and 6,000 / 2,000 token limits | Docker on amd64; **`--api-url`** with the head's address, since the agent's container can't reach the tunnel on `127.0.0.1` | tasks whose run log says success |
+
+**Docker from a snap won't do for Harbor.** Ubuntu's `docker` snap confines its client: it can't read hidden folders in your home, where Harbor keeps its tasks (`~/.cache/harbor`) and its compose files (`~/.local`), so every trial fails before its agent runs. The daemon is fine. Put Docker's [static client](https://download.docker.com/linux/static/stable/) first on `PATH`, with the [compose plugin](https://github.com/docker/compose/releases) in `~/.docker/cli-plugins/`; `terminal-bench` and `swe-bench-pro` stop at once if `docker` is the snap's.
 
 **Where the model is called from matters.** The SSH tunnel listens on `127.0.0.1` on this machine. That address works for an agent whose LLM loop runs here: Terminus-2, the host-side mini-swe-agent, OpenHands' controller and `lcb_runner`. It doesn't work for an agent that runs inside a container, like Cybench's, or Harbor agents installed in the task container (`claude-code`, `codex`). For those, pass `--api-url http://<head address>:8888`; the recipes listen on every interface by default.
 
@@ -104,7 +106,7 @@ Copy `benchmarks/_template/` to `benchmarks/<benchmark-id>/` and write `run.sh`.
 ```json
 {
   "value": 31.8,
-  "setting": "Harbor (terminal-bench@4.0.0), terminus-2, 5 trials per task",
+  "setting": "Harbor (terminal-bench/terminal-bench@4.0.0), terminus-2, 5 trials per task",
   "benchmark_version": "4.0",
   "subset": "only if not every task ran",
   "notes": "optional"

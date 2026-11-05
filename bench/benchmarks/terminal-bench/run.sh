@@ -15,7 +15,9 @@
 #   TB_AGENT        the Harbor agent (default terminus-2)
 #   TB_TRIALS       trials per task (default 5: the leaderboard's mean of 5)
 #   TB_CONCURRENCY  tasks at once (default 4)
-#   TB_DATASET      the Harbor dataset (default terminal-bench@$BENCHMARK_VERSION)
+#   TB_DATASET      the Harbor dataset (default terminal-bench/terminal-bench@<version>.0:
+#                   the hub wants the org prefix and three-part versions, and an
+#                   unprefixed terminal-bench is Terminal-Bench 2)
 #   TB_HARBOR_ARGS  anything else to pass to `harbor run`
 
 source "$BENCH_LIB"
@@ -24,8 +26,12 @@ need_cmd harbor docker python3
 agent=${TB_AGENT:-terminus-2}
 trials=${TB_TRIALS:-5}
 concurrency=${TB_CONCURRENCY:-4}
-dataset=${TB_DATASET:-terminal-bench@$BENCHMARK_VERSION}
+version=$BENCHMARK_VERSION
+while [ "$(printf '%s' "$version" | tr -cd . | wc -c)" -lt 2 ]; do version=$version.0; done
+dataset=${TB_DATASET:-terminal-bench/terminal-bench@$version}
 tasks=${BENCHMARK_TASKS:-66}
+
+harbor_docker
 
 log "harbor run -d $dataset -a $agent -m openai/$MODEL, $trials trial(s) per task, $concurrency at once"
 # shellcheck disable=SC2086
@@ -33,6 +39,7 @@ harbor run \
   --dataset "$dataset" \
   --agent "$agent" \
   --model "openai/$MODEL" \
+  --base-url "$OPENAI_BASE_URL" \
   --n-attempts "$trials" \
   --n-concurrent "$concurrency" \
   --jobs-dir "$OUT_DIR/jobs" \

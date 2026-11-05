@@ -87,7 +87,19 @@ function runLogged({ cmd, args, input, env, cwd, logFile, label, quiet = false, 
   return new Promise((resolve, reject) => {
     fs.mkdirSync(path.dirname(logFile), { recursive: true });
     const out = fs.createWriteStream(logFile, { flags: 'a' });
-    const child = spawn(cmd, args, { env, cwd, stdio: ['pipe', 'pipe', 'pipe'], signal: ctx.signal });
+    // In a process group of its own, so an interrupt reaches everything it
+    // started (a harness under run.sh, its workers), not just the shell.
+    // SIGINT first, so a harness can stop its containers; then SIGKILL.
+    const child = spawn(cmd, args, { env, cwd, stdio: ['pipe', 'pipe', 'pipe'], detached: true });
+    let interrupted = false;
+    const signalGroup = (sig) => { try { process.kill(-child.pid, sig); } catch {} };
+    const onAbort = () => {
+      interrupted = true;
+      signalGroup('SIGINT');
+      setTimeout(() => signalGroup('SIGKILL'), 120_000).unref();
+    };
+    if (ctx.signal?.aborted) onAbort();
+    else ctx.signal?.addEventListener('abort', onAbort, { once: true });
     const echo = prefixLines(`[${label}] `, quiet ? () => {} : ctx.log);
     let stdout = '';
     child.stdout.on('data', (chunk) => { stdout += chunk; });
@@ -96,11 +108,13 @@ function runLogged({ cmd, args, input, env, cwd, logFile, label, quiet = false, 
     }
     child.stdin.on('error', () => {});
     child.stdin.end(input ?? '');
-    child.on('error', (err) => { echo.end(); out.end(); reject(err.name === 'AbortError' ? new Error(`${label}: interrupted`) : err); });
+    child.on('error', (err) => { echo.end(); out.end(); reject(err); });
     child.on('close', (code, signal) => {
+      ctx.signal?.removeEventListener('abort', onAbort);
       echo.end();
       out.end();
-      if (code === 0) resolve(stdout);
+      if (interrupted) reject(new Error(`${label}: interrupted`));
+      else if (code === 0) resolve(stdout);
       else reject(new Error(`${label} failed (${signal ? `signal ${signal}` : `exit ${code}`}); see ${path.relative(ctx.root, logFile)}`));
     });
   });
@@ -164,19 +178,37 @@ function freePort() {
   });
 }
 
-// An SSH tunnel from a local port to the API port on the head Spark.
-async function openTunnel(host, port, ctx) {
+// An SSH tunnel from a local port to the API port on the head Spark. A
+// benchmark can run for days, so a tunnel that drops (a network blip, the head
+// rebooting) is reopened on the same port. It fails only when it keeps closing
+// within seconds of opening, three times running.
+async function openTunnel(host, port, ctx, { retryMs = 5_000 } = {}) {
   const local = await freePort();
-  const child = spawn('ssh', [...SSH_OPTIONS, '-N', '-o', 'ExitOnForwardFailure=yes', '-L', `127.0.0.1:${local}:127.0.0.1:${port}`, host], { stdio: ['ignore', 'ignore', 'pipe'] });
-  let stderr = '';
-  child.stderr.on('data', (d) => { stderr += d; });
-  let exited = false;
-  child.on('close', () => { exited = true; });
+  let child;
+  let closed = false;
+  let quickExits = 0;
+  let lastError = '';
+  let retry;
+  const open = () => {
+    const openedAt = Date.now();
+    let stderr = '';
+    child = spawn('ssh', [...SSH_OPTIONS, '-N', '-o', 'ExitOnForwardFailure=yes', '-L', `127.0.0.1:${local}:127.0.0.1:${port}`, host], { stdio: ['ignore', 'ignore', 'pipe'] });
+    child.stderr.on('data', (d) => { stderr += d; });
+    child.on('close', () => {
+      if (closed) return;
+      lastError = stderr.trim() || 'no message';
+      quickExits = Date.now() - openedAt < 15_000 ? quickExits + 1 : 0;
+      if (quickExits >= 3) return;
+      ctx.log(`API tunnel to ${host} closed (${lastError}); reopening`);
+      retry = setTimeout(open, retryMs);
+    });
+  };
+  open();
   ctx.log(`API tunnel: 127.0.0.1:${local} -> ${host}:${port}`);
   return {
     url: `http://127.0.0.1:${local}`,
-    check() { if (exited) throw new Error(`SSH tunnel to ${host} closed: ${stderr.trim() || 'no message'}`); },
-    close() { if (!exited) child.kill(); }
+    check() { if (quickExits >= 3) throw new Error(`SSH tunnel to ${host} closed: ${lastError}`); },
+    close() { closed = true; clearTimeout(retry); child.kill(); }
   };
 }
 

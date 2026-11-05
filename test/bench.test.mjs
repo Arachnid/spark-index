@@ -376,6 +376,20 @@ test('a Harbor job is scored by its mean, with errors noted and a short job a su
   job(100, 0, 0.5);
   python('_shared/harbor_score.py', path.join(dir, 'job'), path.join(dir, 'result.json'), 330, 's');
   assert.deepEqual(readJson(path.join(dir, 'result.json')), { value: 50, setting: 's', subset: '100 of 330 trials' });
+
+  // Trials whose container never started are left out, not counted as unsolved.
+  const trial = (name, ran) => write(path.join(dir, `job/${name}/result.json`), JSON.stringify({
+    trial_name: name, exception_info: { exception_type: 'RuntimeError' }, agent_execution: ran ? { started_at: 'x' } : null
+  }));
+  job(10, 3, 0.4);
+  trial('a__1', false);
+  trial('b__1', false);
+  trial('c__1', true);
+  python('_shared/harbor_score.py', path.join(dir, 'job'), path.join(dir, 'result.json'), 10, 's');
+  assert.deepEqual(readJson(path.join(dir, 'result.json')), {
+    value: 50, setting: 's', subset: '8 of 10 trials',
+    notes: '2 trials failed before the agent ran and are left out: a__1, b__1. 1 of 8 trials ended in an error and count as unsolved.'
+  });
 });
 
 test('LiveCodeBench is scored by lcb_runner\'s pass@1', (t) => {
