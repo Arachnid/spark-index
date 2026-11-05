@@ -1,0 +1,12 @@
+benchmark: livecodebench
+benchmark_version: v6
+value: 74.9
+build: mia-exl3-4bpw
+provenance: spark
+sparks: 4
+setting: lcb_runner's chat prompts and grader (commit 28fef95), thinking on, the recipe's default sampling, 1 sample per problem, up to 131,072 tokens per answer
+source:
+  title: LiveCodeBench v6 run on four Sparks
+  url: https://github.com/Arachnid/spark-index/tree/main/runs/glm-5.3-flash-exl3-tensorfold/livecodebench/20261104T102743Z
+  date: "2026-11-04"
+notes: 131 of 175 (easy 43/43, medium 44/52, hard 44/80). 33 answers ran out of the 131,072 tokens; with a 32,768 cap it would have been 52.0%. 8.17M output tokens in all, 3.1 times DeepSeek V4.1 Flash 1017's on the same problems, median 23.7k per problem. Recipe tp4 branch at d220030, DENSE=q4 (the default), ring, 8 requests at once.

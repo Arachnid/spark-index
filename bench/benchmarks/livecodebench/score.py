@@ -13,7 +13,7 @@ result = {
     "value": round(metrics["pass@1"] * 100, 2),
     "setting": f"lcb_runner at {revision}, codegeneration {release}, n={n}, temperature {temperature}",
 }
-if problems is not None and problems < 1055 and release == "release_v6":
-    result["subset"] = f"{problems} of 1055 problems"
+if problems is not None and problems < 175 and release == "v6":
+    result["subset"] = f"{problems} of 175 problems"
 json.dump(result, open(f"{out}/result.json", "w"), indent=2)
 print(json.dumps(result))
