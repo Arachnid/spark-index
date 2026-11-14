@@ -7,5 +7,6 @@ description: "Four-option multiple choice, thinking off: 5 questions from each o
 url: https://github.com/MiaAI-Lab/sparkDash#quality-bench
 paper: https://arxiv.org/abs/2009.03300
 tasks: 285
+chance: 25
 harness: sparkDash Quality bench (suite 2, scoring 4), temperature 0
 suite: quality

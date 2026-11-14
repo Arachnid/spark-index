@@ -175,7 +175,28 @@ export function chooseRecipes(ix, n, forced = null) {
   return chosen;
 }
 
-// Scores, percentiles and rankings for a cluster of n Sparks.
+// A benchmark score rescaled so that guessing at random scores 0 and a
+// perfect run 100: (score - chance) / (100 - chance). With it, the variance
+// of that rescaled score from sampling the benchmark's tasks, taking each
+// task as a pass or fail (null when the benchmark doesn't say how many tasks
+// it has). The pass rate behind the variance is nudged off 0 and 100, as
+// (passes + 1) / (tasks + 2), so a perfect run still carries some doubt.
+export function corrected(benchmark, value) {
+  const chance = benchmark.chance ?? 0;
+  const scale = 100 / (100 - chance);
+  const result = { value: (value - chance) * scale, variance: null };
+  const n = benchmark.tasks;
+  if (n) {
+    const p = ((value / 100) * n + 1) / (n + 2);
+    result.variance = ((p * (1 - p)) / n) * 1e4 * scale * scale;
+  }
+  return result;
+}
+
+// Scores, percentiles and rankings for a cluster of n Sparks. A recipe's
+// score in a category is the mean of its chance-corrected scores on the
+// benchmarks that count for it, with a 95% margin from sampling error;
+// percentiles among the models that fit only shade the table's cells.
 export function standings(ix, n, { forced = null, minCoverage = ix.config.ranking.min_coverage } = {}) {
   const entries = chooseRecipes(ix, n, forced);
   const byModel = new Map(entries.map((e) => [e.model.id, e]));
@@ -200,13 +221,18 @@ export function standings(ix, n, { forced = null, minCoverage = ix.config.rankin
 
   const need = (keys) => Math.max(1, Math.ceil(keys.length * minCoverage));
 
-  function scoreOf(modelId, keys, method = 'percentile') {
+  function scoreOf(modelId, keys, method = 'mean') {
     const e = byModel.get(modelId);
     const have = keys.filter((k) => counts(e.view, k));
     let value = null;
+    let margin = null;
     let matchups = 0;
-    if (method === 'percentile') {
-      if (have.length) value = have.reduce((sum, k) => sum + pct[k][modelId], 0) / have.length;
+    if (method === 'mean') {
+      if (have.length) {
+        const parts = have.map((k) => corrected(ix.benchmarks.get(k), e.view[k].chosen.score.value));
+        value = parts.reduce((sum, c) => sum + c.value, 0) / parts.length;
+        if (parts.every((c) => c.variance !== null)) margin = (1.96 * Math.sqrt(parts.reduce((sum, c) => sum + c.variance, 0))) / parts.length;
+      }
     } else {
       let wins = 0;
       for (const other of entries) {
@@ -221,10 +247,10 @@ export function standings(ix, n, { forced = null, minCoverage = ix.config.rankin
       }
       value = matchups ? (wins / matchups) * 100 : null;
     }
-    return { have: have.length, need: need(keys), value, matchups, ranked: have.length >= need(keys) && value !== null };
+    return { have: have.length, need: need(keys), value, margin, matchups, ranked: have.length >= need(keys) && value !== null };
   }
 
-  function ranking(category, method = 'percentile') {
+  function ranking(category, method = 'mean') {
     const keys = keysFor(category);
     const scored = entries.map((e) => ({ ...e, score: scoreOf(e.model.id, keys, method) }));
     const byValue = (a, b) => (b.score.value ?? -1) - (a.score.value ?? -1) || a.model.name.localeCompare(b.model.name);

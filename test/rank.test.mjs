@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  buildIndex, scoreStatus, cellFor, usedSparks, sparkRange, chooseRecipes, standings, paretoFrontier
+  buildIndex, scoreStatus, cellFor, usedSparks, sparkRange, chooseRecipes, standings, paretoFrontier, corrected
 } from '../src/rank.mjs';
 import { validate } from '../src/validate.mjs';
 import { loadData } from '../src/load.mjs';
@@ -117,13 +117,16 @@ test('chooseRecipes keeps one recipe per model and only recipes that fit', () =>
   assert.equal(forced.find((e) => e.model.id === 'alpha').recipe.id, 'alpha-bf16-2x');
 });
 
-test('standings rank by mean percentile, and leave out recipes below coverage', () => {
+test('standings rank by mean score, and leave out recipes below coverage', () => {
   const ix = buildIndex(fixture());
   const st = standings(ix, 2);
   // Coding has 2 benchmarks, so a recipe needs 1 counted coding score.
   const coding = st.ranking('coding');
   assert.equal(coding.need, 1);
-  assert.deepEqual(coding.ranked.map((e) => [e.model.id, e.score.value]), [['alpha', 100], ['gamma', 100], ['beta', 0]]);
+  assert.deepEqual(coding.ranked.map((e) => [e.model.id, e.score.value]), [['gamma', 80], ['alpha', 50], ['beta', 42.5]]);
+  // The fixture's benchmarks don't say how many tasks they have, so there's no margin.
+  assert.equal(coding.ranked[0].score.margin, null);
+  // Percentiles still shade the table's cells.
   assert.equal(st.pct['code-a'].gamma, 100);
   assert.equal(st.pct['code-a'].beta, 0);
 
@@ -136,6 +139,29 @@ test('standings rank by mean percentile, and leave out recipes below coverage', 
   const all = st.ranking('all');
   assert.equal(all.need, 2);
   assert.deepEqual(all.ranked.map((e) => e.model.id), ['beta']);
+});
+
+test('corrected rescales chance to 0 and gives a sampling variance', () => {
+  // Four-option multiple choice: guessing scores 25.
+  assert.equal(corrected({ chance: 25 }, 25).value, 0);
+  assert.equal(corrected({ chance: 25 }, 100).value, 100);
+  assert.equal(corrected({ chance: 25 }, 62.5).value, 50);
+  assert.equal(corrected({}, 80).variance, null);
+  // 100 tasks at 50%: p = 51/102 = 0.5, so a standard error of 5 points.
+  assert.ok(Math.abs(Math.sqrt(corrected({ tasks: 100 }, 50).variance) - 5) < 1e-9);
+  // A perfect run still has some doubt, and fewer tasks mean more of it.
+  assert.ok(corrected({ tasks: 200 }, 100).variance > 0);
+  assert.ok(corrected({ tasks: 40 }, 100).variance > corrected({ tasks: 200 }, 100).variance);
+});
+
+test('a mean score carries a 95% margin when every benchmark has a task count', () => {
+  const data = fixture();
+  for (const b of data.benchmarks) b.tasks = 100;
+  const st = standings(buildIndex(data), 2);
+  const beta = st.ranking('coding').ranked.find((e) => e.model.id === 'beta');
+  // Two benchmarks at 40 and 45 out of 100 tasks each.
+  const v = (k) => { const p = (k + 1) / 102; return (p * (1 - p)) / 100 * 1e4; };
+  assert.ok(Math.abs(beta.score.margin - (1.96 * Math.sqrt(v(40) + v(45))) / 2) < 1e-9);
 });
 
 test('head-to-head counts wins on shared counted benchmarks', () => {

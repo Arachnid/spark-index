@@ -134,7 +134,8 @@ table.board td.recipe b { display: block; font-size: 13px; font-weight: 600; col
 table.board td.recipe span { display: block; white-space: nowrap; }
 table.board td.index { min-width: 130px; }
 .indexbar { display: flex; align-items: center; gap: 8px; }
-.indexbar b { flex: 0 0 30px; font-family: var(--mono); font-size: 15px; font-weight: 600; }
+.indexbar b { flex: 0 0 auto; min-width: 30px; font-family: var(--mono); font-size: 15px; font-weight: 600; white-space: nowrap; }
+.indexbar b small { margin-left: 2px; font-size: 11px; font-weight: 400; color: var(--muted); }
 .indexbar i { flex: 1 1 auto; height: 8px; background: #E9E7E0; display: block; }
 .indexbar i em { display: block; height: 8px; background: var(--accent); }
 tr.unranked .indexbar b { color: var(--muted); }
@@ -275,6 +276,7 @@ table.ranks td.speed { white-space: normal; min-width: 240px; }
 .frontier-chart .axis line { stroke: var(--rule-strong); stroke-width: 1; }
 .frontier-chart .axis text { font-family: var(--mono); font-size: 12px; fill: var(--muted); }
 .frontier-chart .axis text.title { font-family: var(--sans); font-size: 13px; fill: var(--ink-2); }
+.frontier-chart .err line { stroke: var(--rule-strong); stroke-width: 1.5; }
 .frontier-chart .frontier-line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; }
 .frontier-chart .pt circle { fill: var(--spark, var(--faint)); stroke: var(--panel); stroke-width: 2; }
 .frontier-chart .pt.on circle { r: 6.5; stroke: var(--ink); }

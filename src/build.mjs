@@ -44,13 +44,13 @@ let pages = 0;
 const categories = ['all', ...data.config.categories.map((c) => c.id)];
 for (const n of data.config.spark_counts) {
   for (const category of categories) {
-    for (const method of ['percentile', 'h2h']) {
+    for (const method of ['mean', 'h2h']) {
       write(leaderboardPath(n, category, method), renderLeaderboard({ ix, url, n, category, method }));
       pages++;
     }
   }
 }
-write('', renderLeaderboard({ ix, url, n: data.config.spark_counts[0], category: 'all', method: 'percentile' }));
+write('', renderLeaderboard({ ix, url, n: data.config.spark_counts[0], category: 'all', method: 'mean' }));
 pages++;
 
 for (const recipe of data.recipes) {
