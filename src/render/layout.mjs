@@ -1,4 +1,12 @@
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import { html } from '../html.mjs';
+import { ROOT } from '../load.mjs';
+
+// The stylesheet's link carries a hash of its contents, so a browser holding
+// an older copy fetches the new one as soon as a page that needs it arrives.
+const CSS_VERSION = crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'static', 'style.css'))).digest('hex').slice(0, 10);
 
 // Builds links relative to the configured base path, e.g. "/spark-index/".
 export function makeUrl(config) {
@@ -51,7 +59,7 @@ export function layout({ config, url, title, description, current, body }) {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap">
 <link rel="icon" href="${url('favicon.svg')}" type="image/svg+xml">
-<link rel="stylesheet" href="${url('style.css')}">
+<link rel="stylesheet" href="${url('style.css')}?v=${CSS_VERSION}">
 </head>
 <body>
 <header class="site-header">
