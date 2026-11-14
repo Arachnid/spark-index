@@ -1,0 +1,12 @@
+benchmark: quality-reasoning
+benchmark_version: "2.4"
+value: 100
+build: nvidia-nvfp4
+provenance: spark
+sparks: 2
+setting: sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once
+source:
+  title: Spark Plug benchmark run, qwen3.8-flash-next-nvfp4-2x-tensorfold on 2 Sparks
+  url: https://github.com/Arachnid/spark-index/tree/main/runs/qwen3.8-flash-next-nvfp4-2x-tensorfold/quality/20261114T090536Z
+  date: "2026-11-14"
+notes: 200 of 200 passed.

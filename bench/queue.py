@@ -8,8 +8,9 @@ The first Spark listed is the head; "any" takes whichever Spark is free (of ALL,
 not held by an earlier waiting line). A line runs once every Spark it names is free,
 in file order, but a line never jumps ahead of an earlier one that wants any of
 the same Sparks. Lines starting with "#" are skipped; "adopt <pid> <sparks>"
-marks Sparks busy until a run started elsewhere ends. An extra "--wait-for=PATH"
-holds the line (and its place on its Sparks) until PATH exists.
+marks Sparks busy until a run started elsewhere ends (add the recipe id to name it). An extra "--wait-for=PATH"
+holds the line (and its place on its Sparks) until PATH exists. A line runs once;
+to run it again (after a failure, say), change it, for instance by adding an --env.
 
 State goes to LOG_DIR/status.txt; each run's output to LOG_DIR/<recipe>.log.
 """
@@ -46,16 +47,16 @@ def load():
         if not parts or parts[0].startswith('#'):
             continue
         if parts[0] == 'adopt':
-            key = f'adopted-{parts[1]}'
+            key = parts[3] if len(parts) > 3 else f'adopted-{parts[1]}'
             if key not in running and key not in done:
                 running[key] = (int(parts[1]), parts[2].split(','))
             continue
-        jobs.append((parts[0], parts[1].split(','), parts[2:]))
+        jobs.append((' '.join(parts), parts[1].split(','), parts[2:]))
     return jobs
 
 
-def command(recipe, sparks, extra):
-    head = sparks[0]
+def command(key, sparks, extra):
+    recipe, head = key.split()[0], sparks[0]
     args = ['npm', 'run', 'bench', '--', recipe, 'quality', '--head', f'{head}.local']
     if head != HUB:
         args += ['--env', f'SPARKDASH_HOST={HUB}.local', '--env', f'SPARKDASH_UNIT={head.removeprefix("spark-")}']
@@ -70,12 +71,12 @@ def write_status(jobs):
     with open(os.path.join(log_dir, 'status.txt'), 'w') as f:
         f.write(time.strftime('%Y-%m-%d %H:%M:%S\n'))
         for r, (p, s) in running.items():
-            f.write(f'running  {r} on {",".join(s)}\n')
+            f.write(f'running  {r.split()[0]} on {",".join(s)}\n')
         for r, code in done.items():
-            f.write(f'{"done    " if code == 0 else f"FAILED {code}"} {r}\n')
+            f.write(f'{"done    " if code == 0 else f"FAILED {code}"} {r.split()[0]}\n')
         for r, s, _ in jobs:
             if r not in running and r not in done:
-                f.write(f'queued   {r} on {",".join(s)}\n')
+                f.write(f'queued   {r.split()[0]} on {",".join(s)}\n')
 
 
 while True:
@@ -101,7 +102,7 @@ while True:
                 continue
             sparks = free[:1]
         if not (set(sparks) & (busy | wanted)):
-            log = open(os.path.join(log_dir, f'{r}.log'), 'w')
+            log = open(os.path.join(log_dir, f'{r.split()[0]}.log'), 'a')
             env = dict(os.environ, PATH=os.path.expanduser('~/.local/bin') + ':' + os.environ['PATH'])
             running[r] = (subprocess.Popen(command(r, sparks, extra), cwd=root, stdout=log, stderr=subprocess.STDOUT,
                                            stdin=subprocess.DEVNULL, env=env), sparks)

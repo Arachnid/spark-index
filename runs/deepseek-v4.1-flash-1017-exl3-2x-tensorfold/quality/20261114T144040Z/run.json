@@ -1,0 +1,90 @@
+{
+  "recipe": "deepseek-v4.1-flash-1017-exl3-2x-tensorfold",
+  "model": "deepseek-v4.1-flash-1017",
+  "build": "mia-exl3-eaq-2.9bpw",
+  "engine": "TensorFold native Zig engine (bertholomus/TensorFold deepseek-v41-zig @ fbbc971), tensor parallel",
+  "benchmark": "quality",
+  "sparks": 2,
+  "start_command": "./start.sh",
+  "started_at": "2026-11-14T14:40:40.466Z",
+  "spark_plug_commit": "3b78c2bbea7156e06a44c4d23cf5e303821b64dd",
+  "scripts": {
+    "bench/default/install.sh": "4093d730ba511acda967b8f85998b4500a1da8cbaf1aeab23c4bc87506d5698e",
+    "bench/default/start.sh": "59a82c44c9c9902ec194fc65bffccbf4e12e8d3f591c73ae12028baae9d85569",
+    "bench/default/stop.sh": "a6cdfef7475edccee95cca928120dca9914b82449ef43535bb41db715247a43d",
+    "bench/benchmarks/quality/run.sh": "f81423d3f873474de78fe4ac3770224694a599b0f30db5adacec4040f40c2230",
+    "bench/lib.sh": "aef02005b40bf2889104943b929aa4c7615f2f0e7df09faf8551ae61b579d648"
+  },
+  "served_model": "DeepSeek-V4.1-Flash-1017",
+  "recipe_revision": "c7f2b85100f0a7b099c92a4e21825e30d93c9c51",
+  "benchmark_started_at": "2026-11-14T14:41:32.307Z",
+  "results": {
+    "quality-qa": {
+      "value": 100,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "150 of 150 passed."
+    },
+    "quality-reasoning": {
+      "value": 97,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "194 of 200 passed."
+    },
+    "quality-arithmetic": {
+      "value": 99.5,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "199 of 200 passed. Graded 99.4% (steps right)."
+    },
+    "quality-state-tracking": {
+      "value": 98,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "196 of 200 passed. Graded 99.4% (totals right)."
+    },
+    "gsm8k-platinum": {
+      "value": 99.5,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "187 of 187 passed. 1 cut off at max_tokens count as failures; 100% of those that finished."
+    },
+    "mmlu-pro": {
+      "value": 83.7,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "251 of 279 passed. 21 cut off at max_tokens count as failures; 90% of those that finished."
+    },
+    "math-500": {
+      "value": 82,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "410 of 493 passed. 7 cut off at max_tokens count as failures; 83.2% of those that finished."
+    },
+    "mmlu": {
+      "value": 91.9,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "262 of 285 passed."
+    },
+    "instruction-following": {
+      "value": 90,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "36 of 40 passed."
+    },
+    "long-context-recall": {
+      "value": 100,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "3 of 3 passed. Graded 100% (codes right). At 32k tokens."
+    },
+    "tokenizer": {
+      "value": 75,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "33 of 44 passed."
+    }
+  },
+  "finished_at": "2026-11-14T17:38:51.209Z"
+}

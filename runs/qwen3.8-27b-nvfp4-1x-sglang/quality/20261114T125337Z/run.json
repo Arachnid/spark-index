@@ -1,0 +1,90 @@
+{
+  "recipe": "qwen3.8-27b-nvfp4-1x-sglang",
+  "model": "qwen3.8-27b",
+  "build": "radixark-nvfp4",
+  "engine": "SGLang (lmsysorg/sglang:qwen38-27b), DSpark, MTP or DFlash2 speculative decoding",
+  "benchmark": "quality",
+  "sparks": 1,
+  "start_command": "./start-dspark.sh",
+  "started_at": "2026-11-14T12:53:37.096Z",
+  "spark_plug_commit": "b2f686a53a47f1856ce9099ca14ed98bcd767561",
+  "scripts": {
+    "bench/default/install.sh": "4093d730ba511acda967b8f85998b4500a1da8cbaf1aeab23c4bc87506d5698e",
+    "bench/default/start.sh": "59a82c44c9c9902ec194fc65bffccbf4e12e8d3f591c73ae12028baae9d85569",
+    "bench/default/stop.sh": "a6cdfef7475edccee95cca928120dca9914b82449ef43535bb41db715247a43d",
+    "bench/benchmarks/quality/run.sh": "f81423d3f873474de78fe4ac3770224694a599b0f30db5adacec4040f40c2230",
+    "bench/lib.sh": "aef02005b40bf2889104943b929aa4c7615f2f0e7df09faf8551ae61b579d648"
+  },
+  "served_model": "qwen3.8-27b-sglang",
+  "recipe_revision": "9fb18edf8cfb3364e8aa89258e6d5ab1fe1fd11a",
+  "benchmark_started_at": "2026-11-14T14:20:01.399Z",
+  "results": {
+    "quality-qa": {
+      "value": 95.3,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "143 of 150 passed."
+    },
+    "quality-reasoning": {
+      "value": 99.5,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "199 of 200 passed."
+    },
+    "quality-arithmetic": {
+      "value": 99.5,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "199 of 200 passed. Graded 100% (steps right)."
+    },
+    "quality-state-tracking": {
+      "value": 97.5,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "195 of 195 passed. Graded 100% (totals right). 5 cut off at max_tokens count as failures; 100% of those that finished."
+    },
+    "gsm8k-platinum": {
+      "value": 99.5,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "187 of 187 passed. 1 cut off at max_tokens count as failures; 100% of those that finished."
+    },
+    "mmlu-pro": {
+      "value": 74,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "222 of 248 passed. 52 cut off at max_tokens count as failures; 89.5% of those that finished."
+    },
+    "math-500": {
+      "value": 89.6,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "448 of 477 passed. 23 cut off at max_tokens count as failures; 93.9% of those that finished."
+    },
+    "mmlu": {
+      "value": 84.9,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "242 of 269 passed. 16 cut off at max_tokens count as failures; 90% of those that finished."
+    },
+    "instruction-following": {
+      "value": 85,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "34 of 40 passed."
+    },
+    "long-context-recall": {
+      "value": 100,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "3 of 3 passed. Graded 100% (codes right). At 32k tokens."
+    },
+    "tokenizer": {
+      "value": 52.3,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "23 of 44 passed."
+    }
+  },
+  "finished_at": "2026-11-14T20:26:08.280Z"
+}
