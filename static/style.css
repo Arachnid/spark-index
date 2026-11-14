@@ -283,6 +283,7 @@ table.ranks td.speed { white-space: normal; min-width: 240px; }
 .frontier-chart .pt:hover circle, .frontier-chart .pt:focus-visible circle { r: 7.5; stroke: var(--ink); }
 .frontier-chart .callouts text { font-family: var(--sans); font-size: 12px; fill: var(--muted); paint-order: stroke; stroke: var(--panel); stroke-width: 3px; stroke-linejoin: round; }
 .frontier-chart .callouts text.on { fill: var(--ink); font-weight: 600; }
+.frontier-chart .callouts text tspan.build { font-weight: 400; fill: var(--muted); }
 .frontier-empty { position: relative; min-height: 340px; background: var(--panel); border: 1px solid var(--rule); display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
 .frontier-ghost { position: absolute; inset: 0; width: 100%; height: 100%; }
 .frontier-ghost .grid line { stroke: var(--rule-soft); stroke-width: 1; vector-effect: non-scaling-stroke; }
