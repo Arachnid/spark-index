@@ -22,23 +22,48 @@ function niceStep(raw) {
   return [1, 2, 2.5, 5, 10].map((m) => m * p).find((s) => s >= raw);
 }
 
+// The ways a recipe can run on n Sparks: one copy on the most Sparks it
+// supports, and, where its smallest setup fits more than once, as many
+// independent copies of that as fit, their decode speeds summed. Each way has
+// its copies, the Sparks each copy uses, and its speed, if one is measured.
+export function deployments(recipe, n) {
+  const used = usedSparks(recipe, n);
+  if (used === null) return [];
+  const per = minSparks(recipe);
+  const copies = Math.floor(n / per);
+  const one = { copies: 1, per: used, used, tps: speedAt(recipe, used)?.decode_tps };
+  if (copies < 2) return [one];
+  const tps = speedAt(recipe, per)?.decode_tps;
+  const many = { copies, per, used: copies * per, tps: tps === undefined ? undefined : tps * copies };
+  // One copy on the same Sparks as each of the copies is the same model at
+  // a fraction of the speed, so it's left off.
+  return used === per ? [many] : [one, many];
+}
+
 // Every recipe that fits, scored as if it were the one representing its model
-// (so a model's other recipes can sit on the frontier too).
+// (so a model's other recipes can sit on the frontier too), at each way it
+// can run.
 export function frontierPoints(ix, n, category, method) {
   const fit = ix.recipes.filter((r) => minSparks(r) <= n);
   const plotted = [];
   const noSpeed = [];
+  let withSpeed = 0;
   for (const recipe of fit) {
+    const ways = deployments(recipe, n).filter((d) => d.tps !== undefined);
+    if (ways.length) withSpeed++;
     const entry = ix.standingsFor(n, recipe).ranking(category, method).ranked.find((e) => e.recipe === recipe);
     if (!entry) continue;
-    const used = usedSparks(recipe, n);
-    const tps = speedAt(recipe, used)?.decode_tps;
-    if (tps === undefined) noSpeed.push(entry);
-    else plotted.push({ x: tps, y: entry.score.value, entry, used });
+    if (!ways.length) noSpeed.push(entry);
+    for (const d of ways) plotted.push({ x: d.tps, y: entry.score.value, entry, used: d.used, per: d.per, copies: d.copies });
   }
-  const withSpeed = fit.filter((r) => speedAt(r, usedSparks(r, n))?.decode_tps !== undefined).length;
   return { fit: fit.length, withSpeed, plotted, noSpeed, frontier: paretoFrontier(plotted) };
 }
+
+// The name a point goes by: its model, and how many copies of it run.
+const copiesName = (p, name = p.entry.model.name) => (p.copies > 1 ? `${p.copies}× ${name}` : name);
+// Points are coloured by the Sparks each copy uses.
+const sparkClass = (p) => `s${Math.min(p.per, 4)}`;
+const howRun = (p) => (p.copies > 1 ? `${p.copies} copies, ${plural(p.per)} each` : `runs on ${plural(p.used)}`);
 
 // A name callout for every point, frontier names first. Each tries eight
 // spots around its point and takes the first inside the plot that clears
@@ -65,7 +90,7 @@ function placeCallouts(ix, points, onFrontier, line, sx, sy, W, H, M, compact) {
   const placed = [];
   for (const p of order) {
     const on = onFrontier.has(p);
-    const name = sameModel(p) && !compact ? `${p.entry.model.name} · ${recipeBuild(ix, p.entry.recipe).label}` : p.entry.model.name;
+    const name = copiesName(p, sameModel(p) && !compact ? `${p.entry.model.name} · ${recipeBuild(ix, p.entry.recipe).label}` : p.entry.model.name);
     const w = name.length * NAME_PX;
     const h = 14;
     const cx = sx(p.x);
@@ -106,7 +131,8 @@ function chart(ix, url, n, method, plotted, frontier, size) {
   const yTicks = [0, 20, 40, 60, 80, 100];
   const callouts = placeCallouts(ix, plotted, onFrontier, frontier.map((p) => [sx(p.x), sy(p.y)]), sx, sy, W, H, M, size === 'narrow');
   const measure = method === 'percentile' ? 'index' : 'win rate';
-  const title = (p) => `${p.entry.model.name} · ${recipeBuild(ix, p.entry.recipe).label} on ${plural(p.used)}: ${fmt1(p.x)} t/s, ${measure} ${fmt0(p.y)}${onFrontier.has(p) ? ' · on the frontier' : ''}`;
+  const speed = (p) => (p.copies > 1 ? `${p.copies} × ${fmt1(p.x / p.copies)} = ${fmt1(p.x)} t/s in all` : `${fmt1(p.x)} t/s`);
+  const title = (p) => `${copiesName(p)} · ${recipeBuild(ix, p.entry.recipe).label}, ${p.copies > 1 ? `${p.copies} copies on ${plural(p.per)} each` : `on ${plural(p.used)}`}: ${speed(p)}, ${measure} ${fmt0(p.y)}${onFrontier.has(p) ? ' · on the frontier' : ''}`;
   const line = frontier.map((p) => `${sx(p.x).toFixed(1)},${sy(p.y).toFixed(1)}`).join(' ');
   const yLabel = method === 'percentile' ? 'Index' : 'Win rate (%)';
   const fmtX = (t) => (Number.isInteger(xStep) ? fmt0(t) : fmt1(t));
@@ -117,11 +143,11 @@ function chart(ix, url, n, method, plotted, frontier, size) {
     <line x1="${M.l}" x2="${W - M.r}" y1="${H - M.b}" y2="${H - M.b}"></line>
     ${xTicks.map((t) => html`<text x="${sx(t)}" y="${H - M.b + 18}" text-anchor="middle">${fmtX(t)}</text>`)}
     ${yTicks.map((t) => html`<text x="${M.l - 10}" y="${sy(t) + 4}" text-anchor="end">${t}</text>`)}
-    <text class="title" x="${(M.l + W - M.r) / 2}" y="${H - 12}" text-anchor="middle">Decode speed on ${plural(n)} (tokens/s)</text>
+    <text class="title" x="${(M.l + W - M.r) / 2}" y="${H - 12}" text-anchor="middle">Decode speed on ${plural(n)} (tokens/s${plotted.some((p) => p.copies > 1) ? ', copies summed' : ''})</text>
     <text class="title" x="14" y="${(M.t + H - M.b) / 2}" text-anchor="middle" transform="rotate(-90 14 ${(M.t + H - M.b) / 2})">${yLabel}</text>
   </g>
   ${frontier.length > 1 ? html`<polyline class="frontier-line" points="${line}"></polyline>` : ''}
-  ${plotted.filter((p) => !onFrontier.has(p)).concat(frontier).map((p) => html`<a class="pt${onFrontier.has(p) ? ' on' : ''}" href="${url(recipePath(p.entry.recipe))}"><title>${title(p)}</title><circle cx="${sx(p.x).toFixed(1)}" cy="${sy(p.y).toFixed(1)}" r="5.5"></circle></a>`)}
+  ${plotted.filter((p) => !onFrontier.has(p)).concat(frontier).map((p) => html`<a class="pt ${sparkClass(p)}${onFrontier.has(p) ? ' on' : ''}" href="${url(recipePath(p.entry.recipe))}"><title>${title(p)}</title><circle cx="${sx(p.x).toFixed(1)}" cy="${sy(p.y).toFixed(1)}" r="5.5"></circle></a>`)}
   <g class="callouts">${callouts.map((c) => html`<text class="${c.on ? 'on' : ''}" x="${c.x.toFixed(1)}" y="${(c.top + 11).toFixed(1)}" text-anchor="${c.anchor}">${c.name}</text>`)}</g>
 </svg>`;
 }
@@ -144,13 +170,13 @@ function pickCards(ix, url, method, frontier) {
       // Compare the rounded scores the cards show, so the numbers add up.
       const drop = prev ? Math.round(prev.y) - Math.round(p.y) : 0;
       const trade = prev
-        ? `${fmt1(p.x - prev.x)} t/s faster than ${prev.entry.model.name}, ${drop > 0 ? `${drop} lower ${measure}` : `the same ${measure}`}`
+        ? `${fmt1(p.x - prev.x)} t/s faster than ${copiesName(prev)}, ${drop > 0 ? `${drop} lower ${measure}` : `the same ${measure}`}`
         : only ? 'The only ranked recipe with a measured speed here' : `Highest ${measure} of any recipe that fits`;
       return html`<li class="pick-card">
       <span class="label">${label}</span>
-      <a class="name" href="${url(recipePath(p.entry.recipe))}">${p.entry.model.name}</a>
-      <p class="value"><strong>${fmt0(p.y)}</strong><span>${method === 'percentile' ? 'index' : '% won'}</span><span class="mono">${fmt1(p.x)} t/s</span></p>
-      <p>${recipeBuild(ix, p.entry.recipe).label} · runs on ${plural(p.used)}</p>
+      <a class="name" href="${url(recipePath(p.entry.recipe))}">${copiesName(p)}</a>
+      <p class="value"><strong>${fmt0(p.y)}</strong><span>${method === 'percentile' ? 'index' : '% won'}</span><span class="mono">${fmt1(p.x)} t/s${p.copies > 1 ? ' in all' : ''}</span></p>
+      <p>${recipeBuild(ix, p.entry.recipe).label} · ${howRun(p)}</p>
       <p class="trade">${trade}</p>
     </li>`;
     })}
@@ -187,14 +213,14 @@ export function renderPicks({ ix, url, n, category, method }) {
     ? emptyState(url, n, need, keys.length, fit, withSpeed, scope)
     : html`<div class="picks-grid">
     <div class="picks-chart">
-      <div class="chart-legend" aria-hidden="true"><span><i class="dot on"></i>On the frontier</span><span><i class="dot"></i>Other ranked recipes</span></div>
+      <div class="chart-legend" aria-hidden="true">${[...new Set(plotted.map(sparkClass))].sort().map((c) => html`<span><i class="dot ${c}"></i>${plural(Number(c.slice(1)))} per copy</span>`)}<span><i class="dot ring"></i>On the frontier</span></div>
       ${chart(ix, url, n, method, plotted, frontier, 'wide')}${chart(ix, url, n, method, plotted, frontier, 'narrow')}
     </div>
     ${pickCards(ix, url, method, frontier)}
   </div>`;
 
   const footnote = plotted.length
-    ? `Every recipe that fits is plotted, each scored as if it were the one representing its model.${frontier.length === 1 ? ' A frontier line needs at least two ranked recipes.' : ''} Speeds are single-request decode as measured by each recipe’s author, on their own workload, so treat small gaps as noise. Hover a point for its details; click it for the recipe. ${unplotted}`
+    ? `Every recipe that fits is plotted, each scored as if it were the one representing its model.${plotted.some((p) => p.copies > 1) ? ` A recipe whose smallest setup fits more than once on ${plural(n)} is also plotted as that many independent copies (marked 2×, 3× and so on), at their decode speeds added together: that is total throughput when serving several requests at once, not the speed of one request.` : ''}${frontier.length === 1 ? ' A frontier line needs at least two ranked recipes.' : ''} Speeds are single-request decode as measured by each recipe’s author, on their own workload, so treat small gaps as noise. Hover a point for its details; click it for the recipe. ${unplotted}`
     : unplotted;
 
   return html`<section class="wrap section" id="picks" aria-labelledby="picks-title" style="padding-top:40px">

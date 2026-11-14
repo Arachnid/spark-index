@@ -257,8 +257,14 @@ table.ranks td.speed { white-space: normal; min-width: 240px; }
 /* Speed and score chart */
 .chart-legend { display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 13px; color: var(--ink-2); }
 .chart-legend span { display: inline-flex; align-items: center; gap: 8px; }
-.chart-legend .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--faint); }
-.chart-legend .dot.on { background: var(--accent); }
+.chart-legend .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--faint); box-sizing: border-box; }
+.chart-legend .dot.ring { background: transparent; border: 2px solid var(--ink); }
+/* Points are coloured by the Sparks each copy uses: one blue, lighter to darker. */
+.chart-legend .dot.s1, .frontier-chart .pt.s1 circle { --spark: #86B6EF; }
+.chart-legend .dot.s2, .frontier-chart .pt.s2 circle { --spark: #5598E7; }
+.chart-legend .dot.s3, .frontier-chart .pt.s3 circle { --spark: #256ABF; }
+.chart-legend .dot.s4, .frontier-chart .pt.s4 circle { --spark: #104281; }
+.chart-legend .dot[class*=" s"] { background: var(--spark); }
 .frontier-chart { display: block; width: 100%; max-width: 100%; height: auto; margin: 0 auto; }
 .frontier-chart.narrow { display: none; }
 @media (max-width: 700px) {
@@ -270,8 +276,8 @@ table.ranks td.speed { white-space: normal; min-width: 240px; }
 .frontier-chart .axis text { font-family: var(--mono); font-size: 12px; fill: var(--muted); }
 .frontier-chart .axis text.title { font-family: var(--sans); font-size: 13px; fill: var(--ink-2); }
 .frontier-chart .frontier-line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; }
-.frontier-chart .pt circle { fill: var(--faint); stroke: var(--panel); stroke-width: 2; }
-.frontier-chart .pt.on circle { fill: var(--accent); }
+.frontier-chart .pt circle { fill: var(--spark, var(--faint)); stroke: var(--panel); stroke-width: 2; }
+.frontier-chart .pt.on circle { r: 6.5; stroke: var(--ink); }
 .frontier-chart .pt:hover circle, .frontier-chart .pt:focus-visible circle { r: 7.5; stroke: var(--ink); }
 .frontier-chart .callouts text { font-family: var(--sans); font-size: 12px; fill: var(--muted); paint-order: stroke; stroke: var(--panel); stroke-width: 3px; stroke-linejoin: round; }
 .frontier-chart .callouts text.on { fill: var(--ink); font-weight: 600; }
