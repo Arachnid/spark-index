@@ -71,7 +71,7 @@ function checker(errors, file) {
 
 function validateBenchmark(b, config, errors) {
   const c = checker(errors, b.file);
-  c.keys(b, ['id', 'file', 'name', 'short', 'version', 'categories', 'metric', 'description', 'url', 'paper', 'leaderboard', 'tasks', 'harness', 'suite']);
+  c.keys(b, ['id', 'file', 'name', 'short', 'version', 'categories', 'metric', 'description', 'url', 'paper', 'leaderboard', 'tasks', 'chance', 'harness', 'suite']);
   c.str(b, 'name');
   c.str(b, 'short');
   c.str(b, 'version');
@@ -81,6 +81,7 @@ function validateBenchmark(b, config, errors) {
   c.url(b, 'paper', { required: false });
   c.url(b, 'leaderboard', { required: false });
   c.num(b, 'tasks', { required: false, min: 1 });
+  c.num(b, 'chance', { required: false, min: 0, max: 99 });
   c.str(b, 'harness', { required: false });
   c.str(b, 'suite', { required: false });
   if (b.suite && !/^[a-z0-9][a-z0-9-]*$/.test(b.suite)) c.fail('"suite" uses lower case letters, digits and hyphens');

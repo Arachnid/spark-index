@@ -7,5 +7,6 @@ description: "Ten-option multiple choice, thinking on: a fixed 300-question samp
 url: https://github.com/MiaAI-Lab/sparkDash#quality-bench
 paper: https://arxiv.org/abs/2406.01574
 tasks: 300
+chance: 10
 harness: sparkDash Quality bench (suite 2, scoring 4), temperature 0
 suite: quality

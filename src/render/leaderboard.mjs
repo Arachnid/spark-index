@@ -8,7 +8,7 @@ import {
 import { renderPicks } from './frontier.mjs';
 
 const METHODS = [
-  { id: 'percentile', label: 'Mean percentile' },
+  { id: 'mean', label: 'Mean score' },
   { id: 'h2h', label: 'Head-to-head wins' }
 ];
 
@@ -46,7 +46,7 @@ function boardRow(ix, url, st, entry, rank, keys, best, n) {
   <td class="rank">${rank ?? '–'}</td>
   <td class="model"><a href="${url(recipePath(entry.recipe))}">${entry.model.name}</a><div>${entry.model.developer}${entry.model.params_total_b ? ` · ${entry.model.params_total_b}B` : ''}${entry.model.params_active_b ? ` · ${entry.model.params_active_b}B active` : ''}</div></td>
   <td class="recipe" title="${othersTitle}"><b>${lines.name}</b><span>${lines.by}</span><span>${lines.range}</span>${run ? html`<span>${run}</span>` : ''}</td>
-  <td class="index" data-v="${value ?? ''}"><div class="indexbar"><b>${value === null ? '—' : fmt0(value)}</b><i><em style="width:${value === null ? 0 : value.toFixed(1)}%"></em></i></div></td>
+  <td class="index" data-v="${value ?? ''}"${value !== null && entry.score.margin !== null ? html` title="95% range from sampling: ${fmt1(value - entry.score.margin)} to ${fmt1(value + entry.score.margin)}"` : ''}><div class="indexbar"><b>${value === null ? '—' : fmt0(value)}${value !== null && entry.score.margin !== null ? html`<small>±${fmt0(Math.max(1, entry.score.margin))}</small>` : ''}</b><i><em style="width:${value === null ? 0 : value.toFixed(1)}%"></em></i></div></td>
   <td class="coverage" aria-label="${countedN} of ${keys.length} benchmarks count${flaggedN ? `; ${flaggedN} more shown but not ranked` : ''}"><div class="dots" aria-hidden="true">${keys.map((k) => html`<i class="${counts(entry.view, k) ? 'on' : entry.view[k] ? 'flag' : ''}"></i>`)}</div>${countedN}/${keys.length}${flaggedN ? ` · +${flaggedN}` : ''}</td>
   ${keys.map((k) => scoreCell(ix, entry, k, st, best[k]))}
 </tr>`;
@@ -104,7 +104,7 @@ export function renderLeaderboard({ ix, url, n, category, method }) {
         <th class="rank" scope="col">#</th>
         <th scope="col">Model</th>
         <th scope="col">Recipe<br><span class="sub">for ${plural(n)}</span></th>
-        <th scope="col" aria-sort="descending" data-sort-default><button type="button" data-sort="index"><span>${method === 'percentile' ? 'Index' : 'Win rate'}</span><span class="sub">${method === 'percentile' ? 'mean percentile' : '% match-ups'}</span></button></th>
+        <th scope="col" aria-sort="descending" data-sort-default><button type="button" data-sort="index"><span>${method === 'mean' ? 'Score' : 'Win rate'}</span><span class="sub">${method === 'mean' ? 'mean, above chance' : '% match-ups'}</span></button></th>
         <th scope="col">Counted</th>
         ${benches.map((b) => {
           const have = st.entries.filter((e) => counts(e.view, b.id)).length;
@@ -114,8 +114,8 @@ export function renderLeaderboard({ ix, url, n, category, method }) {
       <tbody>${rows}</tbody>
     </table>
   </div>
-  <p class="footnote">${method === 'percentile'
-    ? 'Index: the mean of a recipe’s percentiles, among the models that fit, across the benchmarks that count for it.'
+  <p class="footnote">${method === 'mean'
+    ? 'Score: the mean of a recipe’s scores on the benchmarks that count for it, each rescaled so random guessing scores 0 and a perfect run 100. The ± is a 95% range from the benchmarks’ finite number of tasks; scores closer than that are not reliably different.'
     : 'Win rate: the share of head-to-head match-ups won against the other models that fit, on benchmarks that count for both.'} A recipe needs ${need} of ${keys.length} to be ranked. Dashed cells were measured on a different build, model version, test version or a subset, and are left out. Hover a score for its source; click a column to sort by it.</p>
 </section>`;
 
@@ -124,7 +124,7 @@ export function renderLeaderboard({ ix, url, n, category, method }) {
   const allTotal = st.entries.length * allKeys.length;
   const allCounted = st.entries.reduce((sum, e) => sum + allKeys.filter((k) => counts(e.view, k)).length, 0);
   const allFlagged = st.entries.reduce((sum, e) => sum + allKeys.filter((k) => e.view[k] && !counts(e.view, k)).length, 0);
-  const overall = st.ranking('all', 'percentile');
+  const overall = st.ranking('all', 'mean');
   const wantedFrom = [...overall.ranked, ...overall.unranked];
   const wanted = [];
   for (const e of wantedFrom) {
