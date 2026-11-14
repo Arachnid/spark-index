@@ -64,9 +64,11 @@ export function scoreStatus(score, recipe, benchmark) {
 
 // Every score shown for one recipe on one benchmark, best first: the model's
 // own scores and those of related versions, each with its status. The first
-// one is the score used: counted before flagged, then the most independent
-// source (a Spark run, then an independent leaderboard, then the developer),
-// then the highest value (a model's best published setting), then the newest.
+// one is the score used: counted before flagged, then, among flagged ones,
+// the closest to the recipe (the same kind of weights, then the same number of
+// Sparks), then the most independent source (a Spark run, then an independent
+// leaderboard, then the developer), then the highest value (a model's best
+// published setting), then the newest.
 export function cellFor(ix, recipe, benchmarkId) {
   const model = ix.models.get(recipe.model);
   const benchmark = ix.benchmarks.get(benchmarkId);
@@ -75,7 +77,16 @@ export function cellFor(ix, recipe, benchmarkId) {
     .concat(related)
     .map((score) => ({ score, status: scoreStatus(score, recipe, benchmark) }));
   if (all.length === 0) return null;
-  const key = (e) => [STATUS_ORDER[e.status], PROVENANCE_ORDER[e.score.provenance], -e.score.value, -dateNumber(e.score.source.date)];
+  // A build's kind of weights is the first word of its format: "EXL3", "FP8".
+  const kind = (modelId, build) => (ix.models.get(modelId)?.builds?.[build ?? 'release']?.format ?? '').toLowerCase().match(/[a-z0-9]+/)?.[0] ?? '';
+  const mine = kind(recipe.model, recipe.build);
+  const far = (e) => e.status !== 'counts';
+  const key = (e) => [
+    STATUS_ORDER[e.status],
+    !far(e) || (mine && kind(e.score.model, e.score.build) === mine) ? 0 : 1,
+    !far(e) || e.score.sparks === undefined || recipe.sparks.includes(e.score.sparks) ? 0 : 1,
+    PROVENANCE_ORDER[e.score.provenance], -e.score.value, -dateNumber(e.score.source.date)
+  ];
   all.sort((a, b) => compareKeys(key(a), key(b)));
   return { chosen: all[0], all };
 }
