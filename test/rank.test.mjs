@@ -88,6 +88,26 @@ test('cellFor prefers counted scores, then independent sources, then higher valu
   assert.equal(cellFor(ix, recipe(ix, 'beta-2x'), 'sec-c'), null);
 });
 
+test('a related version\'s score shown in a cell is the one closest to the recipe', () => {
+  // A newer version with a full-size run on 4 Sparks and a quantized run on 2,
+  // and an older version whose quantized 2-Spark recipe has no scores yet.
+  const data = fixture();
+  const src = { title: 'Source', url: 'https://example.com/source', date: '2026-10-01' };
+  data.models.push(
+    { id: 'new', file: 'new', name: 'New', developer: 'Lab', builds: { release: { label: 'FP8', format: 'FP8, with MXFP4 experts' }, q: { label: 'EXL3 EAQ', format: 'EXL3 (EAQ v1)' } } },
+    { id: 'old', file: 'old', name: 'Old', developer: 'Lab', related: ['new'], builds: { release: { label: 'FP8', format: 'FP8' }, q: { label: 'EXL3', format: 'EXL3' } } }
+  );
+  data.recipes.push({ ...data.recipes[0], id: 'old-q-2x', file: 'r9', model: 'old', build: 'q', sparks: [2] });
+  data.scores.push(
+    { id: 'new/full', file: 's20', model: 'new', benchmark: 'code-b', benchmark_version: '1', value: 94, provenance: 'spark', sparks: 4, source: src },
+    { id: 'new/q', file: 's21', model: 'new', benchmark: 'code-b', benchmark_version: '1', value: 92, build: 'q', provenance: 'spark', sparks: 2, source: src }
+  );
+  const ix = buildIndex(data);
+  const cell = cellFor(ix, recipe(ix, 'old-q-2x'), 'code-b');
+  assert.equal(cell.chosen.status, 'model-version');
+  assert.equal(cell.chosen.score.id, 'new/q', 'the EXL3 run on 2 Sparks, not the higher full-size one on 4');
+});
+
 test('usedSparks and sparkRange describe a recipe\'s Spark counts', () => {
   const r = { sparks: [2, 3, 4] };
   assert.equal(usedSparks(r, 1), null);
