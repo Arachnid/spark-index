@@ -112,7 +112,7 @@ sparkDash runs one Quality bench per unit, and only on a unit that serves a mode
 python3 bench/queue.py queue.txt logs/
 ```
 
-Each line of `queue.txt` is `<recipe-id> <spark,spark,…|any> [more npm run bench arguments]`, and the first Spark named is the head. A line waits for every Spark it names, and a later line never jumps ahead of an earlier one that wants the same Spark. `--wait-for=PATH` holds a line until a file exists (a download finishing, say), and `adopt <pid> <sparks>` marks Sparks busy with a run started some other way. Edit the file while it runs, and it picks up the changes within a minute. It writes `status.txt`, and each run's output to `<recipe-id>.log`, in the log directory.
+Each line of `queue.txt` is `<recipe-id> <spark,spark,…|any> [more npm run bench arguments]`, and the first Spark named is the head. A line waits for every Spark it names, and a later line never jumps ahead of an earlier one that wants the same Spark. `--wait-for=PATH` holds a line until a file exists (a download finishing, say), and `adopt <pid> <sparks> [recipe-id]` marks Sparks busy with a run started some other way. Edit the file while it runs, and it picks up the changes within a minute. A line runs once: to run it again after a failure, change it (add an `--env`, say). It writes `status.txt`, and each run's output to `<recipe-id>.log`, in the log directory.
 
 The cluster is written at the top of the script: the Spark running sparkDash (`HUB`), every Spark (`ALL`), and each worker's address on its link to each head (`WORKER_ADDR`), which it passes to multi-Spark recipes as `WORKER`, `WORKER2`. Ours are four Sparks cabled in a ring, which gives two pairs that can each run a two-Spark recipe; edit those three for yours.
 
