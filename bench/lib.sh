@@ -144,23 +144,3 @@ harness_checkout() {
   clone_or_update "$url" "$dir" "$ref" >&2
   printf '%s\n' "$dir"
 }
-
-# harbor_docker: for benchmark scripts that run Harbor on Docker. The snap of
-# Docker's client can't read hidden folders in your home, where Harbor keeps its
-# tasks (~/.cache/harbor) and its compose files (~/.local), nor a /tmp other
-# than its own, so every trial would fail before its agent ran. The daemon is
-# fine: Docker's static client first on PATH, with the compose plugin, works.
-# Harbor's temporary compose files go in $OUT_DIR/tmp, with the run.
-harbor_docker() {
-  case "$(readlink -f "$(command -v docker)")" in
-    /snap/*) die "docker here is the snap's client, which can't read Harbor's files in ~/.cache and ~/.local: put Docker's static client first on PATH (see bench/README.md)" ;;
-  esac
-  export TMPDIR="$OUT_DIR/tmp"
-  mkdir -p "$TMPDIR"
-}
-
-# is_loopback_url <url>: true for an address only this machine can reach,
-# which a benchmark whose agent runs in a container can't use.
-is_loopback_url() {
-  case "$1" in http://127.*|http://localhost*|https://127.*|https://localhost*) return 0 ;; *) return 1 ;; esac
-}

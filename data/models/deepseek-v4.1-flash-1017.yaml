@@ -25,4 +25,9 @@ builds:
     bits: 8
     by: drowzeys
     url: https://huggingface.co/drowzeys/keys-DeepSeek-V4.1-Flash-1017-Abliterated
-    notes: Served by the four-Spark TensorFold recipe with ABLIT=1, at overlay revision de412d22.
+    notes: >-
+      Served by the four-Spark TensorFold recipe with ABLIT=1, at overlay revision de412d22.
+      Against the release build in sparkDash's Divergence test (120 prompts, temperature 0, 2026-11-14),
+      27% of replies were identical (all tool calls, about half of JSON and code, no prose), the rest
+      first differing at a median of 49 tokens. Fidelity can't be measured: the server returns no prompt
+      log-probabilities. Data: runs/deepseek-v4.1-flash-1017-4x-tensorfold/quality/20261114T001637Z.

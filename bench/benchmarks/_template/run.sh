@@ -9,7 +9,8 @@
 #   OUT_DIR            an empty directory for the harness's output; also the working directory
 #   BENCHMARK_VERSION  the version data/benchmarks/<id>.yaml ranks on
 #   BENCHMARK_TASKS    the task count in that file, if it gives one
-#   BENCH_SHARED       bench/benchmarks/_shared: harbor_score.py turns a Harbor job into result.json
+#   RUN_DIR            the run's directory in runs/, committed: for files a later comparison needs
+#   SPARKPLUG_HEAD     the head Spark's SSH host ("local" when run on it)
 #   BENCHMARK_ID, SPARKPLUG_RECIPE, SPARKPLUG_SPARKS, BENCH_LIB, and every --env
 #
 # Run the benchmark's own harness at BENCHMARK_VERSION on the full task set,
@@ -17,11 +18,17 @@
 #
 #   {
 #     "value": 31.8,                                   the benchmark's headline metric, 0-100
-#     "setting": "Harbor, terminus-2, 5 trials",       harness, agent and trials, for readers
-#     "benchmark_version": "4.0",                      optional: defaults to BENCHMARK_VERSION
+#     "setting": "some-harness 1.2, 3 samples",        harness, agent and samples, for readers
+#     "benchmark_version": "2.4",                      optional: defaults to BENCHMARK_VERSION
 #     "subset": "the 20 tasks that build offline",     optional: only if you didn't run them all
 #     "notes": "3 tasks timed out"                     optional
 #   }
+#
+# A suite's script (bench/benchmarks/<suite>/, for the benchmarks whose files
+# name it as their suite) writes one result for all of them: the shared fields
+# at the top, and each benchmark's own under "scores":
+#
+#   { "setting": "...", "scores": { "<benchmark-id>": { "value": 70.1 }, ... } }
 #
 # Exit non-zero if the run failed. Don't write result.json for a run that
 # didn't finish: a partial run is a subset, and should say so.

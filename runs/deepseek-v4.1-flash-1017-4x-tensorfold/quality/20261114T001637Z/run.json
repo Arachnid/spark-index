@@ -1,0 +1,22 @@
+{
+  "recipe": "deepseek-v4.1-flash-1017-4x-tensorfold",
+  "model": "deepseek-v4.1-flash-1017",
+  "build": "release",
+  "engine": "TensorFold native Zig engine (BertholomusAI deepseek-v41-zig-tp4 branch) with 43 recipe patches",
+  "benchmark": "quality",
+  "sparks": 4,
+  "started_at": "2026-11-14T00:16:37.235Z",
+  "spark_plug_commit": "b2f686a53a47f1856ce9099ca14ed98bcd767561",
+  "scripts": {
+    "bench/default/install.sh": "4093d730ba511acda967b8f85998b4500a1da8cbaf1aeab23c4bc87506d5698e",
+    "bench/default/start.sh": "59a82c44c9c9902ec194fc65bffccbf4e12e8d3f591c73ae12028baae9d85569",
+    "bench/default/stop.sh": "a6cdfef7475edccee95cca928120dca9914b82449ef43535bb41db715247a43d",
+    "bench/benchmarks/quality/run.sh": "f1a92ed94b898287a84216453517368e68d843245a537eaccab04e4d6e7df3ff",
+    "bench/lib.sh": "aef02005b40bf2889104943b929aa4c7615f2f0e7df09faf8551ae61b579d648"
+  },
+  "served_model": "deepseek-v4.1-flash-ablit",
+  "recipe_revision": "8ffa67d53ef15bab997399135f85e8b0910f30be",
+  "benchmark_started_at": "2026-11-14T00:16:47.652Z",
+  "results": {},
+  "finished_at": "2026-11-14T00:19:53.456Z"
+}

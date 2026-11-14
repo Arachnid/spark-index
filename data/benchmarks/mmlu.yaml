@@ -1,0 +1,11 @@
+name: MMLU
+short: MMLU
+version: "2.4"
+categories: [knowledge]
+metric: accuracy (%)
+description: "Four-option multiple choice, thinking off: 5 questions from each of the 57 subjects. Saturated."
+url: https://github.com/MiaAI-Lab/sparkDash#quality-bench
+paper: https://arxiv.org/abs/2009.03300
+tasks: 285
+harness: sparkDash Quality bench (suite 2, scoring 4), temperature 0
+suite: quality

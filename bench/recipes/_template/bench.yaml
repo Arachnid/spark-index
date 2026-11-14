@@ -26,7 +26,8 @@ repo: https://github.com/OWNER/RECIPE.git
 #   2: ./start.sh
 #   3: ./start-tp3.sh
 
-# What stops it, on every Spark. Default: ./stop.sh. null if the recipe has
+# What stops it, on every Spark, or a map by number of Sparks as for start.
+# Default: ./stop.sh. null if the recipe has
 # none: then the containers the start command started on the head are stopped.
 # stop: ./stop.sh
 

@@ -8,6 +8,7 @@
 //   bench/recipes/<recipe-id>/start.sh      (all three run on the head Spark)
 //   bench/recipes/<recipe-id>/stop.sh
 //   bench/benchmarks/<benchmark-id>/run.sh  run where `npm run bench` runs; writes result.json
+//                                           (or <suite>/run.sh, for every benchmark in the suite)
 //
 // A directory whose name starts with an underscore is a template and is ignored.
 
@@ -18,7 +19,7 @@ import { parse } from 'yaml';
 export const RECIPE_STEPS = ['install.sh', 'start.sh', 'stop.sh'];
 export const BENCH_CONFIG_KEYS = ['repo', 'ref', 'setup', 'start', 'stop', 'port', 'ready_timeout_s', 'start_timeout_s', 'served_model', 'notes'];
 // Settings that may differ by Spark count: a value, or a map from count to value.
-const BY_SPARKS = ['ref', 'setup', 'start'];
+const BY_SPARKS = ['ref', 'setup', 'start', 'stop'];
 
 export const DEFAULTS = {
   // Mia's recipes, and sparkDash's launchers: ./start.sh returns once the API
@@ -77,7 +78,7 @@ export function benchConfigErrors(raw, sparks) {
   if (raw.repo !== undefined && !text(raw.repo)) errors.push('"repo" must be a git URL');
   for (const key of BY_SPARKS) {
     const v = raw[key];
-    if (v === undefined || text(v)) continue;
+    if (v === undefined || text(v) || (key === 'stop' && v === null)) continue;
     if (v && typeof v === 'object' && !Array.isArray(v)) {
       for (const [count, value] of Object.entries(v)) {
         if (!/^[1-9]\d*$/.test(count)) errors.push(`"${key}": "${count}" is not a number of Sparks`);
@@ -88,7 +89,6 @@ export function benchConfigErrors(raw, sparks) {
       errors.push(`"${key}" must be a command, or a map from a number of Sparks to one`);
     }
   }
-  if (raw.stop !== undefined && raw.stop !== null && !text(raw.stop)) errors.push('"stop" must be a command, or null when the recipe has none');
   if (raw.port !== undefined && !(Number.isInteger(raw.port) && raw.port > 0 && raw.port < 65536)) errors.push('"port" must be a port number');
   for (const key of ['ready_timeout_s', 'start_timeout_s']) {
     if (raw[key] !== undefined && !(Number.isInteger(raw[key]) && raw[key] > 0)) errors.push(`"${key}" must be a whole number of seconds`);
@@ -114,7 +114,7 @@ export function readBenchConfig(root, recipeId, sparks) {
     ref: forSparks(raw.ref, sparks),
     setup: forSparks(raw.setup, sparks),
     start: forSparks(raw.start, sparks) ?? (typeof raw.start === 'object' && raw.start ? undefined : DEFAULTS.start),
-    stop: raw.stop === null ? undefined : (raw.stop ?? DEFAULTS.stop),
+    stop: raw.stop === null ? undefined : (forSparks(raw.stop, sparks) ?? DEFAULTS.stop),
     port: raw.port ?? DEFAULTS.port,
     ready_timeout_s: raw.ready_timeout_s ?? DEFAULTS.ready_timeout_s,
     start_timeout_s: raw.start_timeout_s ?? DEFAULTS.start_timeout_s,
@@ -137,7 +137,8 @@ export function checkBenchScripts(data, root) {
   const paths = benchPaths(root);
   const rel = (p) => path.relative(root, p);
   const recipes = new Map(data.recipes.map((r) => [r.id, r]));
-  const benchmarkIds = new Set(data.benchmarks.map((b) => b.id));
+  // A suite's script runs every benchmark that names it as its suite.
+  const benchmarkIds = new Set(data.benchmarks.flatMap((b) => (b.suite ? [b.id, b.suite] : [b.id])));
 
   for (const id of scriptedRecipes(root)) {
     const dir = paths.recipe(id);

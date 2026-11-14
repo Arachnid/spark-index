@@ -1,0 +1,11 @@
+benchmark: mmlu-pro
+benchmark_version: "2.4"
+value: 81.7
+provenance: spark
+sparks: 4
+setting: sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once
+source:
+  title: Spark Plug benchmark run, deepseek-v4.1-flash-1017-4x-tensorfold on 4 Sparks
+  url: https://github.com/Arachnid/spark-index/tree/main/runs/deepseek-v4.1-flash-1017-4x-tensorfold/quality/20261114T001347Z
+  date: "2026-11-14"
+notes: 245 of 263 passed. 37 cut off at max_tokens count as failures; 93.2% of those that finished.

@@ -1,0 +1,11 @@
+benchmark: gsm8k-platinum
+benchmark_version: "2.4"
+value: 100
+provenance: spark
+sparks: 4
+setting: sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once
+source:
+  title: Spark Plug benchmark run, deepseek-v4.1-flash-1017-4x-tensorfold on 4 Sparks
+  url: https://github.com/Arachnid/spark-index/tree/main/runs/deepseek-v4.1-flash-1017-4x-tensorfold/quality/20261114T001347Z
+  date: "2026-11-14"
+notes: 188 of 188 passed.

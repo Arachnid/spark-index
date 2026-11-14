@@ -39,18 +39,18 @@ Scores for a different parameter size of a model (a 27B result for a 35B recipe,
 Create `data/scores/<model-id>/<benchmark-id>-<short-name>.yaml`. The short name only needs to be unique within the folder; the source or your handle works well.
 
 ```yaml
-benchmark: terminal-bench          # a file name in data/benchmarks/
-benchmark_version: "4.0"           # the version you ran, in quotes
-value: 31.8                        # 0 to 100
+benchmark: mmlu-pro                # a file name in data/benchmarks/
+benchmark_version: "2.4"           # the version you ran, in quotes
+value: 81.3                        # 0 to 100
 build: mia-exl3-4bpw               # a build id from data/models/<model-id>.yaml; omit for the release
 provenance: spark                  # lab | independent | other-lab | spark
 sparks: 2                          # required when provenance is spark
-setting: Claude Code, 5 trials per task, reasoning high
+setting: sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once
 source:
   title: My run log
-  url: https://github.com/you/run-logs/tree/main/glm-5.3-flash-tb4
+  url: https://github.com/you/run-logs/tree/main/glm-5.3-flash-quality
   date: "2026-11-04"
-notes: Optional. Anything a reader should know, e.g. tasks that timed out.
+notes: Optional. Anything a reader should know, e.g. replies that were cut off.
 ```
 
 | Field | Required | Meaning |
@@ -69,7 +69,7 @@ notes: Optional. Anything a reader should know, e.g. tasks that timed out.
 
 ### Run a benchmark on your own Sparks
 
-`npm run bench -- <recipe-id> <benchmark-id> --head spark1` installs the recipe on your head Spark, runs the benchmark against it and writes this file for you, with a record of the run in `runs/` for the score to link to. Every recipe has a `bench/recipes/<id>/bench.yaml` saying how to start and stop it; a benchmark needs a script, and [bench/README.md](bench/README.md) says how to write one.
+`npm run bench -- <recipe-id> quality --head spark1` installs the recipe on your head Spark, runs sparkDash's Quality bench against it and writes a score file for each benchmark for you, with a record of the run in `runs/` for the score to link to. Every recipe has a `bench/recipes/<id>/bench.yaml` saying how to start and stop it; [bench/README.md](bench/README.md) says what the run needs and how to script another benchmark.
 
 When a recipe has several scores that count on one benchmark, the site uses the most independent one (`spark`, then `independent`, then `lab`, then `other-lab`), then the highest value, then the newest.
 
@@ -173,17 +173,18 @@ A model only appears on the leaderboard once it has a recipe.
 Create `data/benchmarks/<benchmark-id>.yaml`:
 
 ```yaml
-name: Terminal-Bench
-short: TB 4.0                   # column header
-version: "4.0"                  # the version this site ranks on
-categories: [coding, agentic]   # from site.config.yaml
-metric: resolution rate, mean of 5 trials (%)
-description: Long, realistic jobs for an agent in a sandboxed terminal, each scored by tests.
-url: https://www.tbench.ai
-paper: https://arxiv.org/abs/2601.11868
-leaderboard: https://www.tbench.ai/leaderboard
-tasks: 66
-harness: Harbor (terminal-bench@4.0.0)
+name: MMLU-Pro
+short: MMLU-Pro                 # column header
+version: "2.4"                  # the version this site ranks on
+categories: [knowledge]         # from site.config.yaml
+metric: accuracy (%)
+description: "Ten-option multiple choice, thinking on: a fixed 300-question sample."
+url: https://github.com/MiaAI-Lab/sparkDash#quality-bench
+paper: https://arxiv.org/abs/2406.01574
+leaderboard: https://example.com/leaderboard   # optional
+tasks: 300
+harness: sparkDash Quality bench (suite 2, scoring 4), temperature 0
+suite: quality                  # optional: scored by the suite's script, bench/benchmarks/quality/
 ```
 
 `name`, `short`, `version`, `categories`, `metric`, `description` and `url` are required.

@@ -21,9 +21,9 @@ ranking:
 # Benchmark categories, in display order. Each benchmark lists the
 # categories it belongs to.
 categories:
-  - id: coding
-    name: Coding
-  - id: agentic
-    name: Agentic
-  - id: security
-    name: Security
+  - id: maths
+    name: Maths and reasoning
+  - id: knowledge
+    name: Knowledge
+  - id: instructions
+    name: Instructions and long context

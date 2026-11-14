@@ -1,10 +1,11 @@
-repo: https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold.git
-# WORKER (WORKER2, WORKER3) from scripts/local.sh, or --env. Four Sparks run
-# from the tp4 branch, on a ring. The start scripts run scripts/prepare.sh,
-# for the right number of Sparks, when it is needed.
-ref:
-  4: tp4
+repo: https://github.com/MiaAI-Lab/GLM-5.3-Flash-DGX-Sparks-1104.git
+# WORKER (WORKER2, WORKER3) from scripts/local.sh, or --env. Four Sparks are
+# the ring launcher; on a switch, use ./start-tp4.sh instead. At four Sparks
+# the workers read the weights over NFS (WORKER_WEIGHTS=nfs and its NFS_*
+# settings). The start scripts download and build what is missing.
 start:
   2: ./start.sh
-  3: ./start-tp3.sh
   4: ./start-tp4-switchless.sh
+stop:
+  2: ./stop.sh
+  4: ./stop-tp4.sh

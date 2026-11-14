@@ -20,3 +20,17 @@ builds:
     by: Mia's AI Lab
     url: https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-4bpw-TensorFold
     size_gb: 175.7
+  mia-exl3-4bpw-ablit:
+    label: Mia's EXL3 4-bit, Keys abliteration
+    format: EXL3, routed experts at 4 bpw; Mia's quant with drowzeys's abliterated attention o_proj for layers 15-43 and MTP layer 45 grafted on
+    bits: 4
+    by: Mia's AI Lab
+    url: https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-4bpw-TensorFold-Ablit
+    size_gb: 175.7
+    notes: >-
+      Served by the TensorFold recipe with ABLIT=1, at revision 57edefd2.
+      Against Mia's EXL3 4-bit release in sparkDash's Quality bench (2026-11-14): Fidelity puts it 0.051
+      nats a token worse (95% interval 0.027 to 0.079), choosing the release's top token 89.8% of the
+      time; in Divergence 16% of 120 replies were identical, the rest first differing at a median of 20
+      tokens. Two release runs matched exactly, so the difference is the weights.
+      Data: runs/glm-5.3-flash-exl3-tensorfold/quality/20261114T042222Z.

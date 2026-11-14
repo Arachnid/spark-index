@@ -1,0 +1,10 @@
+name: QA
+short: QA
+version: "2.4"
+categories: [knowledge]
+metric: pass rate (%)
+description: "Short factual and arithmetic questions, thinking off. Near the ceiling for strong models."
+url: https://github.com/MiaAI-Lab/sparkDash#quality-bench
+tasks: 150
+harness: sparkDash Quality bench (suite 2, scoring 4), temperature 0
+suite: quality

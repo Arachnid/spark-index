@@ -37,6 +37,30 @@ export function readResult(raw, benchmark) {
   };
 }
 
+// A suite's result.json: the fields every score shares, and one entry per
+// benchmark under "scores", each with its own value (and subset or notes):
+//   { "setting": "...", "scores": { "mmlu-pro": { "value": 81.2 }, ... } }
+// A benchmark the run didn't score is left out. Returns a result per benchmark.
+export function readSuiteResult(raw, benchmarks) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('result.json must hold a JSON object');
+  const unknown = Object.keys(raw).filter((key) => key !== 'scores' && (key === 'value' || !RESULT_KEYS.includes(key)));
+  if (unknown.length) throw new Error(`result.json: unknown field "${unknown[0]}" (allowed: scores, ${RESULT_KEYS.filter((k) => k !== 'value').join(', ')})`);
+  if (!raw.scores || typeof raw.scores !== 'object' || Array.isArray(raw.scores)) throw new Error('result.json: "scores" must map benchmark ids to results');
+  const byId = new Map(benchmarks.map((b) => [b.id, b]));
+  const { scores, ...shared } = raw;
+  const results = {};
+  for (const [id, own] of Object.entries(scores)) {
+    const benchmark = byId.get(id);
+    if (!benchmark) throw new Error(`result.json: "${id}" is not a benchmark in this suite (${[...byId.keys()].join(', ')})`);
+    try {
+      results[id] = readResult({ ...shared, ...own }, benchmark);
+    } catch (err) {
+      throw new Error(err.message.replace('result.json:', `result.json, ${id}:`));
+    }
+  }
+  return results;
+}
+
 // One file per recipe and benchmark, so a later run replaces the earlier one.
 export function scoreFilePath(recipe, benchmarkId, name = `${benchmarkId}-spark-${recipe.id}`) {
   if (!/^[a-z0-9][a-z0-9.-]*$/.test(name)) throw new Error(`score file name "${name}" must be lower case letters, digits, dots and hyphens`);

@@ -1,0 +1,23 @@
+{
+  "recipe": "glm-5.3-flash-exl3-tensorfold",
+  "model": "glm-5.3-flash",
+  "build": "mia-exl3-4bpw",
+  "recipe_version": "1104",
+  "engine": "TensorFold 1.1.9 native engine (commit f350cd3e) with 121 recipe patches, tensor parallel over ConnectX-7",
+  "benchmark": "quality",
+  "sparks": 4,
+  "started_at": "2026-11-14T04:22:22.215Z",
+  "spark_plug_commit": "b2f686a53a47f1856ce9099ca14ed98bcd767561",
+  "scripts": {
+    "bench/default/install.sh": "4093d730ba511acda967b8f85998b4500a1da8cbaf1aeab23c4bc87506d5698e",
+    "bench/default/start.sh": "59a82c44c9c9902ec194fc65bffccbf4e12e8d3f591c73ae12028baae9d85569",
+    "bench/default/stop.sh": "a6cdfef7475edccee95cca928120dca9914b82449ef43535bb41db715247a43d",
+    "bench/benchmarks/quality/run.sh": "f1a92ed94b898287a84216453517368e68d843245a537eaccab04e4d6e7df3ff",
+    "bench/lib.sh": "aef02005b40bf2889104943b929aa4c7615f2f0e7df09faf8551ae61b579d648"
+  },
+  "served_model": "GLM-5.3-Flash-ablit",
+  "recipe_revision": "80be4d6882837d8e0840827ae2aab6124fd48da3",
+  "benchmark_started_at": "2026-11-14T04:22:32.647Z",
+  "results": {},
+  "finished_at": "2026-11-14T04:26:39.513Z"
+}

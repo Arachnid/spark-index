@@ -1,0 +1,10 @@
+name: Long-context recall
+short: Long
+version: "2.4"
+categories: [instructions]
+metric: pass rate (%)
+description: "Recall 16 codes, four of them later corrected, from 32k tokens of filler. Thinking off."
+url: https://github.com/MiaAI-Lab/sparkDash#quality-bench
+tasks: 3
+harness: sparkDash Quality bench (suite 2, scoring 4), temperature 0
+suite: quality

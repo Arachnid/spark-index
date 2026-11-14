@@ -1,0 +1,12 @@
+benchmark: quality-reasoning
+benchmark_version: "2.4"
+value: 99.5
+build: nvidia-24gb
+provenance: spark
+sparks: 1
+setting: sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once
+source:
+  title: Spark Plug benchmark run, nemotron-3.5-bolt-1x-tensorfold on 1 Spark
+  url: https://github.com/Arachnid/spark-index/tree/main/runs/nemotron-3.5-bolt-1x-tensorfold/quality/20261114T074859Z
+  date: "2026-11-14"
+notes: 199 of 199 passed. 1 cut off at max_tokens count as failures; 100% of those that finished.

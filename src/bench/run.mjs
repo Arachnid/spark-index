@@ -21,7 +21,7 @@ import path from 'node:path';
 import { loadData } from '../load.mjs';
 import { validate } from '../validate.mjs';
 import { benchPaths, readBenchConfig, stepScripts } from './scripts.mjs';
-import { readResult, renderScore, scoreFields, scoreFilePath } from './score-file.mjs';
+import { readResult, readSuiteResult, renderScore, scoreFields, scoreFilePath } from './score-file.mjs';
 
 const SSH_OPTIONS = ['-o', 'BatchMode=yes', '-o', 'ServerAliveInterval=30'];
 
@@ -305,8 +305,15 @@ export function planRun(options, ctx) {
   const data = loadData(root);
   const recipe = data.recipes.find((r) => r.id === options.recipeId);
   if (!recipe) throw new Error(`no recipe "${options.recipeId}" in data/recipes/`);
-  const benchmark = data.benchmarks.find((b) => b.id === options.benchmarkId);
-  if (!benchmark) throw new Error(`no benchmark "${options.benchmarkId}" in data/benchmarks/`);
+  // A benchmark id, or a suite's: one run of the suite's script scores all of its benchmarks.
+  let benchmarks = data.benchmarks.filter((b) => b.id === options.benchmarkId);
+  const suite = benchmarks.length === 0;
+  if (suite) benchmarks = data.benchmarks.filter((b) => b.suite === options.benchmarkId);
+  if (!benchmarks.length) throw new Error(`no benchmark or suite "${options.benchmarkId}" in data/benchmarks/`);
+  if (suite && options.scoreName) throw new Error('--score-name names one score file, and a suite writes one per benchmark');
+  const benchmark = suite
+    ? { id: options.benchmarkId, name: `the ${options.benchmarkId} suite (${benchmarks.length} benchmarks)`, version: benchmarks[0].version }
+    : benchmarks[0];
 
   const paths = benchPaths(root);
   if (!fs.existsSync(paths.recipe(recipe.id))) {
@@ -330,6 +337,8 @@ export function planRun(options, ctx) {
     data,
     recipe,
     benchmark,
+    benchmarks,
+    suite,
     config,
     steps,
     head: options.head,
@@ -337,7 +346,7 @@ export function planRun(options, ctx) {
     started,
     runRel,
     runDir: path.join(root, runRel),
-    scoreFile: scoreFilePath(recipe, benchmark.id, options.scoreName),
+    scoreFiles: Object.fromEntries(benchmarks.map((b) => [b.id, scoreFilePath(recipe, b.id, options.scoreName)])),
     benchmarkScript,
     servedModel: options.servedModel ?? config.served_model,
     recipeEnv: {
@@ -375,36 +384,40 @@ export function describePlan(plan, options) {
   steps.push(`bench/benchmarks/${plan.benchmark.id}/run.sh here`);
   if (!options.keepRunning && !options.skipStart) steps.push(own('stop.sh') ? `bench/recipes/${plan.recipe.id}/stop.sh` : config.stop ? `run "${config.stop}"` : 'stop the containers it started on the head');
   steps.push(`record the run in ${plan.runRel}/`);
-  if (options.writeScore !== false) steps.push(`write ${plan.scoreFile}`);
+  if (options.writeScore !== false) {
+    const files = Object.values(plan.scoreFiles);
+    steps.push(files.length === 1 ? `write ${files[0]}` : `write a score file for each benchmark it scores, in data/scores/${plan.recipe.model}/`);
+  }
   return [
-    `${plan.recipe.id} on ${plan.sparks} Spark${plan.sparks === 1 ? '' : 's'}, ${plan.benchmark.name} ${plan.benchmark.version}:`,
+    `${plan.recipe.id} on ${plan.sparks} Spark${plan.sparks === 1 ? '' : 's'}, ${plan.benchmark.name}${plan.suite ? '' : ` ${plan.benchmark.version}`}:`,
     ...steps.map((s, i) => `  ${i + 1}. ${s}`)
   ].join('\n');
 }
 
 // Writes the score file and checks the data still validates with it in.
-export function recordScore(plan, result, options, ctx) {
+export function recordScore(plan, benchmarkId, result, options, ctx) {
   const { root } = ctx;
   const source = {
     title: options.sourceTitle ?? `Spark Plug benchmark run, ${plan.recipe.id} on ${plan.sparks} Spark${plan.sparks === 1 ? '' : 's'}`,
     url: options.sourceUrl ?? `${plan.data.config.repo.replace(/\/$/, '')}/tree/main/${plan.runRel}`,
     date: plan.started.toISOString().slice(0, 10)
   };
-  const fields = scoreFields({ recipe: plan.recipe, benchmarkId: plan.benchmark.id, result, sparks: plan.sparks, source });
-  const file = path.join(root, plan.scoreFile);
+  const scoreFile = plan.scoreFiles[benchmarkId];
+  const fields = scoreFields({ recipe: plan.recipe, benchmarkId, result, sparks: plan.sparks, source });
+  const file = path.join(root, scoreFile);
   const existing = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : null;
   const text = renderScore(fields, existing);
 
   // Validate the whole data set with this score in place before writing it.
-  const others = plan.data.scores.filter((s) => s.file !== plan.scoreFile);
-  const id = `${plan.recipe.model}/${path.basename(plan.scoreFile, '.yaml')}`;
-  const errors = validate({ ...plan.data, scores: [...others, { ...fields, model: plan.recipe.model, id, file: plan.scoreFile }] })
-    .filter((e) => e.startsWith(plan.scoreFile));
+  const others = plan.data.scores.filter((s) => s.file !== scoreFile);
+  const id = `${plan.recipe.model}/${path.basename(scoreFile, '.yaml')}`;
+  const errors = validate({ ...plan.data, scores: [...others, { ...fields, model: plan.recipe.model, id, file: scoreFile }] })
+    .filter((e) => e.startsWith(scoreFile));
   if (errors.length) throw new Error(`the new score does not validate:\n  ${errors.join('\n  ')}`);
 
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, text);
-  return { file: plan.scoreFile, updated: existing !== null };
+  return { file: scoreFile, updated: existing !== null };
 }
 
 export async function runBench(options, ctx) {
@@ -480,9 +493,11 @@ export async function runBench(options, ctx) {
       OUT_DIR: outDir,
       BENCH_LIB: benchPaths(root).lib,
       BENCHMARK_ID: plan.benchmark.id,
+      BENCHMARK_IDS: plan.benchmarks.map((b) => b.id).join(' '),
       BENCHMARK_VERSION: plan.benchmark.version,
       ...(plan.benchmark.tasks ? { BENCHMARK_TASKS: String(plan.benchmark.tasks) } : {}),
-      BENCH_SHARED: path.join(benchPaths(root).benchmarks, '_shared'),
+      RUN_DIR: plan.runDir,
+      SPARKPLUG_HEAD: plan.head,
       SPARKPLUG_RECIPE: plan.recipe.id,
       SPARKPLUG_SPARKS: String(plan.sparks)
     };
@@ -501,6 +516,22 @@ export async function runBench(options, ctx) {
     } catch (err) {
       throw new Error(`result.json is not JSON: ${err.message}`);
     }
+    if (plan.suite) {
+      const results = readSuiteResult(raw, plan.benchmarks);
+      record.results = results;
+      record.finished_at = new Date().toISOString();
+      writeRecord();
+      const ids = Object.keys(results);
+      log(ids.length ? ids.map((id) => `${id}: ${results[id].value}`).join(', ') : 'no benchmark scores in this run');
+      const scores = {};
+      if (options.writeScore !== false) {
+        for (const id of ids) {
+          scores[id] = recordScore(plan, id, results[id], options, ctx);
+          log(`${scores[id].updated ? 'updated' : 'wrote'} ${scores[id].file}`);
+        }
+      }
+      return { plan, results, scores };
+    }
     const result = readResult(raw, plan.benchmark);
     record.result = result;
     record.finished_at = new Date().toISOString();
@@ -509,7 +540,7 @@ export async function runBench(options, ctx) {
 
     let score;
     if (options.writeScore !== false) {
-      score = recordScore(plan, result, options, ctx);
+      score = recordScore(plan, plan.benchmark.id, result, options, ctx);
       log(`${score.updated ? 'updated' : 'wrote'} ${score.file}`);
     }
     return { plan, result, score };
