@@ -85,14 +85,18 @@ function placeCallouts(ix, points, onFrontier, line, sx, sy, W, H, M, compact) {
   }
   const hits = (b) => boxes.some((o) => b.x0 < o.x1 && o.x0 < b.x1 && b.y0 < o.y1 && o.y0 < b.y1);
   const inside = (b) => b.x0 >= M.l && b.x1 <= W - M.r && b.y0 >= 0 && b.y1 <= H - M.b;
-  const sameModel = (p) => points.filter((q) => q.entry.model === p.entry.model).length > 1;
   const order = [...points].sort((a, b) => (onFrontier.has(b) - onFrontier.has(a)) || (b.y - a.y));
   const placed = [];
   for (const p of order) {
     const on = onFrontier.has(p);
-    const name = copiesName(p, sameModel(p) && !compact ? `${p.entry.model.name} · ${recipeBuild(ix, p.entry.recipe).label}` : p.entry.model.name);
-    const w = name.length * NAME_PX;
-    const h = 14;
+    // Two lines: the model (with its copies), then the build, and the engine
+    // where two recipes run the same build. A phone's chart has room for the
+    // first line only.
+    const twin = points.some((q) => q.entry.recipe !== p.entry.recipe && q.entry.recipe.model === p.entry.recipe.model && q.entry.recipe.build === p.entry.recipe.build);
+    const engine = twin ? ` · ${p.entry.recipe.engine.split(/[ (]/)[0]}` : '';
+    const lines = compact ? [copiesName(p)] : [copiesName(p), `${recipeBuild(ix, p.entry.recipe).label}${engine}`];
+    const w = Math.max(...lines.map((l) => l.length)) * NAME_PX;
+    const h = lines.length * 15;
     const cx = sx(p.x);
     const cy = sy(p.y);
     const at = (x, top, anchor) => {
@@ -109,12 +113,19 @@ function placeCallouts(ix, points, onFrontier, line, sx, sy, W, H, M, compact) {
       at(cx + 8, cy - h - 4, 'start'),
       at(cx + 8, cy + 4, 'start'),
       at(cx - 8, cy - h - 4, 'end'),
-      at(cx - 8, cy + 4, 'end')
+      at(cx - 8, cy + 4, 'end'),
+      // Farther out, so a crowded chart can still name its points (not on a
+      // phone, where a label that far off reads as another point's).
+      ...(compact ? [] : [22, 36, 50]).flatMap((d) => [
+        at(cx, cy - d - h, 'middle'), at(cx, cy + d, 'middle'),
+        at(cx + d * 0.7, cy - d - h / 2, 'start'), at(cx + d * 0.7, cy + d - h / 2, 'start'),
+        at(cx - d * 0.7, cy - d - h / 2, 'end'), at(cx - d * 0.7, cy + d - h / 2, 'end')
+      ])
     ];
     const spot = spots.find((o) => inside(o.b) && !hits(o.b)) ?? (on ? spots.find((o) => inside(o.b)) ?? spots[0] : null);
     if (!spot) continue;
     boxes.push(spot.b);
-    placed.push({ ...spot, name, on });
+    placed.push({ ...spot, lines, on });
   }
   return placed;
 }
@@ -156,7 +167,7 @@ function chart(ix, url, n, method, plotted, frontier, size) {
   <g class="err">${plotted.filter((p) => p.m).map((p) => html`<line x1="${sx(p.x).toFixed(1)}" x2="${sx(p.x).toFixed(1)}" y1="${sy(p.y - p.m).toFixed(1)}" y2="${sy(p.y + p.m).toFixed(1)}"></line>`)}</g>
   ${frontier.length > 1 ? html`<polyline class="frontier-line" points="${line}"></polyline>` : ''}
   ${plotted.filter((p) => !onFrontier.has(p)).concat(frontier).map((p) => html`<a class="pt ${sparkClass(p)}${onFrontier.has(p) ? ' on' : ''}" href="${url(recipePath(p.entry.recipe))}"><title>${title(p)}</title><circle cx="${sx(p.x).toFixed(1)}" cy="${sy(p.y).toFixed(1)}" r="5.5"></circle></a>`)}
-  <g class="callouts">${callouts.map((c) => html`<text class="${c.on ? 'on' : ''}" x="${c.x.toFixed(1)}" y="${(c.top + 11).toFixed(1)}" text-anchor="${c.anchor}">${c.name}</text>`)}</g>
+  <g class="callouts">${callouts.map((c) => html`<text class="${c.on ? 'on' : ''}" x="${c.x.toFixed(1)}" y="${(c.top + 11).toFixed(1)}" text-anchor="${c.anchor}"><tspan x="${c.x.toFixed(1)}">${c.lines[0]}</tspan>${c.lines[1] ? html`<tspan class="build" x="${c.x.toFixed(1)}" dy="15">${c.lines[1]}</tspan>` : ''}</text>`)}</g>
 </svg>`;
 }
 
