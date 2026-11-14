@@ -1,0 +1,90 @@
+{
+  "recipe": "nemotron-3.5-bolt-1x-tensorfold",
+  "model": "nemotron-3.5-bolt-74b-a9b",
+  "build": "nvidia-24gb",
+  "engine": "TensorFold Zig engine (pinned 1.0.12 commit) with recipe patches and the libbolt Bolt backend",
+  "benchmark": "quality",
+  "sparks": 1,
+  "start_command": "./start.sh",
+  "started_at": "2026-11-14T07:48:59.038Z",
+  "spark_plug_commit": "b2f686a53a47f1856ce9099ca14ed98bcd767561",
+  "scripts": {
+    "bench/default/install.sh": "4093d730ba511acda967b8f85998b4500a1da8cbaf1aeab23c4bc87506d5698e",
+    "bench/default/start.sh": "59a82c44c9c9902ec194fc65bffccbf4e12e8d3f591c73ae12028baae9d85569",
+    "bench/default/stop.sh": "a6cdfef7475edccee95cca928120dca9914b82449ef43535bb41db715247a43d",
+    "bench/benchmarks/quality/run.sh": "f81423d3f873474de78fe4ac3770224694a599b0f30db5adacec4040f40c2230",
+    "bench/lib.sh": "aef02005b40bf2889104943b929aa4c7615f2f0e7df09faf8551ae61b579d648"
+  },
+  "served_model": "Nemotron-3.5-Bolt",
+  "recipe_revision": "6b064a31dd47e4f959e9041d6129eb2bad830481",
+  "benchmark_started_at": "2026-11-14T08:24:22.801Z",
+  "results": {
+    "quality-qa": {
+      "value": 96.7,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "145 of 150 passed."
+    },
+    "quality-reasoning": {
+      "value": 99.5,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "199 of 199 passed. 1 cut off at max_tokens count as failures; 100% of those that finished."
+    },
+    "quality-arithmetic": {
+      "value": 100,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "200 of 200 passed. Graded 100% (steps right)."
+    },
+    "quality-state-tracking": {
+      "value": 88.5,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "177 of 179 passed. Graded 99.6% (totals right). 21 cut off at max_tokens count as failures; 98.9% of those that finished."
+    },
+    "gsm8k-platinum": {
+      "value": 99.5,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "187 of 187 passed. 1 cut off at max_tokens count as failures; 100% of those that finished."
+    },
+    "mmlu-pro": {
+      "value": 64.7,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "194 of 218 passed. 82 cut off at max_tokens count as failures; 89% of those that finished."
+    },
+    "math-500": {
+      "value": 66.6,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "333 of 490 passed. 10 cut off at max_tokens count as failures; 68% of those that finished."
+    },
+    "mmlu": {
+      "value": 84.2,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "240 of 284 passed. 1 cut off at max_tokens count as failures; 84.5% of those that finished."
+    },
+    "instruction-following": {
+      "value": 82.5,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "33 of 40 passed."
+    },
+    "long-context-recall": {
+      "value": 0,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "0 of 3 passed. Graded 0% (codes right). At 32k tokens."
+    },
+    "tokenizer": {
+      "value": 77.3,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "34 of 44 passed."
+    }
+  },
+  "finished_at": "2026-11-14T13:16:56.074Z"
+}

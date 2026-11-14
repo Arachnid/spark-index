@@ -53,14 +53,14 @@ export function renderContribute({ ix, url }) {
   <div class="prose">
     <p>Everything on this site is generated from small YAML files in <a href="${repo}/tree/main/data">the repository’s data folder</a>. Adding a score is one new file in a pull request; the site rebuilds itself when it is merged.</p>
     <h2>Submit a score</h2>
-    <p>Create <code>data/scores/&lt;model-id&gt;/&lt;benchmark-id&gt;-&lt;short-name&gt;.yaml</code>. For example, a run of Mia’s GLM-5.3-Flash recipe would go in <code>data/scores/glm-5.3-flash/terminal-bench-4-my-run.yaml</code>. If you ran it on a Spark, say which build and how many Sparks:</p>
-    <pre><code>benchmark: terminal-bench
-benchmark_version: "4.0"
-value: 31.8
+    <p>Every benchmark here is a category of <a href="https://github.com/MiaAI-Lab/sparkDash#quality-bench">sparkDash</a>’s Quality bench. With sparkDash on your head Spark, <code>npm run bench -- &lt;recipe-id&gt; quality --head &lt;spark&gt;</code> starts the recipe, runs the whole suite and writes a score file for each benchmark, with a record of the run for them to link to; <a href="${repo}/blob/main/bench/README.md">bench/README.md</a> has the details. A score file looks like this, in <code>data/scores/&lt;model-id&gt;/&lt;benchmark-id&gt;-&lt;short-name&gt;.yaml</code>:</p>
+    <pre><code>benchmark: mmlu-pro
+benchmark_version: "2.4"
+value: 81.3
 build: mia-exl3-4bpw              # a build id from data/models/glm-5.3-flash.yaml
 provenance: spark                 # lab | independent | other-lab | spark
 sparks: 2
-setting: Claude Code, 5 trials per task
+setting: sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once
 source:
   title: My run log
   url: https://github.com/you/your-run-logs

@@ -1,0 +1,10 @@
+name: Arithmetic chain
+short: Arith
+version: "2.4"
+categories: [maths]
+metric: pass rate (%)
+description: "Chains of 10 or 20 operations, every step written out, thinking on."
+url: https://github.com/MiaAI-Lab/sparkDash#quality-bench
+tasks: 200
+harness: sparkDash Quality bench (suite 2, scoring 4), temperature 0
+suite: quality

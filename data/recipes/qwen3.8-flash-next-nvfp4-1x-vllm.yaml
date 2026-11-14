@@ -12,7 +12,7 @@ commands: |
   cp .env.sample .env
   ./download.sh
   ./start.sh
-notes: Superseded by the TensorFold recipe, according to its README. The measured speed used a 512k-context profile, not the shipped one.
+notes: Superseded by the TensorFold recipe, according to its README. Its default checkpoint, Mia-AiLab/Qwen3.8-Flash-Next-NVFP4, is not public as of November 2026, so ./download.sh fails unless you set TP1_MODEL_ID to NVIDIA's checkpoint. The measured speed used a 512k-context profile, not the shipped one.
 speeds:
   - sparks: 1
     decode_tps: 48.7

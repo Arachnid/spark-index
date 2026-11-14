@@ -1,0 +1,10 @@
+name: Tokenizer
+short: Tok
+version: "2.4"
+categories: [knowledge]
+metric: pass rate (%)
+description: "Letter counts, string reversal and binary: puzzles decided by the tokenizer. Thinking off."
+url: https://github.com/MiaAI-Lab/sparkDash#quality-bench
+tasks: 44
+harness: sparkDash Quality bench (suite 2, scoring 4), temperature 0
+suite: quality

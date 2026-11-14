@@ -9,10 +9,10 @@ import { parse } from 'yaml';
 import { loadData, ROOT } from '../src/load.mjs';
 import { validate } from '../src/validate.mjs';
 import { checkBenchScripts, benchConfigErrors, readBenchConfig } from '../src/bench/scripts.mjs';
-import { readResult, renderScore, scoreFields, scoreFilePath } from '../src/bench/score-file.mjs';
+import { readResult, readSuiteResult, renderScore, scoreFields, scoreFilePath } from '../src/bench/score-file.mjs';
 import { parseStatus, planSparks, remoteScript, runBench, shellQuote } from '../src/bench/run.mjs';
 
-const benchmark = { id: 'terminal-bench', version: '4.0' };
+const benchmark = { id: 'mmlu-pro', version: '2.4' };
 const recipe = { id: 'glm-q4-2x', model: 'glm', build: 'q4', sparks: [2, 3, 4] };
 function tempDir(t, prefix) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
@@ -23,30 +23,30 @@ function tempDir(t, prefix) {
 const source = { title: 'Run', url: 'https://example.com/run', date: '2026-11-04' };
 
 test('a result needs a value and a setting, and defaults the version', () => {
-  assert.deepEqual(readResult({ value: 31.837, setting: 'Harbor, 5 trials' }, benchmark),
-    { value: 31.84, setting: 'Harbor, 5 trials', benchmark_version: '4.0' });
+  assert.deepEqual(readResult({ value: 31.837, setting: 'sparkDash, 4 at once' }, benchmark),
+    { value: 31.84, setting: 'sparkDash, 4 at once', benchmark_version: '2.4' });
   assert.throws(() => readResult({ value: 131 }, benchmark), /"value" must be a percentage.*"setting" is required/);
   assert.throws(() => readResult({ value: 3, setting: 'x', score: 4 }, benchmark), /unknown field "score"/);
   assert.throws(() => readResult([], benchmark), /JSON object/);
 });
 
 test('score files are named for the recipe and benchmark', () => {
-  assert.equal(scoreFilePath(recipe, 'terminal-bench'), 'data/scores/glm/terminal-bench-spark-glm-q4-2x.yaml');
-  assert.equal(scoreFilePath(recipe, 'terminal-bench', 'tb-claude-code'), 'data/scores/glm/tb-claude-code.yaml');
-  assert.throws(() => scoreFilePath(recipe, 'terminal-bench', 'Bad Name'), /lower case/);
+  assert.equal(scoreFilePath(recipe, 'mmlu-pro'), 'data/scores/glm/mmlu-pro-spark-glm-q4-2x.yaml');
+  assert.equal(scoreFilePath(recipe, 'mmlu-pro', 'tb-claude-code'), 'data/scores/glm/tb-claude-code.yaml');
+  assert.throws(() => scoreFilePath(recipe, 'mmlu-pro', 'Bad Name'), /lower case/);
 });
 
 test('a new score file has the fields in order and quotes dates and versions', () => {
-  const result = readResult({ value: 31.8, setting: 'Harbor, 5 trials', subset: 'first 20' }, benchmark);
-  const text = renderScore(scoreFields({ recipe, benchmarkId: 'terminal-bench', result, sparks: 2, source }));
+  const result = readResult({ value: 31.8, setting: 'sparkDash, 4 at once', subset: 'first 20' }, benchmark);
+  const text = renderScore(scoreFields({ recipe, benchmarkId: 'mmlu-pro', result, sparks: 2, source }));
   assert.equal(text, [
-    'benchmark: terminal-bench',
-    'benchmark_version: "4.0"',
+    'benchmark: mmlu-pro',
+    'benchmark_version: "2.4"',
     'value: 31.8',
     'build: q4',
     'provenance: spark',
     'sparks: 2',
-    'setting: Harbor, 5 trials',
+    'setting: sparkDash, 4 at once',
     'subset: first 20',
     'source:',
     '  title: Run',
@@ -65,8 +65,8 @@ test('the release build is left out', () => {
 test('updating a score keeps comments and notes, and drops a stale subset', () => {
   const before = [
     '# Re-run monthly.',
-    'benchmark: terminal-bench',
-    'benchmark_version: "4.0"',
+    'benchmark: mmlu-pro',
+    'benchmark_version: "2.4"',
     'value: 20',
     'build: q4',
     'provenance: spark',
@@ -80,7 +80,7 @@ test('updating a score keeps comments and notes, and drops a stale subset', () =
     ''
   ].join('\n');
   const result = readResult({ value: 33.3, setting: 'new' }, benchmark);
-  const text = renderScore(scoreFields({ recipe, benchmarkId: 'terminal-bench', result, sparks: 3, source }), before);
+  const text = renderScore(scoreFields({ recipe, benchmarkId: 'mmlu-pro', result, sparks: 3, source }), before);
   assert.match(text, /^# Re-run monthly\./);
   const score = parse(text);
   assert.equal(score.value, 33.3);
@@ -91,7 +91,7 @@ test('updating a score keeps comments and notes, and drops a stale subset', () =
   assert.deepEqual(score.source, source);
 
   const withNotes = readResult({ value: 33.3, setting: 'new', notes: 'Fresh note.' }, benchmark);
-  assert.equal(parse(renderScore(scoreFields({ recipe, benchmarkId: 'terminal-bench', result: withNotes, sparks: 3, source }), before)).notes, 'Fresh note.');
+  assert.equal(parse(renderScore(scoreFields({ recipe, benchmarkId: 'mmlu-pro', result: withNotes, sparks: 3, source }), before)).notes, 'Fresh note.');
 });
 
 test('values sent to a Spark are quoted for bash', () => {
@@ -133,13 +133,15 @@ test('bench.yaml is checked, and settings by Spark count are resolved', (t) => {
 
   const root = tempDir(t, 'bench-config-');
   fs.mkdirSync(path.join(root, 'bench/recipes/r'), { recursive: true });
-  fs.writeFileSync(path.join(root, 'bench/recipes/r/bench.yaml'), 'repo: https://example.com/r.git\nref: { 4: tp4 }\nstart: { 2: ./start.sh, 4: ./start-tp4.sh }\n');
+  fs.writeFileSync(path.join(root, 'bench/recipes/r/bench.yaml'), 'repo: https://example.com/r.git\nref: { 4: tp4 }\nstart: { 2: ./start.sh, 4: ./start-tp4.sh }\nstop: { 4: ./stop-tp4.sh }\n');
   assert.deepEqual(readBenchConfig(root, 'r', 2), {
     repo: 'https://example.com/r.git', ref: undefined, setup: undefined, start: './start.sh', stop: './stop.sh',
     port: 8888, ready_timeout_s: 900, start_timeout_s: 86400, served_model: undefined
   });
   assert.equal(readBenchConfig(root, 'r', 4).ref, 'tp4');
   assert.equal(readBenchConfig(root, 'r', 4).start, './start-tp4.sh');
+  assert.equal(readBenchConfig(root, 'r', 4).stop, './stop-tp4.sh');
+  assert.match(benchConfigErrors({ stop: { 5: './x.sh' } }, [2, 3]).join(), /doesn't run on 5/);
   assert.equal(readBenchConfig(root, 'r', 3).start, undefined);
 });
 
@@ -226,9 +228,12 @@ function recipeRepo(t, files) {
 
 // A copy of the site with one recipe scripted by `benchYaml` and a benchmark
 // script `runSh`, run with --head local.
-async function benchFixture(t, { recipeId, benchmarkId = 'terminal-bench', benchYaml, runSh }) {
+async function benchFixture(t, { recipeId, benchmarkId = 'mmlu-pro', benchYaml, runSh }) {
   const root = tempDir(t, 'bench-run-');
   fs.cpSync(path.join(ROOT, 'data'), path.join(root, 'data'), { recursive: true });
+  // Start with no scores, so a run's score file is new and the real ones don't leak in.
+  fs.rmSync(path.join(root, 'data/scores'), { recursive: true, force: true });
+  fs.mkdirSync(path.join(root, 'data/scores'));
   fs.cpSync(path.join(ROOT, 'site.config.yaml'), path.join(root, 'site.config.yaml'));
   fs.mkdirSync(path.join(root, 'bench/recipes', recipeId), { recursive: true });
   fs.cpSync(path.join(ROOT, 'bench/lib.sh'), path.join(root, 'bench/lib.sh'));
@@ -261,7 +266,7 @@ test('a run clones the recipe, sets it up, starts it, benchmarks it, stops it an
   const sparkplug = path.join(root, 'sparks');
   const logs = [];
   const { score, result, plan } = await runBench({
-    recipeId, benchmarkId: 'terminal-bench', head: 'local',
+    recipeId, benchmarkId: 'mmlu-pro', head: 'local',
     env: { WORKER: 'me@10.0.0.2' }, benchRoot: sparkplug, ...fast
   }, { root, log: (line) => logs.push(line), now: () => new Date('2026-11-04T12:00:00Z') });
 
@@ -272,17 +277,17 @@ test('a run clones the recipe, sets it up, starts it, benchmarks it, stops it an
   assert.ok(fs.existsSync(path.join(checkout, 'stopped')), 'the recipe\'s stop.sh ran');
   assert.equal(await portOpen(port), false, 'the server is stopped');
 
-  assert.equal(score.file, `data/scores/deepseek-v4.1-flash-1017/terminal-bench-spark-${recipeId}.yaml`);
+  assert.equal(score.file, `data/scores/deepseek-v4.1-flash-1017/mmlu-pro-spark-${recipeId}.yaml`);
   assert.deepEqual(parse(fs.readFileSync(path.join(root, score.file), 'utf8')), {
-    benchmark: 'terminal-bench',
-    benchmark_version: '4.0',
+    benchmark: 'mmlu-pro',
+    benchmark_version: '2.4',
     value: 42,
     provenance: 'spark',
     sparks: 4,
     setting: 'fake harness against fake-model as fake-model',
     source: {
       title: `Spark Plug benchmark run, ${recipeId} on 4 Sparks`,
-      url: `https://github.com/Arachnid/spark-index/tree/main/runs/${recipeId}/terminal-bench/20261104T120000Z`,
+      url: `https://github.com/Arachnid/spark-index/tree/main/runs/${recipeId}/mmlu-pro/20261104T120000Z`,
       date: '2026-11-04'
     }
   });
@@ -308,30 +313,30 @@ test('a start command that fails ends the run at once, with its output, and stop
   });
   const began = Date.now();
   await assert.rejects(
-    runBench({ recipeId, benchmarkId: 'terminal-bench', head: 'local', env: {}, benchRoot: path.join(root, 'sparks'), ...fast }, { root, log: () => {} }),
+    runBench({ recipeId, benchmarkId: 'mmlu-pro', head: 'local', env: {}, benchRoot: path.join(root, 'sparks'), ...fast }, { root, log: () => {} }),
     (err) => /the start command \(\.\/start\.sh\) failed with exit 3/.test(err.message) && /CUDA out of memory/.test(err.message)
   );
   assert.ok(Date.now() - began < 10_000);
   assert.ok(fs.existsSync(path.join(root, 'sparks', recipeId, 'recipe', 'stopped')));
-  assert.equal(fs.existsSync(path.join(root, 'data/scores/ling-3.0-flash', `terminal-bench-spark-${recipeId}.yaml`)), false);
-  const [runDir] = fs.readdirSync(path.join(root, 'runs', recipeId, 'terminal-bench'));
-  const record = JSON.parse(fs.readFileSync(path.join(root, 'runs', recipeId, 'terminal-bench', runDir, 'run.json'), 'utf8'));
+  assert.equal(fs.existsSync(path.join(root, 'data/scores/ling-3.0-flash', `mmlu-pro-spark-${recipeId}.yaml`)), false);
+  const [runDir] = fs.readdirSync(path.join(root, 'runs', recipeId, 'mmlu-pro'));
+  const record = JSON.parse(fs.readFileSync(path.join(root, 'runs', recipeId, 'mmlu-pro', runDir, 'run.json'), 'utf8'));
   assert.match(record.error, /exit 3/);
 });
 
 test('a start command that serves in the foreground works, and is stopped without a stop command', async (t) => {
   const recipeId = 'glm-5.3-flash-exl3-tensorfold';
   const port = await freePort();
-  const repo = recipeRepo(t, { 'serve-tp3.sh': `exec node server.mjs ${port}\n`, 'server.mjs': SERVER });
+  const repo = recipeRepo(t, { 'serve-tp4.sh': `exec node server.mjs ${port}\n`, 'server.mjs': SERVER });
   const root = await benchFixture(t, {
     recipeId,
-    benchmarkId: 'livecodebench',
-    benchYaml: `repo: ${repo.dir}\nstart: { 2: ./start.sh, 3: ./serve-tp3.sh }\nstop: null\nport: ${port}\n`,
+    benchmarkId: 'math-500',
+    benchYaml: `repo: ${repo.dir}\nstart: { 2: ./start.sh, 4: ./serve-tp4.sh }\nstop: null\nport: ${port}\n`,
     runSh: 'echo "harness crashed" >&2\nexit 3\n'
   });
   await assert.rejects(
-    runBench({ recipeId, benchmarkId: 'livecodebench', head: 'local', sparks: 3, env: {}, benchRoot: path.join(root, 'sparks'), ...fast }, { root, log: () => {} }),
-    /livecodebench failed \(exit 3\)/
+    runBench({ recipeId, benchmarkId: 'math-500', head: 'local', sparks: 4, env: {}, benchRoot: path.join(root, 'sparks'), ...fast }, { root, log: () => {} }),
+    /math-500 failed \(exit 3\)/
   );
   assert.equal(await portOpen(port), false, 'the start command\'s process group was stopped');
 });
@@ -347,7 +352,7 @@ test('--recipe-dir uses a checkout as it is', async (t) => {
     runSh: FAKE_BENCHMARK
   });
   const { result, plan } = await runBench({
-    recipeId, benchmarkId: 'terminal-bench', head: 'local', env: {}, recipeDir: repo.dir,
+    recipeId, benchmarkId: 'mmlu-pro', head: 'local', env: {}, recipeDir: repo.dir,
     benchRoot: path.join(root, 'sparks'), writeScore: false, ...fast
   }, { root, log: () => {} });
   assert.equal(result.value, 42);
@@ -356,92 +361,76 @@ test('--recipe-dir uses a checkout as it is', async (t) => {
   assert.equal(JSON.parse(fs.readFileSync(path.join(plan.runDir, 'run.json'), 'utf8')).recipe_revision, repo.revision);
 });
 
-// The benchmark scripts' own scoring, run on output shaped like each harness's.
+// The quality suite: one run of sparkDash's Quality bench scores every benchmark in it.
 const BENCHMARKS = path.join(ROOT, 'bench/benchmarks');
-const python = (script, ...args) => JSON.parse(execFileSync('python3', [path.join(BENCHMARKS, script), ...args.map(String)], { encoding: 'utf8' }).split('\n')[0].replace(/\) *$/, '').replace(/ \(\d+ of \d+ solved$/, ''));
-const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
-const write = (file, text) => { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, text); };
+const suite = loadData().benchmarks.filter((b) => b.suite === 'quality');
 
-test('a Harbor job is scored by its mean, with errors noted and a short job a subset', (t) => {
-  const dir = tempDir(t, 'harbor-');
-  const job = (trials, errors, mean) => write(path.join(dir, 'job/result.json'), JSON.stringify({
-    id: 'x', started_at: '2026-11-04T00:00:00Z', n_total_trials: trials,
-    stats: { n_completed_trials: trials, evals: { 'terminus-2__m__terminal-bench': { n_trials: trials, n_errors: errors, metrics: [{ mean }] } } }
+test('a suite\'s result has a score per benchmark, sharing its setting', () => {
+  const results = readSuiteResult({ setting: 'sparkDash', benchmark_version: '2.4', scores: { 'mmlu-pro': { value: 81.234, notes: 'n' }, mmlu: { value: 90, subset: 'half' } } }, suite);
+  assert.deepEqual(results, {
+    'mmlu-pro': { value: 81.23, setting: 'sparkDash', benchmark_version: '2.4', notes: 'n' },
+    mmlu: { value: 90, setting: 'sparkDash', benchmark_version: '2.4', subset: 'half' }
+  });
+  assert.deepEqual(readSuiteResult({ setting: 's', scores: {} }, suite), {});
+  assert.throws(() => readSuiteResult({ setting: 's', scores: { 'terminal-bench': { value: 1 } } }, suite), /not a benchmark in this suite/);
+  assert.throws(() => readSuiteResult({ setting: 's', value: 3, scores: {} }, suite), /unknown field "value"/);
+  assert.throws(() => readSuiteResult({ setting: 's', scores: { mmlu: { value: 300 } } }, suite), /mmlu: "value" must be a percentage/);
+});
+
+test('a suite run writes a score file for each benchmark it scored', async (t) => {
+  const recipeId = 'qwen3.8-27b-nvfp4-1x-sglang';
+  const port = await freePort();
+  const repo = recipeRepo(t, { 'start-dspark.sh': MIA_START.replace('[ -f prepared ]', 'true'), 'stop.sh': MIA_STOP, 'server.mjs': SERVER });
+  const root = await benchFixture(t, {
+    recipeId,
+    benchmarkId: 'quality',
+    benchYaml: `repo: https://example.invalid/never-cloned.git\nstart: ./start-dspark.sh\nport: ${port}\n`,
+    runSh: `source "$BENCH_LIB"
+[ -d "$RUN_DIR" ] && [ "$SPARKPLUG_HEAD" = local ] && [ "\${BENCHMARK_IDS#*mmlu-pro}" != "$BENCHMARK_IDS" ] || exit 9
+echo kept >"$RUN_DIR/quality-run.json.gz"
+echo '{"setting": "fake suite", "benchmark_version": "2.4", "scores": {"mmlu-pro": {"value": 70}, "math-500": {"value": 55.5, "notes": "n"}}}' >result.json
+`
+  });
+  const { results, scores, plan } = await runBench({
+    recipeId, benchmarkId: 'quality', head: 'local', env: {}, recipeDir: repo.dir, benchRoot: path.join(root, 'sparks'), ...fast
+  }, { root, log: () => {}, now: () => new Date('2026-11-04T12:00:00Z') });
+  assert.deepEqual(Object.keys(results).sort(), ['math-500', 'mmlu-pro']);
+  assert.equal(scores['mmlu-pro'].file, `data/scores/qwen3.8-27b/mmlu-pro-spark-${recipeId}.yaml`);
+  const math = parse(fs.readFileSync(path.join(root, scores['math-500'].file), 'utf8'));
+  assert.equal(math.value, 55.5);
+  assert.equal(math.notes, 'n');
+  assert.equal(math.source.url, `https://github.com/Arachnid/spark-index/tree/main/runs/${recipeId}/quality/20261104T120000Z`);
+  assert.equal(fs.readFileSync(path.join(plan.runDir, 'quality-run.json.gz'), 'utf8'), 'kept\n');
+  assert.deepEqual(validate(loadData(root)), []);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(plan.runDir, 'run.json'), 'utf8')).results['mmlu-pro'].value, 70);
+});
+
+test('a sparkDash Quality run is scored per category, with cut-off replies counted as failures', (t) => {
+  const dir = tempDir(t, 'quality-');
+  const record = path.join(dir, 'run.json');
+  const cat = (passed, scored, extra = {}) => ({ passed, scored, total: scored, pct: Math.round((passed / scored) * 1000) / 10, errors: 0, truncated: 0, ...extra });
+  fs.writeFileSync(record, JSON.stringify({
+    config: { modelId: 'm', suiteVersion: 2, scoringVersion: 4, concurrency: 4, longSizes: [32768], categories: [] },
+    results: { categories: {
+      mmlupro: cat(240, 300),
+      arith: cat(150, 200, { gradePct: 91.2 }),
+      math500: { ...cat(400, 490, { truncated: 10, budgetedPct: 80 }), total: 500 },
+      long: cat(3, 3),
+      follow: { ...cat(30, 38, { errors: 2 }), total: 40 },
+      fidelity: { nll: 0.5 },
+      divergence: { total: 120 }
+    } }
   }));
-  job(330, 3, 0.3);
-  python('_shared/harbor_score.py', path.join(dir, 'job'), path.join(dir, 'result.json'), 330, 'Harbor, terminus-2');
-  assert.deepEqual(readJson(path.join(dir, 'result.json')), {
-    value: 30, setting: 'Harbor, terminus-2', notes: '3 of 330 trials ended in an error and count as unsolved.'
-  });
-  job(100, 0, 0.5);
-  python('_shared/harbor_score.py', path.join(dir, 'job'), path.join(dir, 'result.json'), 330, 's');
-  assert.deepEqual(readJson(path.join(dir, 'result.json')), { value: 50, setting: 's', subset: '100 of 330 trials' });
-});
-
-test('LiveCodeBench is scored by lcb_runner\'s pass@1', (t) => {
-  const out = tempDir(t, 'lcb-');
-  write(path.join(out, 'output/sparkplug/codegeneration_1_0.2_eval.json'), JSON.stringify([
-    { 'pass@1': 0.4567, detail: { 'pass@1': Object.fromEntries(Array.from({ length: 175 }, (_, i) => [`q${i}`, i % 2])) } }, {}, []
-  ]));
-  python('livecodebench/score.py', out, 'v6', 1, 0.2, 'abc123');
-  assert.deepEqual(readJson(path.join(out, 'result.json')), {
-    value: 45.67, setting: 'lcb_runner at abc123, codegeneration v6, n=1, temperature 0.2'
-  });
-});
-
-test('Cybench is patched to run the recipe\'s model, and scored from its run logs', (t) => {
-  const repo = tempDir(t, 'cybench-');
-  const mapping = (cls) => `class ${cls}:\n    mapping: ClassVar[Dict[DeploymentName, str]] = {\n        DeploymentName.GPT_4O: "x",\n    }\n`;
-  write(path.join(repo, 'agent/dataclasses/agent_spec.py'), `from enum import Enum\nfrom typing import ClassVar, Dict\nclass DeploymentName(Enum):\n    GPT_4O = "openai/gpt-4o"\n\n${mapping('TokenizerMapping')}\n${mapping('ModelMapping')}\n${mapping('NonHELMMapping')}`);
-  write(path.join(repo, 'agent/models/non_helm.py'), 'import tiktoken\ndef count(model_name, s):\n    return len(tiktoken.encoding_for_model(model_name).encode(s))\n');
-  write(path.join(repo, 'run_task.sh'), 'docker run \\\n\t--name x \\\n\t-it \\\n\timage\n');
-  execFileSync('python3', [path.join(BENCHMARKS, 'cybench/patch.py'), repo, 'openai/org/Model-1', 'org/Model-1']);
-  const spec = fs.readFileSync(path.join(repo, 'agent/dataclasses/agent_spec.py'), 'utf8');
-  const loaded = JSON.parse(execFileSync('python3', ['-c', `
-import json, runpy
-ns = runpy.run_path(${JSON.stringify(path.join(repo, 'agent/dataclasses/agent_spec.py'))})
-D = ns["DeploymentName"]
-print(json.dumps([D("openai/org/Model-1").name, ns["TokenizerMapping"].mapping[D.SPARKPLUG], ns["ModelMapping"].mapping[D.SPARKPLUG], ns["NonHELMMapping"].mapping[D.SPARKPLUG]]))
-`], { encoding: 'utf8' }));
-  assert.deepEqual(loaded, ['SPARKPLUG', 'openai/o200k_base', 'openai/org/Model-1', 'org/Model-1'], spec);
-  assert.match(fs.readFileSync(path.join(repo, 'agent/models/non_helm.py'), 'utf8'), /_sparkplug_encoding\(model_name\)\.encode[\s\S]*get_encoding\('o200k_base'\)/);
-  assert.equal(fs.readFileSync(path.join(repo, 'run_task.sh'), 'utf8'), 'docker run \\\n\t--name x \\\n\t-i \\\n\timage\n');
-
-  write(path.join(repo, 'task_list.txt'), 'benchmark/a/[Easy] Solved\nbenchmark/b/Failed\nbenchmark/c/Crashed\n');
-  const logs = (task, run, label) => write(path.join(repo, 'logs', task, 'openai/org/Model-1', run, `openai/org/Model-1_${label}_${task}_run_log.json`), '{}');
-  logs('[Easy]_Solved', 'run1', 'success');
-  logs('Failed', 'run1', 'fail');
-  logs('Failed', 'older-run', 'success');
-  const out = tempDir(t, 'cybench-out-');
-  python('cybench/score.py', repo, 'run1', out, 15, 6000, 2000, 'abc123');
-  assert.deepEqual(readJson(path.join(out, 'result.json')), {
-    value: 33.33,
-    setting: 'Cybench agent at abc123, unguided, 15 iterations, 6000 input / 2000 output tokens',
-    notes: '1 of 3 tasks wrote no run log and count as unsolved.'
-  });
-});
-
-test('CyberGym is scored by each agent\'s final submission', (t) => {
-  const out = tempDir(t, 'cybergym-');
-  for (const dir of ['arvo_1-aaa', 'arvo_2-bbb', 'arvo_3-ccc', 'oss-fuzz_4-ddd']) write(path.join(out, 'agents', dir, 'args.json'), '{}');
-  fs.mkdirSync(path.join(out, 'server'));
-  execFileSync('python3', ['-c', `
-import sqlite3, sys
-db = sqlite3.connect(sys.argv[1])
-db.execute("CREATE TABLE poc_records (id INTEGER PRIMARY KEY, agent_id TEXT, vul_exit_code INT, fix_exit_code INT, created_at TEXT)")
-rows = [
-  ("aaa", 1, 1, "2026-01-01 00:00:00"), ("aaa", 1, 0, "2026-01-01 00:05:00"),  # last one crashes only the vulnerable build
-  ("bbb", 1, 0, "2026-01-01 00:00:00"), ("bbb", 0, 0, "2026-01-01 00:05:00"),  # crashed, then submitted one that doesn't
-  ("ccc", 1, 1, "2026-01-01 00:00:00"),                                         # crashes the fixed build too
-]
-db.executemany("INSERT INTO poc_records (agent_id, vul_exit_code, fix_exit_code, created_at) VALUES (?, ?, ?, ?)", rows)
-db.commit()
-`, path.join(out, 'server/poc.db')]);
-  python('cybergym/score.py', out, '-', 1507, 5, 100, 1200, 'abc123');
-  assert.deepEqual(readJson(path.join(out, 'result.json')), {
-    value: 20,
-    setting: 'OpenHands (CyberGym example agent) at abc123, level 1, final submission, 100 iterations, 1200 s per task',
-    subset: 'the first 5 of 1507 tasks',
-    notes: '1 of 5 tasks wrote no agent log and count as unsolved.'
-  });
+  const ids = suite.map((b) => b.id).join(' ');
+  const out = JSON.parse(execFileSync('python3', [path.join(BENCHMARKS, 'quality/score.py'), record, 'm', '2.90.0', ids], { encoding: 'utf8' }));
+  assert.equal(out.setting, 'sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once');
+  assert.equal(out.benchmark_version, '2.4');
+  assert.deepEqual(Object.keys(out.scores).sort(), ['instruction-following', 'long-context-recall', 'math-500', 'mmlu-pro', 'quality-arithmetic']);
+  assert.deepEqual(out.scores['mmlu-pro'], { value: 80, notes: '240 of 300 passed.' });
+  assert.equal(out.scores['quality-arithmetic'].notes, '150 of 200 passed. Graded 91.2% (steps right).');
+  assert.equal(out.scores['math-500'].value, 80);
+  assert.match(out.scores['math-500'].notes, /10 cut off at max_tokens count as failures; 81.6% of those that finished/);
+  assert.equal(out.scores['long-context-recall'].notes, '3 of 3 passed. At 32k tokens.');
+  assert.equal(out.scores['instruction-following'].subset, '38 of 40 items (the rest failed to get a reply)');
+  assert.throws(() => execFileSync('python3', [path.join(BENCHMARKS, 'quality/score.py'), record, 'other', 'v', ids], { stdio: 'pipe' }), /but the recipe's API serves 'other'/);
 });

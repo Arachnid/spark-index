@@ -1,0 +1,10 @@
+name: Instruction following
+short: IF
+version: "2.4"
+categories: [instructions]
+metric: pass rate (%)
+description: "Prompts with two to four formatting rules each, checked by code, thinking off. IFEval-style."
+url: https://github.com/MiaAI-Lab/sparkDash#quality-bench
+tasks: 40
+harness: sparkDash Quality bench (suite 2, scoring 4), temperature 0
+suite: quality

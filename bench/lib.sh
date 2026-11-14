@@ -144,9 +144,3 @@ harness_checkout() {
   clone_or_update "$url" "$dir" "$ref" >&2
   printf '%s\n' "$dir"
 }
-
-# is_loopback_url <url>: true for an address only this machine can reach,
-# which a benchmark whose agent runs in a container can't use.
-is_loopback_url() {
-  case "$1" in http://127.*|http://localhost*|https://127.*|https://localhost*) return 0 ;; *) return 1 ;; esac
-}

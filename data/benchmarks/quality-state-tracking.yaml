@@ -1,0 +1,10 @@
+name: State tracking
+short: Track
+version: "2.4"
+categories: [maths]
+metric: pass rate (%)
+description: "Tokens passed between five people over 25 or 50 events; every final total must be right. Thinking on."
+url: https://github.com/MiaAI-Lab/sparkDash#quality-bench
+tasks: 200
+harness: sparkDash Quality bench (suite 2, scoring 4), temperature 0
+suite: quality

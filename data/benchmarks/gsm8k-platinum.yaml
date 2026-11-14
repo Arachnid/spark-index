@@ -1,0 +1,11 @@
+name: GSM8K Platinum
+short: GSM8K
+version: "2.4"
+categories: [maths]
+metric: accuracy (%)
+description: "Grade-school maths, thinking on: a fixed 188-problem sample of GSM8K with the corrected Platinum labels."
+url: https://github.com/MiaAI-Lab/sparkDash#quality-bench
+paper: https://arxiv.org/abs/2502.03461
+tasks: 188
+harness: sparkDash Quality bench (suite 2, scoring 4), temperature 0
+suite: quality

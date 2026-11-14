@@ -21,7 +21,7 @@ import path from 'node:path';
 import { loadData } from '../load.mjs';
 import { validate } from '../validate.mjs';
 import { benchPaths, readBenchConfig, stepScripts } from './scripts.mjs';
-import { readResult, renderScore, scoreFields, scoreFilePath } from './score-file.mjs';
+import { readResult, readSuiteResult, renderScore, scoreFields, scoreFilePath } from './score-file.mjs';
 
 const SSH_OPTIONS = ['-o', 'BatchMode=yes', '-o', 'ServerAliveInterval=30'];
 
@@ -54,6 +54,10 @@ export function remoteScript({ env, lib, script }) {
     .join('\n');
   return [
     '#!/usr/bin/env bash',
+    // SSH runs this in a shell that hasn't read ~/.profile, so tools installed
+    // with pip --user (the recipes' `hf`) aren't on PATH as they are when you
+    // log in.
+    'case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) [ -d "$HOME/.local/bin" ] && PATH="$HOME/.local/bin:$PATH" ;; esac',
     exports,
     'export SPARKPLUG_WORKDIR="${SPARKPLUG_ROOT:-$HOME/spark-plug}/$SPARKPLUG_RECIPE"',
     'mkdir -p "$SPARKPLUG_WORKDIR" && cd "$SPARKPLUG_WORKDIR"',
@@ -87,7 +91,19 @@ function runLogged({ cmd, args, input, env, cwd, logFile, label, quiet = false, 
   return new Promise((resolve, reject) => {
     fs.mkdirSync(path.dirname(logFile), { recursive: true });
     const out = fs.createWriteStream(logFile, { flags: 'a' });
-    const child = spawn(cmd, args, { env, cwd, stdio: ['pipe', 'pipe', 'pipe'], signal: ctx.signal });
+    // In a process group of its own, so an interrupt reaches everything it
+    // started (a harness under run.sh, its workers), not just the shell.
+    // SIGINT first, so a harness can stop its containers; then SIGKILL.
+    const child = spawn(cmd, args, { env, cwd, stdio: ['pipe', 'pipe', 'pipe'], detached: true });
+    let interrupted = false;
+    const signalGroup = (sig) => { try { process.kill(-child.pid, sig); } catch {} };
+    const onAbort = () => {
+      interrupted = true;
+      signalGroup('SIGINT');
+      setTimeout(() => signalGroup('SIGKILL'), 120_000).unref();
+    };
+    if (ctx.signal?.aborted) onAbort();
+    else ctx.signal?.addEventListener('abort', onAbort, { once: true });
     const echo = prefixLines(`[${label}] `, quiet ? () => {} : ctx.log);
     let stdout = '';
     child.stdout.on('data', (chunk) => { stdout += chunk; });
@@ -96,11 +112,13 @@ function runLogged({ cmd, args, input, env, cwd, logFile, label, quiet = false, 
     }
     child.stdin.on('error', () => {});
     child.stdin.end(input ?? '');
-    child.on('error', (err) => { echo.end(); out.end(); reject(err.name === 'AbortError' ? new Error(`${label}: interrupted`) : err); });
+    child.on('error', (err) => { echo.end(); out.end(); reject(err); });
     child.on('close', (code, signal) => {
+      ctx.signal?.removeEventListener('abort', onAbort);
       echo.end();
       out.end();
-      if (code === 0) resolve(stdout);
+      if (interrupted) reject(new Error(`${label}: interrupted`));
+      else if (code === 0) resolve(stdout);
       else reject(new Error(`${label} failed (${signal ? `signal ${signal}` : `exit ${code}`}); see ${path.relative(ctx.root, logFile)}`));
     });
   });
@@ -164,19 +182,37 @@ function freePort() {
   });
 }
 
-// An SSH tunnel from a local port to the API port on the head Spark.
-async function openTunnel(host, port, ctx) {
+// An SSH tunnel from a local port to the API port on the head Spark. A
+// benchmark can run for days, so a tunnel that drops (a network blip, the head
+// rebooting) is reopened on the same port. It fails only when it keeps closing
+// within seconds of opening, three times running.
+async function openTunnel(host, port, ctx, { retryMs = 5_000 } = {}) {
   const local = await freePort();
-  const child = spawn('ssh', [...SSH_OPTIONS, '-N', '-o', 'ExitOnForwardFailure=yes', '-L', `127.0.0.1:${local}:127.0.0.1:${port}`, host], { stdio: ['ignore', 'ignore', 'pipe'] });
-  let stderr = '';
-  child.stderr.on('data', (d) => { stderr += d; });
-  let exited = false;
-  child.on('close', () => { exited = true; });
+  let child;
+  let closed = false;
+  let quickExits = 0;
+  let lastError = '';
+  let retry;
+  const open = () => {
+    const openedAt = Date.now();
+    let stderr = '';
+    child = spawn('ssh', [...SSH_OPTIONS, '-N', '-o', 'ExitOnForwardFailure=yes', '-L', `127.0.0.1:${local}:127.0.0.1:${port}`, host], { stdio: ['ignore', 'ignore', 'pipe'] });
+    child.stderr.on('data', (d) => { stderr += d; });
+    child.on('close', () => {
+      if (closed) return;
+      lastError = stderr.trim() || 'no message';
+      quickExits = Date.now() - openedAt < 15_000 ? quickExits + 1 : 0;
+      if (quickExits >= 3) return;
+      ctx.log(`API tunnel to ${host} closed (${lastError}); reopening`);
+      retry = setTimeout(open, retryMs);
+    });
+  };
+  open();
   ctx.log(`API tunnel: 127.0.0.1:${local} -> ${host}:${port}`);
   return {
     url: `http://127.0.0.1:${local}`,
-    check() { if (exited) throw new Error(`SSH tunnel to ${host} closed: ${stderr.trim() || 'no message'}`); },
-    close() { if (!exited) child.kill(); }
+    check() { if (quickExits >= 3) throw new Error(`SSH tunnel to ${host} closed: ${lastError}`); },
+    close() { closed = true; clearTimeout(retry); child.kill(); }
   };
 }
 
@@ -269,8 +305,15 @@ export function planRun(options, ctx) {
   const data = loadData(root);
   const recipe = data.recipes.find((r) => r.id === options.recipeId);
   if (!recipe) throw new Error(`no recipe "${options.recipeId}" in data/recipes/`);
-  const benchmark = data.benchmarks.find((b) => b.id === options.benchmarkId);
-  if (!benchmark) throw new Error(`no benchmark "${options.benchmarkId}" in data/benchmarks/`);
+  // A benchmark id, or a suite's: one run of the suite's script scores all of its benchmarks.
+  let benchmarks = data.benchmarks.filter((b) => b.id === options.benchmarkId);
+  const suite = benchmarks.length === 0;
+  if (suite) benchmarks = data.benchmarks.filter((b) => b.suite === options.benchmarkId);
+  if (!benchmarks.length) throw new Error(`no benchmark or suite "${options.benchmarkId}" in data/benchmarks/`);
+  if (suite && options.scoreName) throw new Error('--score-name names one score file, and a suite writes one per benchmark');
+  const benchmark = suite
+    ? { id: options.benchmarkId, name: `the ${options.benchmarkId} suite (${benchmarks.length} benchmarks)`, version: benchmarks[0].version }
+    : benchmarks[0];
 
   const paths = benchPaths(root);
   if (!fs.existsSync(paths.recipe(recipe.id))) {
@@ -294,6 +337,8 @@ export function planRun(options, ctx) {
     data,
     recipe,
     benchmark,
+    benchmarks,
+    suite,
     config,
     steps,
     head: options.head,
@@ -301,7 +346,7 @@ export function planRun(options, ctx) {
     started,
     runRel,
     runDir: path.join(root, runRel),
-    scoreFile: scoreFilePath(recipe, benchmark.id, options.scoreName),
+    scoreFiles: Object.fromEntries(benchmarks.map((b) => [b.id, scoreFilePath(recipe, b.id, options.scoreName)])),
     benchmarkScript,
     servedModel: options.servedModel ?? config.served_model,
     recipeEnv: {
@@ -339,36 +384,40 @@ export function describePlan(plan, options) {
   steps.push(`bench/benchmarks/${plan.benchmark.id}/run.sh here`);
   if (!options.keepRunning && !options.skipStart) steps.push(own('stop.sh') ? `bench/recipes/${plan.recipe.id}/stop.sh` : config.stop ? `run "${config.stop}"` : 'stop the containers it started on the head');
   steps.push(`record the run in ${plan.runRel}/`);
-  if (options.writeScore !== false) steps.push(`write ${plan.scoreFile}`);
+  if (options.writeScore !== false) {
+    const files = Object.values(plan.scoreFiles);
+    steps.push(files.length === 1 ? `write ${files[0]}` : `write a score file for each benchmark it scores, in data/scores/${plan.recipe.model}/`);
+  }
   return [
-    `${plan.recipe.id} on ${plan.sparks} Spark${plan.sparks === 1 ? '' : 's'}, ${plan.benchmark.name} ${plan.benchmark.version}:`,
+    `${plan.recipe.id} on ${plan.sparks} Spark${plan.sparks === 1 ? '' : 's'}, ${plan.benchmark.name}${plan.suite ? '' : ` ${plan.benchmark.version}`}:`,
     ...steps.map((s, i) => `  ${i + 1}. ${s}`)
   ].join('\n');
 }
 
 // Writes the score file and checks the data still validates with it in.
-export function recordScore(plan, result, options, ctx) {
+export function recordScore(plan, benchmarkId, result, options, ctx) {
   const { root } = ctx;
   const source = {
     title: options.sourceTitle ?? `Spark Plug benchmark run, ${plan.recipe.id} on ${plan.sparks} Spark${plan.sparks === 1 ? '' : 's'}`,
     url: options.sourceUrl ?? `${plan.data.config.repo.replace(/\/$/, '')}/tree/main/${plan.runRel}`,
     date: plan.started.toISOString().slice(0, 10)
   };
-  const fields = scoreFields({ recipe: plan.recipe, benchmarkId: plan.benchmark.id, result, sparks: plan.sparks, source });
-  const file = path.join(root, plan.scoreFile);
+  const scoreFile = plan.scoreFiles[benchmarkId];
+  const fields = scoreFields({ recipe: plan.recipe, benchmarkId, result, sparks: plan.sparks, source });
+  const file = path.join(root, scoreFile);
   const existing = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : null;
   const text = renderScore(fields, existing);
 
   // Validate the whole data set with this score in place before writing it.
-  const others = plan.data.scores.filter((s) => s.file !== plan.scoreFile);
-  const id = `${plan.recipe.model}/${path.basename(plan.scoreFile, '.yaml')}`;
-  const errors = validate({ ...plan.data, scores: [...others, { ...fields, model: plan.recipe.model, id, file: plan.scoreFile }] })
-    .filter((e) => e.startsWith(plan.scoreFile));
+  const others = plan.data.scores.filter((s) => s.file !== scoreFile);
+  const id = `${plan.recipe.model}/${path.basename(scoreFile, '.yaml')}`;
+  const errors = validate({ ...plan.data, scores: [...others, { ...fields, model: plan.recipe.model, id, file: scoreFile }] })
+    .filter((e) => e.startsWith(scoreFile));
   if (errors.length) throw new Error(`the new score does not validate:\n  ${errors.join('\n  ')}`);
 
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, text);
-  return { file: plan.scoreFile, updated: existing !== null };
+  return { file: scoreFile, updated: existing !== null };
 }
 
 export async function runBench(options, ctx) {
@@ -444,9 +493,11 @@ export async function runBench(options, ctx) {
       OUT_DIR: outDir,
       BENCH_LIB: benchPaths(root).lib,
       BENCHMARK_ID: plan.benchmark.id,
+      BENCHMARK_IDS: plan.benchmarks.map((b) => b.id).join(' '),
       BENCHMARK_VERSION: plan.benchmark.version,
       ...(plan.benchmark.tasks ? { BENCHMARK_TASKS: String(plan.benchmark.tasks) } : {}),
-      BENCH_SHARED: path.join(benchPaths(root).benchmarks, '_shared'),
+      RUN_DIR: plan.runDir,
+      SPARKPLUG_HEAD: plan.head,
       SPARKPLUG_RECIPE: plan.recipe.id,
       SPARKPLUG_SPARKS: String(plan.sparks)
     };
@@ -465,6 +516,22 @@ export async function runBench(options, ctx) {
     } catch (err) {
       throw new Error(`result.json is not JSON: ${err.message}`);
     }
+    if (plan.suite) {
+      const results = readSuiteResult(raw, plan.benchmarks);
+      record.results = results;
+      record.finished_at = new Date().toISOString();
+      writeRecord();
+      const ids = Object.keys(results);
+      log(ids.length ? ids.map((id) => `${id}: ${results[id].value}`).join(', ') : 'no benchmark scores in this run');
+      const scores = {};
+      if (options.writeScore !== false) {
+        for (const id of ids) {
+          scores[id] = recordScore(plan, id, results[id], options, ctx);
+          log(`${scores[id].updated ? 'updated' : 'wrote'} ${scores[id].file}`);
+        }
+      }
+      return { plan, results, scores };
+    }
     const result = readResult(raw, plan.benchmark);
     record.result = result;
     record.finished_at = new Date().toISOString();
@@ -473,7 +540,7 @@ export async function runBench(options, ctx) {
 
     let score;
     if (options.writeScore !== false) {
-      score = recordScore(plan, result, options, ctx);
+      score = recordScore(plan, plan.benchmark.id, result, options, ctx);
       log(`${score.updated ? 'updated' : 'wrote'} ${score.file}`);
     }
     return { plan, result, score };
