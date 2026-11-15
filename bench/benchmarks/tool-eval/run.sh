@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-# Tool Eval Bench: tool-eval-bench's 69 tool-calling scenarios against the
-# recipe's API, run by sparkDash, then one score: the points the model earned,
-# as a share of the points on offer.
+# Tool Eval Bench: tool-eval-bench's 104 tool-calling scenarios (the 69 of the
+# standard suite and the 35 of Hard Mode) against the recipe's API, run by
+# sparkDash, then one score: the points the model earned, as a share of the
+# points on offer.
 # https://github.com/SeraphimSerapis/tool-eval-bench
 #
-# sparkDash runs the tool on its own Spark (the one SPARKDASH_HOST names), which
-# needs it installed there (sparkDash's Tool Eval page, Set up). The tool talks
-# to the recipe's head over the LAN, so it reaches a model served on any Spark.
+# sparkDash (on the Spark SPARKDASH_HOST names) runs the tool on the recipe's
+# head Spark when the tool is installed there (sparkDash's Tool Eval page, Set
+# up), and otherwise on its own Spark, talking to the head over the LAN.
 # sparkDash runs one Tool Eval job per Spark at a time; a run waits its turn.
 #
 # Each run keeps tool-eval-bench's whole result (every scenario's verdict, tool
@@ -15,6 +16,7 @@
 # Settings, through --env or your environment:
 #   SPARKDASH_HOST     SSH host where sparkDash runs (default: the head)
 #   SPARKDASH_URL      sparkDash as that host sees it (default http://127.0.0.1:5555)
+#   SPARKDASH_UNIT     the head's unit id in sparkDash (default: sparkDash's own Spark)
 #   TOOL_EVAL_PORT     the port the recipe serves on (default 8888)
 #   TOOL_EVAL_TIMEOUT  seconds per request (default 600: slow models think at length)
 #   TOOL_EVAL_RUN      score this finished sparkDash Tool Eval run instead of starting one
@@ -33,21 +35,30 @@ on_host() {
 api() { on_host "curl -sS -m 60 $(printf '%q' "$url/api/$1")"; }
 post() { on_host "curl -sS -m 60 -X POST -H 'Content-Type: application/json' -d $(printf '%q' "$2") $(printf '%q' "$url/api/$1")"; }
 
-unit=$(api sparks | python3 -c 'import json,sys; print(next(s["id"] for s in json.load(sys.stdin)["sparks"] if s.get("isLocal")))')
-[ -n "$unit" ] || die "no local unit in sparkDash on $host"
-installed=$(api "sparks/$unit/tool-eval/status" | python3 -c 'import json,sys; j=json.load(sys.stdin); print(j.get("version") or "") if j.get("installed") else print("")')
-[ -n "$installed" ] || die "tool-eval-bench is not installed on $host: set it up from sparkDash's Tool Eval page"
-[ "$installed" = "tool-eval-bench $pinned" ] || die "$host has $installed, but this benchmark's version is tool-eval-bench $pinned"
+hub=$(api sparks | python3 -c 'import json,sys; print(next(s["id"] for s in json.load(sys.stdin)["sparks"] if s.get("isLocal")))')
+[ -n "$hub" ] || die "no local unit in sparkDash on $host"
+tool_version() { api "sparks/$1/tool-eval/status" | python3 -c 'import json,sys; j=json.load(sys.stdin); print(j.get("version") or "") if j.get("installed") else print("")'; }
 
-# The head as the tool sees it from $host: by address, so it needs no name lookup there.
+# Run the tool on the head when it has it (one job per Spark, so recipes on different
+# Sparks don't wait for each other), else on sparkDash's own Spark, reaching the head by address.
 port=${TOOL_EVAL_PORT:-8888}
-if [ "$host" = "$SPARKPLUG_HEAD" ] || [ "$SPARKPLUG_HEAD" = local ]; then
+unit=${SPARKDASH_UNIT:-$hub}
+installed=$(tool_version "$unit")
+if [ -n "$installed" ]; then
   target=127.0.0.1
 else
-  name=${SPARKPLUG_HEAD#*@}
-  target=$(on_host "getent ahostsv4 $(printf '%q' "$name") | awk 'NR==1 {print \$1}'")
-  [ -n "$target" ] || die "$host cannot resolve $name"
+  unit=$hub
+  installed=$(tool_version "$unit")
+  if [ "$host" = "$SPARKPLUG_HEAD" ] || [ "$SPARKPLUG_HEAD" = local ]; then
+    target=127.0.0.1
+  else
+    name=${SPARKPLUG_HEAD#*@}
+    target=$(on_host "getent ahostsv4 $(printf '%q' "$name") | awk 'NR==1 {print \$1}'")
+    [ -n "$target" ] || die "$host cannot resolve $name"
+  fi
 fi
+[ -n "$installed" ] || die "tool-eval-bench is not installed on $unit or $hub: set it up from sparkDash's Tool Eval page"
+[ "$installed" = "tool-eval-bench $pinned" ] || die "$unit has $installed, but this benchmark's version is tool-eval-bench $pinned"
 base_url="http://$target:$port"
 
 run=${TOOL_EVAL_RUN:-}
@@ -56,7 +67,7 @@ if [ -z "$run" ]; then
 import json, sys
 base_url, model, timeout, recipe = sys.argv[1:]
 print(json.dumps({"type": "tool-eval", "options": {
-    "base-url": base_url, "model": model, "timeout": float(timeout), "temperature": 0,
+    "base-url": base_url, "model": model, "timeout": float(timeout), "temperature": 0, "hardmode": True,
     "label": f"Spark Plug: {recipe}"[:120]}}))
 PY
 )
