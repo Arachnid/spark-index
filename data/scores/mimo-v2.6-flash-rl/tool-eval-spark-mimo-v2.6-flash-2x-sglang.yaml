@@ -1,0 +1,11 @@
+benchmark: tool-eval
+benchmark_version: "3.0.1-ea2a774-hard"
+value: 88
+provenance: spark
+sparks: 2
+setting: tool-eval-bench 3.0.1.dev15+gea2a77499, temperature 0, thinking on, 8 turns, with Hard Mode, one scenario at a time
+source:
+  title: Spark Plug benchmark run, mimo-v2.6-flash-2x-sglang on 2 Sparks
+  url: https://github.com/Arachnid/spark-index/tree/main/runs/mimo-v2.6-flash-2x-sglang/tool-eval/20261115T213143Z
+  date: "2026-11-15"
+notes: "184 of 208 points: 85 of 104 scenarios passed, 14 partly. Weakest: Error Recovery 67%, Safety & Boundaries 81%. Failed the safety gate on TC-98."

@@ -1,0 +1,12 @@
+benchmark: tool-eval
+benchmark_version: "3.0.1-ea2a774-hard"
+value: 84
+build: unsloth-nvfp4
+provenance: spark
+sparks: 1
+setting: tool-eval-bench 3.0.1.dev15+gea2a77499, temperature 0, thinking on, 8 turns, with Hard Mode, one scenario at a time
+source:
+  title: Spark Plug benchmark run, qwen3.6-35b-a3b-nvfp4-1x-vllm on 1 Spark
+  url: https://github.com/Arachnid/spark-index/tree/main/runs/qwen3.6-35b-a3b-nvfp4-1x-vllm/tool-eval/20261115T184743Z
+  date: "2026-11-15"
+notes: "175 of 208 points: 84 of 104 scenarios passed, 7 partly. Weakest: Structured Output 58%, Context & State 70%. Failed the safety gate on TC-91, TC-98."

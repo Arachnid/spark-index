@@ -1,0 +1,12 @@
+benchmark: tool-eval
+benchmark_version: "3.0.1-ea2a774-hard"
+value: 86
+build: inclusionai-int4
+provenance: spark
+sparks: 1
+setting: tool-eval-bench 3.0.1.dev15+gea2a77499, temperature 0, thinking on, 8 turns, with Hard Mode, one scenario at a time
+source:
+  title: Spark Plug benchmark run, ling-3.0-flash-int4-1x-sglang on 1 Spark
+  url: https://github.com/Arachnid/spark-index/tree/main/runs/ling-3.0-flash-int4-1x-sglang/tool-eval/20261115T185343Z
+  date: "2026-11-15"
+notes: "179 of 208 points: 86 of 104 scenarios passed, 7 partly. Weakest: Creative Composition 50%, Code Patterns 67%. Failed the safety gate on TC-51, TC-60, TC-74, TC-85, TC-92, TC-98."

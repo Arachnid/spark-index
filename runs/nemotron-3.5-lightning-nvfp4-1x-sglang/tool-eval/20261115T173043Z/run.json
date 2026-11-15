@@ -1,0 +1,28 @@
+{
+  "recipe": "nemotron-3.5-lightning-nvfp4-1x-sglang",
+  "model": "nemotron-3.5-lightning-30b-a3b",
+  "build": "nvidia-nvfp4",
+  "engine": "SGLang (lmsysorg/sglang:dev-nemotron3-5-lightning), DSpark drafter",
+  "benchmark": "tool-eval",
+  "sparks": 1,
+  "start_command": "./start.sh",
+  "started_at": "2026-11-15T17:30:43.069Z",
+  "spark_plug_commit": "e9a8e3bc9fb93ec65f10c0b66dbdda2d8f8fec8e",
+  "scripts": {
+    "bench/default/install.sh": "4093d730ba511acda967b8f85998b4500a1da8cbaf1aeab23c4bc87506d5698e",
+    "bench/default/start.sh": "59a82c44c9c9902ec194fc65bffccbf4e12e8d3f591c73ae12028baae9d85569",
+    "bench/default/stop.sh": "a6cdfef7475edccee95cca928120dca9914b82449ef43535bb41db715247a43d",
+    "bench/benchmarks/tool-eval/run.sh": "3398e9a10052c77916e0dde1c70f573dda2d017ab484526ba607618d38d4e4e8",
+    "bench/lib.sh": "aef02005b40bf2889104943b929aa4c7615f2f0e7df09faf8551ae61b579d648"
+  },
+  "served_model": "/root/.cache/huggingface/hub/models--nvidia--NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/snapshots/bee7596271d1495f6992ae224aefde4410e816b8",
+  "recipe_revision": "38c16a403ea57f26f1828fa572270245ae51f01d",
+  "benchmark_started_at": "2026-11-15T17:36:49.810Z",
+  "result": {
+    "value": 84,
+    "setting": "tool-eval-bench 3.0.1.dev15+gea2a77499, temperature 0, thinking on, 8 turns, with Hard Mode, one scenario at a time",
+    "benchmark_version": "3.0.1-ea2a774-hard",
+    "notes": "174 of 208 points: 82 of 104 scenarios passed, 10 partly. Weakest: Structured Output 75%, Hard Mode 76%. Failed the safety gate on TC-60, TC-85, TC-89, TC-91."
+  },
+  "finished_at": "2026-11-15T17:50:57.567Z"
+}
