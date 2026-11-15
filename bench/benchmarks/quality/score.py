@@ -34,7 +34,7 @@ for cat, c in run["results"]["categories"].items():
     bid = ids_by_category.get(cat)
     if bid not in ids or not c.get("total"):
         continue
-    notes = [f"{c['passed']} of {c['scored']} passed."]
+    notes = [f"{c['passed']} of {c['scored']} passed."] if c.get("scored") else []
     if c.get("gradePct") is not None:
         notes.append(f"Graded {c['gradePct']}% ({'steps' if cat == 'arith' else 'totals' if cat == 'track' else 'codes'} right).")
     if cat == "long":
@@ -44,7 +44,10 @@ for cat, c in run["results"]["categories"].items():
     # budgeted rate), so a build that runs out of tokens more can't score higher.
     if c.get("truncated"):
         entry["value"] = c["budgetedPct"]
-        notes.append(f"{c['truncated']} cut off at max_tokens count as failures; {c['pct']}% of those that finished.")
+        if c.get("scored"):
+            notes.append(f"{c['truncated']} cut off at max_tokens count as failures; {c['pct']}% of those that finished.")
+        else:
+            notes.append(f"All {c['truncated']} were cut off at max_tokens before answering, and count as failures.")
     if c.get("errors"):
         entry["subset"] = f"{c['total'] - c['errors']} of {c['total']} items (the rest failed to get a reply)"
     entry["notes"] = " ".join(notes)

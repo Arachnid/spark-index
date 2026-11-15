@@ -1,0 +1,12 @@
+benchmark: gsm8k-platinum
+benchmark_version: "2.4"
+value: 98.9
+build: redhat-nvfp4
+provenance: spark
+sparks: 1
+setting: sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once
+source:
+  title: Spark Plug benchmark run, muse-glimmer-30b-nvfp4-1x-vllm on 1 Spark
+  url: https://github.com/Arachnid/spark-index/tree/main/runs/muse-glimmer-30b-nvfp4-1x-vllm/quality/20261115T135141Z
+  date: "2026-11-15"
+notes: 186 of 188 passed.
