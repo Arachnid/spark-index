@@ -37,3 +37,15 @@ builds:
     url: https://huggingface.co/Mia-AiLab/Qwen3.8-Flash-Next-NVFP4
     size_gb: 106
     notes: The repository is not public as of November 2026.
+  keys-ablit:
+    label: Keys abliteration overlay
+    format: FP4; NVIDIA's FP4-Local checkpoint with drowzeys's abliterated self_attn.o_proj (MXFP8) for the 12 attention layers 3-47 grafted on
+    bits: 4
+    by: drowzeys
+    url: https://huggingface.co/drowzeys/keys-Qwen3.8-Flash-Next-NVFP4-FP4-QAD-house-qsa-L3-47
+    notes: >-
+      Served by the one-Spark TensorFold recipe with ABLIT=1, which replaces 24 tensors and leaves the rest of the FP4-Local checkpoint as NVIDIA's.
+      Against the stock checkpoint in sparkDash's Divergence test (120 prompts, temperature 0, 2026-11-15),
+      19% of replies were identical (70% of tool calls, about a third of code and maths, no prose or JSON), the rest
+      first differing at a median of 13 tokens. Fidelity can't be measured: the server returns no prompt
+      log-probabilities. Data: runs/qwen3.8-flash-next-fp4-1x-tensorfold/quality/20261115T134341Z.
