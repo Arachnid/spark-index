@@ -1,0 +1,12 @@
+benchmark: instruction-following
+benchmark_version: "2.4"
+value: 87.5
+build: mia-exl3-eaq-4bpw
+provenance: spark
+sparks: 1
+setting: sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once
+source:
+  title: Spark Plug benchmark run, ornith-1.5-122b-exl3-1x-tensorfold on 1 Spark
+  url: https://github.com/Arachnid/spark-index/tree/main/runs/ornith-1.5-122b-exl3-1x-tensorfold/quality/20261114T193040Z
+  date: "2026-11-14"
+notes: 35 of 40 passed.

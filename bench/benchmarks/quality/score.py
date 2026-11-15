@@ -10,7 +10,15 @@ import json, sys
 record, model, version, ids = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4].split()
 run = json.load(open(record))
 cfg = run["config"]
-if cfg.get("modelId") != model:
+def same_model(scored, served):
+    # SGLang serving a Hugging Face cache snapshot reports the snapshot path; sparkDash
+    # reports the repo id that path holds (models--org--name/snapshots/... is org/name).
+    if scored == served:
+        return True
+    parts = (served or "").split("/")
+    repo = next((p[len("models--"):] for p in parts if p.startswith("models--")), None)
+    return repo is not None and "snapshots" in parts and scored == repo.replace("--", "/", 1)
+if not same_model(cfg.get("modelId"), model):
     sys.exit(f"sparkDash scored {cfg.get('modelId')!r}, but the recipe's API serves {model!r}")
 # sparkDash category -> benchmark id in data/benchmarks/.
 ids_by_category = {

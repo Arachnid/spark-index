@@ -1,0 +1,11 @@
+benchmark: long-context-recall
+benchmark_version: "2.4"
+value: 100
+provenance: spark
+sparks: 2
+setting: sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once
+source:
+  title: Spark Plug benchmark run, deepseek-v4-flash-vision-exp-dspark on 2 Sparks
+  url: https://github.com/Arachnid/spark-index/tree/main/runs/deepseek-v4-flash-vision-exp-dspark/quality/20261114T173940Z
+  date: "2026-11-14"
+notes: 3 of 3 passed. Graded 100% (codes right). At 32k tokens.

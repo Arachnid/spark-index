@@ -1,0 +1,12 @@
+benchmark: quality-state-tracking
+benchmark_version: "2.4"
+value: 67.5
+build: inclusionai-int4
+provenance: spark
+sparks: 1
+setting: sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once
+source:
+  title: Spark Plug benchmark run, ling-3.0-flash-int4-1x-sglang on 1 Spark
+  url: https://github.com/Arachnid/spark-index/tree/main/runs/ling-3.0-flash-int4-1x-sglang/quality/20261115T041840Z
+  date: "2026-11-15"
+notes: 135 of 198 passed. Graded 87.4% (totals right). 2 cut off at max_tokens count as failures; 68.2% of those that finished.
