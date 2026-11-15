@@ -1,0 +1,12 @@
+benchmark: tool-eval
+benchmark_version: "3.0.1-ea2a774-hard"
+value: 86
+build: nvidia-fp4-local
+provenance: spark
+sparks: 1
+setting: tool-eval-bench 3.0.1.dev15+gea2a77499, temperature 0, thinking on, 8 turns, with Hard Mode, one scenario at a time
+source:
+  title: Spark Plug benchmark run, qwen3.8-flash-next-fp4-1x-tensorfold on 1 Spark
+  url: https://github.com/Arachnid/spark-index/tree/main/runs/qwen3.8-flash-next-fp4-1x-tensorfold/tool-eval/20261115T192043Z
+  date: "2026-11-15"
+notes: "178 of 208 points: 85 of 104 scenarios passed, 8 partly. Weakest: Autonomous Planning 50%, Toolset Scale 62%. Failed the safety gate on TC-51, TC-60, TC-74, TC-85, TC-92, TC-98."

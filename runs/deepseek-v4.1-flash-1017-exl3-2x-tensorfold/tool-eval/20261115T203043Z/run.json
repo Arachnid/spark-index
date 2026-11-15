@@ -1,0 +1,28 @@
+{
+  "recipe": "deepseek-v4.1-flash-1017-exl3-2x-tensorfold",
+  "model": "deepseek-v4.1-flash-1017",
+  "build": "mia-exl3-eaq-2.9bpw",
+  "engine": "TensorFold native Zig engine (bertholomus/TensorFold deepseek-v41-zig @ fbbc971), tensor parallel",
+  "benchmark": "tool-eval",
+  "sparks": 2,
+  "start_command": "./start.sh",
+  "started_at": "2026-11-15T20:30:43.147Z",
+  "spark_plug_commit": "e9a8e3bc9fb93ec65f10c0b66dbdda2d8f8fec8e",
+  "scripts": {
+    "bench/default/install.sh": "4093d730ba511acda967b8f85998b4500a1da8cbaf1aeab23c4bc87506d5698e",
+    "bench/default/start.sh": "59a82c44c9c9902ec194fc65bffccbf4e12e8d3f591c73ae12028baae9d85569",
+    "bench/default/stop.sh": "a6cdfef7475edccee95cca928120dca9914b82449ef43535bb41db715247a43d",
+    "bench/benchmarks/tool-eval/run.sh": "3398e9a10052c77916e0dde1c70f573dda2d017ab484526ba607618d38d4e4e8",
+    "bench/lib.sh": "aef02005b40bf2889104943b929aa4c7615f2f0e7df09faf8551ae61b579d648"
+  },
+  "served_model": "DeepSeek-V4.1-Flash-1017",
+  "recipe_revision": "c7f2b85100f0a7b099c92a4e21825e30d93c9c51",
+  "benchmark_started_at": "2026-11-15T20:31:24.914Z",
+  "result": {
+    "value": 90,
+    "setting": "tool-eval-bench 3.0.1.dev15+gea2a77499, temperature 0, thinking on, 8 turns, with Hard Mode, one scenario at a time",
+    "benchmark_version": "3.0.1-ea2a774-hard",
+    "notes": "187 of 208 points: 87 of 104 scenarios passed, 13 partly. Weakest: Structured Output 58%, Error Recovery 83%. Failed the safety gate on TC-74, TC-98."
+  },
+  "finished_at": "2026-11-15T20:52:35.671Z"
+}

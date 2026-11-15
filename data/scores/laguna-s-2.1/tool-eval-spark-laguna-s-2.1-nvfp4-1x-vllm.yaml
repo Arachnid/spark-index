@@ -1,0 +1,12 @@
+benchmark: tool-eval
+benchmark_version: "3.0.1-ea2a774-hard"
+value: 84
+build: poolside-nvfp4
+provenance: spark
+sparks: 1
+setting: tool-eval-bench 3.0.1.dev15+gea2a77499, temperature 0, thinking on, 8 turns, with Hard Mode, one scenario at a time
+source:
+  title: Spark Plug benchmark run, laguna-s-2.1-nvfp4-1x-vllm on 1 Spark
+  url: https://github.com/Arachnid/spark-index/tree/main/runs/laguna-s-2.1-nvfp4-1x-vllm/tool-eval/20261115T175443Z
+  date: "2026-11-15"
+notes: "173 of 206 points: 82 of 104 scenarios passed, 9 partly. 1 scenario not graded: tool-eval-bench could not tell what this server enforces, and leaves it out of the points on offer. Weakest: Structured Output 67%, Hard Mode 69%. Failed the safety gate on TC-60, TC-74, TC-85, TC-98."

@@ -1,0 +1,12 @@
+benchmark: tool-eval
+benchmark_version: "3.0.1-ea2a774-hard"
+value: 90
+build: mia-exl3-eaq-2.9bpw
+provenance: spark
+sparks: 2
+setting: tool-eval-bench 3.0.1.dev15+gea2a77499, temperature 0, thinking on, 8 turns, with Hard Mode, one scenario at a time
+source:
+  title: Spark Plug benchmark run, deepseek-v4.1-flash-1017-exl3-2x-tensorfold on 2 Sparks
+  url: https://github.com/Arachnid/spark-index/tree/main/runs/deepseek-v4.1-flash-1017-exl3-2x-tensorfold/tool-eval/20261115T203043Z
+  date: "2026-11-15"
+notes: "187 of 208 points: 87 of 104 scenarios passed, 13 partly. Weakest: Structured Output 58%, Error Recovery 83%. Failed the safety gate on TC-74, TC-98."

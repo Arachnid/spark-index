@@ -1,0 +1,90 @@
+{
+  "recipe": "muse-glimmer-30b-nvfp4-1x-vllm",
+  "model": "muse-glimmer-30b",
+  "build": "redhat-nvfp4",
+  "engine": "vLLM fork (xianbaoqian/vllm, commit 99a10304d) with local RoPE patches, DFlash drafter",
+  "benchmark": "quality",
+  "sparks": 1,
+  "start_command": "./start.sh",
+  "started_at": "2026-11-15T13:51:41.081Z",
+  "spark_plug_commit": "e145c23bcf3b6138fc0603e5b0b74f86d0a8b5e3",
+  "scripts": {
+    "bench/default/install.sh": "4093d730ba511acda967b8f85998b4500a1da8cbaf1aeab23c4bc87506d5698e",
+    "bench/default/start.sh": "59a82c44c9c9902ec194fc65bffccbf4e12e8d3f591c73ae12028baae9d85569",
+    "bench/default/stop.sh": "a6cdfef7475edccee95cca928120dca9914b82449ef43535bb41db715247a43d",
+    "bench/benchmarks/quality/run.sh": "f81423d3f873474de78fe4ac3770224694a599b0f30db5adacec4040f40c2230",
+    "bench/lib.sh": "aef02005b40bf2889104943b929aa4c7615f2f0e7df09faf8551ae61b579d648"
+  },
+  "served_model": "muse-glimmer-30b",
+  "recipe_revision": "1b71dc011010a3e2c373eafd8a41f12c7c7913fc",
+  "benchmark_started_at": "2026-11-15T14:00:02.018Z",
+  "results": {
+    "quality-qa": {
+      "value": 84.7,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "127 of 127 passed. 23 cut off at max_tokens count as failures; 100% of those that finished."
+    },
+    "quality-reasoning": {
+      "value": 99.5,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "199 of 200 passed."
+    },
+    "quality-arithmetic": {
+      "value": 95.5,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "191 of 199 passed. Graded 98.5% (steps right). 1 cut off at max_tokens count as failures; 96% of those that finished."
+    },
+    "quality-state-tracking": {
+      "value": 99,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "198 of 198 passed. Graded 100% (totals right). 2 cut off at max_tokens count as failures; 100% of those that finished."
+    },
+    "gsm8k-platinum": {
+      "value": 98.9,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "186 of 188 passed."
+    },
+    "mmlu-pro": {
+      "value": 82.3,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "247 of 291 passed. 9 cut off at max_tokens count as failures; 84.9% of those that finished."
+    },
+    "math-500": {
+      "value": 89.2,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "446 of 479 passed. 21 cut off at max_tokens count as failures; 93.1% of those that finished."
+    },
+    "mmlu": {
+      "value": 77.9,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "222 of 237 passed. 48 cut off at max_tokens count as failures; 93.7% of those that finished."
+    },
+    "instruction-following": {
+      "value": 62.5,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "25 of 27 passed. 13 cut off at max_tokens count as failures; 92.6% of those that finished."
+    },
+    "long-context-recall": {
+      "value": 0,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "At 32k tokens. All 3 were cut off at max_tokens before answering, and count as failures."
+    },
+    "tokenizer": {
+      "value": 68.2,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "30 of 31 passed. 13 cut off at max_tokens count as failures; 96.8% of those that finished."
+    }
+  },
+  "finished_at": "2026-11-15T18:16:21.306Z"
+}

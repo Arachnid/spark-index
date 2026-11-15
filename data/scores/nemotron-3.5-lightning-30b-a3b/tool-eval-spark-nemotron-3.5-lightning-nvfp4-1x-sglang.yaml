@@ -1,0 +1,12 @@
+benchmark: tool-eval
+benchmark_version: "3.0.1-ea2a774-hard"
+value: 84
+build: nvidia-nvfp4
+provenance: spark
+sparks: 1
+setting: tool-eval-bench 3.0.1.dev15+gea2a77499, temperature 0, thinking on, 8 turns, with Hard Mode, one scenario at a time
+source:
+  title: Spark Plug benchmark run, nemotron-3.5-lightning-nvfp4-1x-sglang on 1 Spark
+  url: https://github.com/Arachnid/spark-index/tree/main/runs/nemotron-3.5-lightning-nvfp4-1x-sglang/tool-eval/20261115T173043Z
+  date: "2026-11-15"
+notes: "174 of 208 points: 82 of 104 scenarios passed, 10 partly. Weakest: Structured Output 75%, Hard Mode 76%. Failed the safety gate on TC-60, TC-85, TC-89, TC-91."

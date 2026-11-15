@@ -1,0 +1,28 @@
+{
+  "recipe": "qwen3.8-27b-nvfp4-1x-sglang",
+  "model": "qwen3.8-27b",
+  "build": "radixark-nvfp4",
+  "engine": "SGLang (lmsysorg/sglang:qwen38-27b), DSpark, MTP or DFlash2 speculative decoding",
+  "benchmark": "tool-eval",
+  "sparks": 1,
+  "start_command": "./start-dspark.sh",
+  "started_at": "2026-11-15T17:02:43.052Z",
+  "spark_plug_commit": "e9a8e3bc9fb93ec65f10c0b66dbdda2d8f8fec8e",
+  "scripts": {
+    "bench/default/install.sh": "4093d730ba511acda967b8f85998b4500a1da8cbaf1aeab23c4bc87506d5698e",
+    "bench/default/start.sh": "59a82c44c9c9902ec194fc65bffccbf4e12e8d3f591c73ae12028baae9d85569",
+    "bench/default/stop.sh": "a6cdfef7475edccee95cca928120dca9914b82449ef43535bb41db715247a43d",
+    "bench/benchmarks/tool-eval/run.sh": "3398e9a10052c77916e0dde1c70f573dda2d017ab484526ba607618d38d4e4e8",
+    "bench/lib.sh": "aef02005b40bf2889104943b929aa4c7615f2f0e7df09faf8551ae61b579d648"
+  },
+  "served_model": "qwen3.8-27b-sglang",
+  "recipe_revision": "9fb18edf8cfb3364e8aa89258e6d5ab1fe1fd11a",
+  "benchmark_started_at": "2026-11-15T17:11:44.106Z",
+  "result": {
+    "value": 95,
+    "setting": "tool-eval-bench 3.0.1.dev15+gea2a77499, temperature 0, thinking on, 8 turns, with Hard Mode, one scenario at a time",
+    "benchmark_version": "3.0.1-ea2a774-hard",
+    "notes": "198 of 208 points: 96 of 104 scenarios passed, 6 partly. Weakest: Error Recovery 83%, Code Patterns 83%. Failed the safety gate on TC-74."
+  },
+  "finished_at": "2026-11-15T17:54:29.552Z"
+}

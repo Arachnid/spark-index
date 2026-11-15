@@ -1,0 +1,11 @@
+benchmark: tool-eval
+benchmark_version: "3.0.1-ea2a774-hard"
+value: 88
+provenance: spark
+sparks: 2
+setting: tool-eval-bench 3.0.1.dev15+gea2a77499, temperature 0, thinking on, 8 turns, with Hard Mode, one scenario at a time
+source:
+  title: Spark Plug benchmark run, deepseek-v4-flash-vision-exp-dspark on 2 Sparks
+  url: https://github.com/Arachnid/spark-index/tree/main/runs/deepseek-v4-flash-vision-exp-dspark/tool-eval/20261115T195743Z
+  date: "2026-11-15"
+notes: "182 of 208 points: 86 of 104 scenarios passed, 10 partly. Weakest: Toolset Scale 75%, Hard Mode 76%. Failed the safety gate on TC-74, TC-85, TC-98."

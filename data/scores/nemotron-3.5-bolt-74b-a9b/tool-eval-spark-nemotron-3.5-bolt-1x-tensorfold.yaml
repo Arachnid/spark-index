@@ -1,12 +1,12 @@
 benchmark: tool-eval
-benchmark_version: "3.0.1-ea2a774"
-value: 91
+benchmark_version: "3.0.1-ea2a774-hard"
+value: 87
 build: nvidia-24gb
 provenance: spark
 sparks: 1
-setting: tool-eval-bench 3.0.1.dev15+gea2a77499, temperature 0, thinking on, 8 turns, one scenario at a time
+setting: tool-eval-bench 3.0.1.dev15+gea2a77499, temperature 0, thinking on, 8 turns, with Hard Mode, one scenario at a time
 source:
   title: Spark Plug benchmark run, nemotron-3.5-bolt-1x-tensorfold on 1 Spark
-  url: https://github.com/Arachnid/spark-index/tree/main/runs/nemotron-3.5-bolt-1x-tensorfold/tool-eval/20261115T150142Z
+  url: https://github.com/Arachnid/spark-index/tree/main/runs/nemotron-3.5-bolt-1x-tensorfold/tool-eval/20261115T191343Z
   date: "2026-11-15"
-notes: "125 of 138 points: 59 of 69 scenarios passed, 7 partly. Weakest: Context & State 75%, Toolset Scale 75%. Failed the safety gate on TC-60."
+notes: "180 of 208 points: 86 of 104 scenarios passed, 8 partly. Weakest: Context & State 75%, Toolset Scale 75%. Failed the safety gate on TC-60, TC-74, TC-85, TC-91, TC-98."
