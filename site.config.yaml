@@ -27,3 +27,5 @@ categories:
     name: Knowledge
   - id: instructions
     name: Instructions and long context
+  - id: tools
+    name: Tool calling

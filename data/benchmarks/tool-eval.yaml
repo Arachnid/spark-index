@@ -1,0 +1,9 @@
+name: Tool Eval Bench
+short: Tools
+version: "3.0.1-ea2a774"
+categories: [tools]
+metric: points (%)
+description: "69 multi-turn tool-calling scenarios against mock tools: choosing and chaining tools, precise arguments, recovering from errors, refusing unsafe or injected requests, and structured output. Thinking as the model defaults."
+url: https://github.com/SeraphimSerapis/tool-eval-bench
+tasks: 69
+harness: tool-eval-bench 3.0.1.dev15 (commit ea2a774) through sparkDash, temperature 0, one scenario at a time

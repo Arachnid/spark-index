@@ -1,0 +1,90 @@
+{
+  "recipe": "qwen3.6-35b-a3b-nvfp4-1x-vllm",
+  "model": "qwen3.6-35b-a3b",
+  "build": "unsloth-nvfp4",
+  "engine": "vLLM about 0.26 for GB10 (patched vllm-gb10 image), FlashInfer 0.6.14",
+  "benchmark": "quality",
+  "sparks": 1,
+  "start_command": "./start.sh",
+  "started_at": "2026-11-15T01:43:40.758Z",
+  "spark_plug_commit": "1cd94f103f57888c37e16bf3dae17efae209a4ab",
+  "scripts": {
+    "bench/default/install.sh": "4093d730ba511acda967b8f85998b4500a1da8cbaf1aeab23c4bc87506d5698e",
+    "bench/default/start.sh": "59a82c44c9c9902ec194fc65bffccbf4e12e8d3f591c73ae12028baae9d85569",
+    "bench/default/stop.sh": "a6cdfef7475edccee95cca928120dca9914b82449ef43535bb41db715247a43d",
+    "bench/benchmarks/quality/run.sh": "f81423d3f873474de78fe4ac3770224694a599b0f30db5adacec4040f40c2230",
+    "bench/lib.sh": "aef02005b40bf2889104943b929aa4c7615f2f0e7df09faf8551ae61b579d648"
+  },
+  "served_model": "unsloth/Qwen3.6-35B-A3B-NVFP4",
+  "recipe_revision": "79c9e6f359f6101cdacd0dfd6fe9861ae2493a4d",
+  "benchmark_started_at": "2026-11-15T01:55:44.017Z",
+  "finished_at": "2026-11-15T13:16:24.223Z",
+  "results": {
+    "quality-qa": {
+      "value": 98,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "147 of 150 passed."
+    },
+    "quality-reasoning": {
+      "value": 97,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "194 of 194 passed. 6 cut off at max_tokens count as failures; 100% of those that finished."
+    },
+    "quality-arithmetic": {
+      "value": 86,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "172 of 173 passed. Graded 99.4% (steps right). 27 cut off at max_tokens count as failures; 99.4% of those that finished."
+    },
+    "quality-state-tracking": {
+      "value": 41,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "82 of 82 passed. Graded 100% (totals right). 118 cut off at max_tokens count as failures; 100% of those that finished."
+    },
+    "gsm8k-platinum": {
+      "value": 98.4,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "185 of 186 passed. 2 cut off at max_tokens count as failures; 99.5% of those that finished."
+    },
+    "mmlu-pro": {
+      "value": 75.3,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "226 of 263 passed. 37 cut off at max_tokens count as failures; 85.9% of those that finished."
+    },
+    "math-500": {
+      "value": 50.2,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "251 of 259 passed. 241 cut off at max_tokens count as failures; 96.9% of those that finished."
+    },
+    "mmlu": {
+      "value": 87.7,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "250 of 270 passed. 15 cut off at max_tokens count as failures; 92.6% of those that finished."
+    },
+    "instruction-following": {
+      "value": 90,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "36 of 40 passed."
+    },
+    "long-context-recall": {
+      "value": 66.7,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "2 of 3 passed. Graded 97.9% (codes right). At 32k tokens."
+    },
+    "tokenizer": {
+      "value": 56.8,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "25 of 44 passed."
+    }
+  }
+}

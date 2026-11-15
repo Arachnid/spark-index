@@ -454,17 +454,23 @@ export async function runBench(options, ctx) {
       log('installing');
       await runStep('install.sh', plan, ctx);
     }
-    if (!options.skipStart) {
-      log('starting the server');
-      started = true;
-      await runStep('start.sh', plan, ctx);
-    }
-
     let apiUrl = options.apiUrl;
     if (!apiUrl && isLocalHost(plan.head)) apiUrl = `http://127.0.0.1:${plan.config.port}`;
     if (!apiUrl) {
       tunnel = await openTunnel(plan.head, plan.config.port, ctx);
       apiUrl = tunnel.url;
+    }
+    if (!options.skipStart) {
+      // A server left over from an earlier run (one whose stop failed) would be
+      // benchmarked in this recipe's name, and some start scripts take a server
+      // already on their port for their own and return at once.
+      const before = await probeApi(apiUrl, undefined, ctx);
+      if (before.model) {
+        throw new Error(`a server is already answering on port ${plan.config.port} of ${plan.head} (serving ${before.model}) before this recipe started; stop it first`);
+      }
+      log('starting the server');
+      started = true;
+      await runStep('start.sh', plan, ctx);
     }
     const model = await waitForServer(apiUrl, {
       plan,

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import fs from 'node:fs';
 import net from 'node:net';
 import os from 'node:os';
@@ -322,6 +322,32 @@ test('a start command that fails ends the run at once, with its output, and stop
   const [runDir] = fs.readdirSync(path.join(root, 'runs', recipeId, 'mmlu-pro'));
   const record = JSON.parse(fs.readFileSync(path.join(root, 'runs', recipeId, 'mmlu-pro', runDir, 'run.json'), 'utf8'));
   assert.match(record.error, /exit 3/);
+});
+
+test('a server already on the port is not benchmarked in the recipe\'s name, nor stopped', async (t) => {
+  const recipeId = 'ling-3.0-flash-int4-1x-sglang';
+  const port = await freePort();
+  const serverFile = path.join(tempDir(t, 'bench-leftover-'), 'server.mjs');
+  fs.writeFileSync(serverFile, SERVER);
+  const leftover = spawn(process.execPath, [serverFile, String(port)], { stdio: 'ignore' });
+  t.after(() => leftover.kill());
+  for (let i = 0; i < 100 && !(await portOpen(port)); i++) await new Promise((r) => setTimeout(r, 50));
+  // Like some of Mia's recipes: a start script that takes any server on its port for its own.
+  const repo = recipeRepo(t, { 'start.sh': 'touch started\nexit 0\n', 'stop.sh': 'touch stopped\n' });
+  const root = await benchFixture(t, {
+    recipeId,
+    benchYaml: `repo: ${repo.dir}\nport: ${port}\n`,
+    runSh: FAKE_BENCHMARK
+  });
+  await assert.rejects(
+    runBench({ recipeId, benchmarkId: 'mmlu-pro', head: 'local', env: {}, benchRoot: path.join(root, 'sparks'), ...fast }, { root, log: () => {} }),
+    /a server is already answering on port \d+ of local \(serving fake-model\) before this recipe started/
+  );
+  const checkout = path.join(root, 'sparks', recipeId, 'recipe');
+  assert.equal(fs.existsSync(path.join(checkout, 'started')), false, 'start.sh did not run');
+  assert.equal(fs.existsSync(path.join(checkout, 'stopped')), false, 'stop.sh did not run');
+  assert.equal(await portOpen(port), true, 'the other server is left alone');
+  assert.equal(fs.existsSync(path.join(root, 'data/scores/ling-3.0-flash', `mmlu-pro-spark-${recipeId}.yaml`)), false);
 });
 
 test('a start command that serves in the foreground works, and is stopped without a stop command', async (t) => {

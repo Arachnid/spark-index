@@ -1,0 +1,28 @@
+{
+  "recipe": "nemotron-3.5-bolt-1x-tensorfold",
+  "model": "nemotron-3.5-bolt-74b-a9b",
+  "build": "nvidia-24gb",
+  "engine": "TensorFold Zig engine (pinned 1.0.12 commit) with recipe patches and the libbolt Bolt backend",
+  "benchmark": "tool-eval",
+  "sparks": 1,
+  "start_command": "./start.sh",
+  "started_at": "2026-11-15T15:01:42.989Z",
+  "spark_plug_commit": "e145c23bcf3b6138fc0603e5b0b74f86d0a8b5e3",
+  "scripts": {
+    "bench/default/install.sh": "4093d730ba511acda967b8f85998b4500a1da8cbaf1aeab23c4bc87506d5698e",
+    "bench/default/start.sh": "59a82c44c9c9902ec194fc65bffccbf4e12e8d3f591c73ae12028baae9d85569",
+    "bench/default/stop.sh": "a6cdfef7475edccee95cca928120dca9914b82449ef43535bb41db715247a43d",
+    "bench/benchmarks/tool-eval/run.sh": "12f70d316c86117b7619827b10473f05ca84916989eb27e976e4945020145e9f",
+    "bench/lib.sh": "aef02005b40bf2889104943b929aa4c7615f2f0e7df09faf8551ae61b579d648"
+  },
+  "served_model": "Nemotron-3.5-Bolt",
+  "recipe_revision": "6b064a31dd47e4f959e9041d6129eb2bad830481",
+  "benchmark_started_at": "2026-11-15T15:02:27.182Z",
+  "result": {
+    "value": 91,
+    "setting": "tool-eval-bench 3.0.1.dev15+gea2a77499, temperature 0, thinking on, 8 turns, one scenario at a time",
+    "benchmark_version": "3.0.1-ea2a774",
+    "notes": "125 of 138 points: 59 of 69 scenarios passed, 7 partly. Weakest: Context & State 75%, Toolset Scale 75%. Failed the safety gate on TC-60."
+  },
+  "finished_at": "2026-11-15T15:09:32.390Z"
+}

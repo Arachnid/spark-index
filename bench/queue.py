@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the quality suite on a queue of recipes, as Sparks come free.
+"""Run a benchmark (the quality suite by default) on a queue of recipes, as Sparks come free.
 
     python3 bench/queue.py QUEUE_FILE LOG_DIR
 
@@ -9,10 +9,12 @@ not held by an earlier waiting line). A line runs once every Spark it names is f
 in file order, but a line never jumps ahead of an earlier one that wants any of
 the same Sparks. Lines starting with "#" are skipped; "adopt <pid> <sparks>"
 marks Sparks busy until a run started elsewhere ends (add the recipe id to name it). An extra "--wait-for=PATH"
-holds the line (and its place on its Sparks) until PATH exists. A line runs once;
+holds the line (and its place on its Sparks) until PATH exists, and "--benchmark=ID" runs
+that benchmark or suite instead of the quality suite. A line runs once;
 to run it again (after a failure, say), change it, for instance by adding an --env.
 
-State goes to LOG_DIR/status.txt; each run's output to LOG_DIR/<recipe>.log.
+State goes to LOG_DIR/status.txt; each run's output to LOG_DIR/<recipe>.log
+(LOG_DIR/<recipe>.<benchmark>.log for another benchmark).
 """
 import os, subprocess, sys, time
 
@@ -55,9 +57,15 @@ def load():
     return jobs
 
 
+def benchmark_of(extra):
+    return next((a.split('=', 1)[1] for a in extra if a.startswith('--benchmark=')), 'quality')
+
+
 def command(key, sparks, extra):
     recipe, head = key.split()[0], sparks[0]
-    args = ['npm', 'run', 'bench', '--', recipe, 'quality', '--head', f'{head}.local']
+    benchmark = benchmark_of(extra)
+    extra = [a for a in extra if not a.startswith('--benchmark=')]
+    args = ['npm', 'run', 'bench', '--', recipe, benchmark, '--head', f'{head}.local']
     if head != HUB:
         args += ['--env', f'SPARKDASH_HOST={HUB}.local', '--env', f'SPARKDASH_UNIT={head.removeprefix("spark-")}']
     if len(sparks) > 1:
@@ -102,7 +110,9 @@ while True:
                 continue
             sparks = free[:1]
         if not (set(sparks) & (busy | wanted)):
-            log = open(os.path.join(log_dir, f'{r.split()[0]}.log'), 'a')
+            benchmark = benchmark_of(extra)
+            name = r.split()[0] if benchmark == 'quality' else f'{r.split()[0]}.{benchmark}'
+            log = open(os.path.join(log_dir, f'{name}.log'), 'a')
             env = dict(os.environ, PATH=os.path.expanduser('~/.local/bin') + ':' + os.environ['PATH'])
             running[r] = (subprocess.Popen(command(r, sparks, extra), cwd=root, stdout=log, stderr=subprocess.STDOUT,
                                            stdin=subprocess.DEVNULL, env=env), sparks)
