@@ -1,0 +1,12 @@
+benchmark: tokenizer
+benchmark_version: "2.4"
+value: 61.4
+build: inclusionai-int4
+provenance: spark
+sparks: 1
+setting: sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once
+source:
+  title: Spark Plug benchmark run, ling-3.0-flash-int4-1x-sglang on 1 Spark
+  url: https://github.com/Arachnid/spark-index/tree/main/runs/ling-3.0-flash-int4-1x-sglang/quality/20261115T041840Z
+  date: "2026-11-15"
+notes: 27 of 44 passed.

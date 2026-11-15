@@ -1,0 +1,90 @@
+{
+  "recipe": "nemotron-3.5-lightning-nvfp4-1x-sglang",
+  "model": "nemotron-3.5-lightning-30b-a3b",
+  "build": "nvidia-nvfp4",
+  "engine": "SGLang (lmsysorg/sglang:dev-nemotron3-5-lightning), DSpark drafter",
+  "benchmark": "quality",
+  "sparks": 1,
+  "start_command": "./start.sh",
+  "started_at": "2026-11-14T20:26:40.619Z",
+  "spark_plug_commit": "3b78c2bbea7156e06a44c4d23cf5e303821b64dd",
+  "scripts": {
+    "bench/default/install.sh": "4093d730ba511acda967b8f85998b4500a1da8cbaf1aeab23c4bc87506d5698e",
+    "bench/default/start.sh": "59a82c44c9c9902ec194fc65bffccbf4e12e8d3f591c73ae12028baae9d85569",
+    "bench/default/stop.sh": "a6cdfef7475edccee95cca928120dca9914b82449ef43535bb41db715247a43d",
+    "bench/benchmarks/quality/run.sh": "f81423d3f873474de78fe4ac3770224694a599b0f30db5adacec4040f40c2230",
+    "bench/lib.sh": "aef02005b40bf2889104943b929aa4c7615f2f0e7df09faf8551ae61b579d648"
+  },
+  "served_model": "/root/.cache/huggingface/hub/models--nvidia--NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/snapshots/bee7596271d1495f6992ae224aefde4410e816b8",
+  "recipe_revision": "38c16a403ea57f26f1828fa572270245ae51f01d",
+  "benchmark_started_at": "2026-11-14T20:32:58.909Z",
+  "finished_at": "2026-11-15T01:43:22.597Z",
+  "results": {
+    "quality-qa": {
+      "value": 92,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "138 of 150 passed."
+    },
+    "quality-reasoning": {
+      "value": 87.5,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "175 of 175 passed. 25 cut off at max_tokens count as failures; 100% of those that finished."
+    },
+    "quality-arithmetic": {
+      "value": 98,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "196 of 200 passed. Graded 98.6% (steps right)."
+    },
+    "quality-state-tracking": {
+      "value": 34,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "68 of 99 passed. Graded 82.8% (totals right). 101 cut off at max_tokens count as failures; 68.7% of those that finished."
+    },
+    "gsm8k-platinum": {
+      "value": 97.3,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "183 of 184 passed. 4 cut off at max_tokens count as failures; 99.5% of those that finished."
+    },
+    "mmlu-pro": {
+      "value": 63.3,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "190 of 249 passed. 51 cut off at max_tokens count as failures; 76.3% of those that finished."
+    },
+    "math-500": {
+      "value": 84,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "420 of 459 passed. 41 cut off at max_tokens count as failures; 91.5% of those that finished."
+    },
+    "mmlu": {
+      "value": 84.2,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "240 of 281 passed. 4 cut off at max_tokens count as failures; 85.4% of those that finished."
+    },
+    "instruction-following": {
+      "value": 70,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "28 of 40 passed."
+    },
+    "long-context-recall": {
+      "value": 100,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "3 of 3 passed. Graded 100% (codes right). At 32k tokens."
+    },
+    "tokenizer": {
+      "value": 45.5,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "20 of 44 passed."
+    }
+  }
+}

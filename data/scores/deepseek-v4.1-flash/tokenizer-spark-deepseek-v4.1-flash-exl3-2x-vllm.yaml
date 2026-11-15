@@ -1,0 +1,12 @@
+benchmark: tokenizer
+benchmark_version: "2.4"
+value: 79.5
+build: mia-exl3-2.9bpw
+provenance: spark
+sparks: 2
+setting: sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once
+source:
+  title: Spark Plug benchmark run, deepseek-v4.1-flash-exl3-2x-vllm on 2 Sparks
+  url: https://github.com/Arachnid/spark-index/tree/main/runs/deepseek-v4.1-flash-exl3-2x-vllm/quality/20261114T232840Z
+  date: "2026-11-14"
+notes: 35 of 44 passed.

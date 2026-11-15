@@ -1,0 +1,90 @@
+{
+  "recipe": "deepseek-v4.1-flash-exl3-2x-vllm",
+  "model": "deepseek-v4.1-flash",
+  "build": "mia-exl3-2.9bpw",
+  "engine": "vLLM 0.1.dev20904 (deepseekv41-flash-0909 image) with an EXL3 overlay, ExLlamaV3 v1.4.5",
+  "benchmark": "quality",
+  "sparks": 2,
+  "start_command": "./start.sh",
+  "started_at": "2026-11-14T23:28:40.707Z",
+  "spark_plug_commit": "1cd94f103f57888c37e16bf3dae17efae209a4ab",
+  "scripts": {
+    "bench/default/install.sh": "4093d730ba511acda967b8f85998b4500a1da8cbaf1aeab23c4bc87506d5698e",
+    "bench/default/start.sh": "59a82c44c9c9902ec194fc65bffccbf4e12e8d3f591c73ae12028baae9d85569",
+    "bench/default/stop.sh": "a6cdfef7475edccee95cca928120dca9914b82449ef43535bb41db715247a43d",
+    "bench/benchmarks/quality/run.sh": "f81423d3f873474de78fe4ac3770224694a599b0f30db5adacec4040f40c2230",
+    "bench/lib.sh": "aef02005b40bf2889104943b929aa4c7615f2f0e7df09faf8551ae61b579d648"
+  },
+  "served_model": "DeepSeek-v4.1-Flash-EXL3",
+  "recipe_revision": "6f7d1590ad49a2b8995188e45d7b9db31e677452",
+  "benchmark_started_at": "2026-11-14T23:53:02.530Z",
+  "results": {
+    "quality-qa": {
+      "value": 100,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "150 of 150 passed."
+    },
+    "quality-reasoning": {
+      "value": 98,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "196 of 200 passed."
+    },
+    "quality-arithmetic": {
+      "value": 99.5,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "199 of 200 passed. Graded 99.4% (steps right)."
+    },
+    "quality-state-tracking": {
+      "value": 99,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "198 of 200 passed. Graded 99.6% (totals right)."
+    },
+    "gsm8k-platinum": {
+      "value": 100,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "188 of 188 passed."
+    },
+    "mmlu-pro": {
+      "value": 85,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "255 of 289 passed. 11 cut off at max_tokens count as failures; 88.2% of those that finished."
+    },
+    "math-500": {
+      "value": 80,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "400 of 495 passed. 5 cut off at max_tokens count as failures; 80.8% of those that finished."
+    },
+    "mmlu": {
+      "value": 93.7,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "267 of 284 passed. 1 cut off at max_tokens count as failures; 94% of those that finished."
+    },
+    "instruction-following": {
+      "value": 90,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "36 of 40 passed."
+    },
+    "long-context-recall": {
+      "value": 100,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "3 of 3 passed. Graded 100% (codes right). At 32k tokens."
+    },
+    "tokenizer": {
+      "value": 79.5,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "35 of 44 passed."
+    }
+  },
+  "finished_at": "2026-11-15T06:52:23.540Z"
+}

@@ -1,0 +1,12 @@
+benchmark: quality-arithmetic
+benchmark_version: "2.4"
+value: 98
+build: nvidia-nvfp4
+provenance: spark
+sparks: 1
+setting: sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once
+source:
+  title: Spark Plug benchmark run, nemotron-3.5-lightning-nvfp4-1x-sglang on 1 Spark
+  url: https://github.com/Arachnid/spark-index/tree/main/runs/nemotron-3.5-lightning-nvfp4-1x-sglang/quality/20261114T202640Z
+  date: "2026-11-14"
+notes: 196 of 200 passed. Graded 98.6% (steps right).
