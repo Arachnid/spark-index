@@ -1,0 +1,11 @@
+benchmark: quality-arithmetic
+benchmark_version: "2.4"
+value: 98
+provenance: spark
+sparks: 2
+setting: sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once
+source:
+  title: Spark Plug benchmark run, mimo-v2.6-flash-2x-sglang on 2 Sparks
+  url: https://github.com/Arachnid/spark-index/tree/main/runs/mimo-v2.6-flash-2x-sglang/quality/20261115T070640Z
+  date: "2026-11-15"
+notes: 196 of 200 passed. Graded 76.3% (steps right).

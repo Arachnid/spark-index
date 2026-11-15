@@ -1,0 +1,12 @@
+benchmark: mmlu
+benchmark_version: "2.4"
+value: 87.7
+build: unsloth-nvfp4
+provenance: spark
+sparks: 1
+setting: sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once
+source:
+  title: Spark Plug benchmark run, qwen3.6-35b-a3b-nvfp4-1x-vllm on 1 Spark
+  url: https://github.com/Arachnid/spark-index/tree/main/runs/qwen3.6-35b-a3b-nvfp4-1x-vllm/quality/20261115T014340Z
+  date: "2026-11-15"
+notes: 250 of 270 passed. 15 cut off at max_tokens count as failures; 92.6% of those that finished.
