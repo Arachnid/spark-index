@@ -1,0 +1,62 @@
+{
+  "recipe": "laguna-s-2.1-nvfp4-1x-vllm",
+  "model": "laguna-s-2.1",
+  "build": "poolside-nvfp4",
+  "engine": "vLLM 0.25.1 with a FlashInfer nightly, DFlash drafter (7 speculative tokens)",
+  "benchmark": "quality",
+  "sparks": 1,
+  "start_command": "./start.sh",
+  "started_at": "2026-11-15T13:33:41.079Z",
+  "spark_plug_commit": "e145c23bcf3b6138fc0603e5b0b74f86d0a8b5e3",
+  "scripts": {
+    "bench/default/install.sh": "4093d730ba511acda967b8f85998b4500a1da8cbaf1aeab23c4bc87506d5698e",
+    "bench/default/start.sh": "59a82c44c9c9902ec194fc65bffccbf4e12e8d3f591c73ae12028baae9d85569",
+    "bench/default/stop.sh": "a6cdfef7475edccee95cca928120dca9914b82449ef43535bb41db715247a43d",
+    "bench/benchmarks/quality/run.sh": "f81423d3f873474de78fe4ac3770224694a599b0f30db5adacec4040f40c2230",
+    "bench/lib.sh": "aef02005b40bf2889104943b929aa4c7615f2f0e7df09faf8551ae61b579d648"
+  },
+  "served_model": "poolside/Laguna-S-2.1-NVFP4",
+  "recipe_revision": "750a52ead5e92d4f8c2b42321c6695bcc3cf6360",
+  "recipe_modified": true,
+  "benchmark_started_at": "2026-11-15T13:50:41.350Z",
+  "finished_at": "2026-11-16T07:04:09.947Z",
+  "results": {
+    "quality-qa": {
+      "value": 86.7,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "130 of 134 passed. 16 cut off at max_tokens count as failures; 97% of those that finished."
+    },
+    "quality-reasoning": {
+      "value": 84.5,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "169 of 177 passed. 23 cut off at max_tokens count as failures; 95.5% of those that finished."
+    },
+    "quality-arithmetic": {
+      "value": 97,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "194 of 200 passed. Graded 97.5% (steps right)."
+    },
+    "quality-state-tracking": {
+      "value": 76,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "152 of 164 passed. Graded 97.1% (totals right). 36 cut off at max_tokens count as failures; 92.7% of those that finished."
+    },
+    "gsm8k-platinum": {
+      "value": 88.8,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "167 of 184 passed. 4 cut off at max_tokens count as failures; 90.8% of those that finished."
+    },
+    "mmlu-pro": {
+      "value": 64.7,
+      "setting": "sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once",
+      "benchmark_version": "2.4",
+      "notes": "194 of 239 passed. 61 cut off at max_tokens count as failures; 81.2% of those that finished."
+    }
+  },
+  "stopped": "Stopped by hand at 1,503 of 2,239 items, partway through MATH-500. Scored only the six categories that finished: QA, reasoning, arithmetic, state tracking, GSM8K Platinum and MMLU-Pro."
+}
