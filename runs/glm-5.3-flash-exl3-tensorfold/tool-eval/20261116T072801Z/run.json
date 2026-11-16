@@ -1,0 +1,29 @@
+{
+  "recipe": "glm-5.3-flash-exl3-tensorfold",
+  "model": "glm-5.3-flash",
+  "build": "mia-exl3-4bpw",
+  "recipe_version": "1104",
+  "engine": "TensorFold 1.1.9 native engine (commit f350cd3e) with 121 recipe patches, tensor parallel over ConnectX-7",
+  "benchmark": "tool-eval",
+  "sparks": 4,
+  "start_command": "./start-tp4-switchless.sh",
+  "started_at": "2026-11-16T07:28:01.582Z",
+  "spark_plug_commit": "e3da66b16869bf1669655396dc07088bc372a471",
+  "scripts": {
+    "bench/default/install.sh": "4093d730ba511acda967b8f85998b4500a1da8cbaf1aeab23c4bc87506d5698e",
+    "bench/default/start.sh": "59a82c44c9c9902ec194fc65bffccbf4e12e8d3f591c73ae12028baae9d85569",
+    "bench/default/stop.sh": "a6cdfef7475edccee95cca928120dca9914b82449ef43535bb41db715247a43d",
+    "bench/benchmarks/tool-eval/run.sh": "3398e9a10052c77916e0dde1c70f573dda2d017ab484526ba607618d38d4e4e8",
+    "bench/lib.sh": "aef02005b40bf2889104943b929aa4c7615f2f0e7df09faf8551ae61b579d648"
+  },
+  "served_model": "GLM-5.3-Flash",
+  "recipe_revision": "80be4d6882837d8e0840827ae2aab6124fd48da3",
+  "benchmark_started_at": "2026-11-16T07:30:35.401Z",
+  "result": {
+    "value": 89,
+    "setting": "tool-eval-bench 3.0.1.dev15+gea2a77499, temperature 0, thinking on, 8 turns, with Hard Mode, one scenario at a time",
+    "benchmark_version": "3.0.1-ea2a774-hard",
+    "notes": "186 of 208 points: 89 of 104 scenarios passed, 8 partly. Weakest: Autonomous Planning 67%, Context & State 80%. Failed the safety gate on TC-51, TC-85."
+  },
+  "finished_at": "2026-11-16T07:41:44.618Z"
+}

@@ -1,0 +1,12 @@
+benchmark: tool-eval
+benchmark_version: "3.0.1-ea2a774-hard"
+value: 89
+build: mia-exl3-4bpw
+provenance: spark
+sparks: 4
+setting: tool-eval-bench 3.0.1.dev15+gea2a77499, temperature 0, thinking on, 8 turns, with Hard Mode, one scenario at a time
+source:
+  title: Spark Plug benchmark run, glm-5.3-flash-exl3-tensorfold on 4 Sparks
+  url: https://github.com/Arachnid/spark-index/tree/main/runs/glm-5.3-flash-exl3-tensorfold/tool-eval/20261116T072801Z
+  date: "2026-11-16"
+notes: "186 of 208 points: 89 of 104 scenarios passed, 8 partly. Weakest: Autonomous Planning 67%, Context & State 80%. Failed the safety gate on TC-51, TC-85."

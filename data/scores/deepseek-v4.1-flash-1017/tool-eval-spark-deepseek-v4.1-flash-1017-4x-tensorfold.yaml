@@ -1,0 +1,11 @@
+benchmark: tool-eval
+benchmark_version: "3.0.1-ea2a774-hard"
+value: 98
+provenance: spark
+sparks: 4
+setting: tool-eval-bench 3.0.1.dev15+gea2a77499, temperature 0, thinking on, 8 turns, with Hard Mode, one scenario at a time
+source:
+  title: Spark Plug benchmark run, deepseek-v4.1-flash-1017-4x-tensorfold on 4 Sparks
+  url: https://github.com/Arachnid/spark-index/tree/main/runs/deepseek-v4.1-flash-1017-4x-tensorfold/tool-eval/20261116T070736Z
+  date: "2026-11-16"
+notes: "204 of 208 points: 101 of 104 scenarios passed, 2 partly. Weakest: Structured Output 83%, Context & State 95%."
