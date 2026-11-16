@@ -17,6 +17,10 @@ ranking:
   # A recipe needs scores that count on at least this share of a
   # category's benchmarks to be ranked in that category.
   min_coverage: 0.5
+  # On the speed and score frontier, recipes whose decode speeds are within
+  # this share of each other count as equally fast, so the higher score wins:
+  # each recipe's author measures its speed on their own workload.
+  speed_tolerance: 0.1
 
 # Benchmark categories, in display order. Each benchmark lists the
 # categories it belongs to.
