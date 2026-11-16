@@ -177,3 +177,22 @@ test('transitive carries "better" through a presumption', () => {
   const cycle = transitive(['a', 'b'], () => true);
   assert.equal(cycle('a', 'b'), false, 'a cycle leaves neither better');
 });
+
+test('the frontier compares different models by score, and versions of one model by the presumption', async () => {
+  const { frontierPoints } = await import('../src/render/frontier.mjs');
+  const data = fixture({ newRelease: 80, newQ3: 80, old: 81, other: 70 });
+  const speed = { 'new-release-4x': [4, 40], 'new-q3-2x': [2, 50], 'old-q3-2x': [2, 30], 'other-2x': [2, 100] };
+  for (const r of data.recipes) r.speeds = [{ sparks: speed[r.id][0], decode_tps: speed[r.id][1], source: 'https://example.com' }];
+  const ix = buildIndex(data);
+  const cache = new Map();
+  ix.standingsFor = (n, forced = null) => {
+    const key = `${n}|${forced?.id ?? ''}`;
+    if (!cache.has(key)) cache.set(key, standings(ix, n, { forced }));
+    return cache.get(key);
+  };
+  const { frontier } = frontierPoints(ix, 4, 'all', 'mean');
+  // Old scores a task above new's Q3 but is slower: noise, so the newer model
+  // keeps it off. New's release is slower than its Q3 at the same score, but
+  // has more bits, so it stays. Other is the fastest.
+  assert.deepEqual(frontier.map((p) => p.entry.recipe.id), ['new-release-4x', 'new-q3-2x', 'other-2x']);
+});

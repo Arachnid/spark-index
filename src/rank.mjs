@@ -118,7 +118,7 @@ export function bitsOf(model, buildId = 'release') {
   return m ? Number(m[1]) : buildId === 'release' ? 16 : 0;
 }
 
-function sameLine(ix, a, b) {
+export function sameLine(ix, a, b) {
   return a === b || (ix.models.get(a)?.related ?? []).includes(b) || (ix.models.get(b)?.related ?? []).includes(a);
 }
 
