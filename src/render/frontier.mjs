@@ -5,7 +5,7 @@
 
 import { html } from '../html.mjs';
 import { plural, fmt0, fmt1 } from './layout.mjs';
-import { minSparks, usedSparks, speedAt, paretoFrontier, compareEntries, transitive } from '../rank.mjs';
+import { minSparks, usedSparks, speedAt, paretoFrontier, compareEntries, transitive, sameLine } from '../rank.mjs';
 import { leaderboardPath, recipePath, recipeBuild } from './common.mjs';
 
 // Two fixed sizes, so text stays at its real size: a wide chart, and a
@@ -56,12 +56,17 @@ export function frontierPoints(ix, n, category, method) {
     if (!ways.length) noSpeed.push(entry);
     for (const d of ways) plotted.push({ x: d.tps, y: entry.score.value, m: entry.score.margin ?? 0, entry, used: d.used, per: d.per, copies: d.copies });
   }
-  // By mean score, one point is more capable than another only as
-  // compareEntries says: beyond the margin, or presumed so within one model's
-  // versions. Points the scores can't separate are equal, so the faster wins.
+  // The frontier is the best estimate, so different models compare on their
+  // scores: a category of one or two benchmarks rarely separates two models
+  // at 95%, and asking it to would leave almost nothing to pick. Versions of
+  // one model compare as compareEntries says (the newer or less quantized
+  // version is presumed better unless the gap is beyond the 99% margin), so
+  // noise doesn't put an older or more quantized version ahead of the other.
   const keys = ix.standingsFor(n).keysFor(category);
   const better = method === 'mean'
-    ? transitive(plotted, (p, q) => compareEntries(ix, p.entry, q.entry, keys, p.y, q.y) > 0)
+    ? transitive(plotted, (p, q) => (sameLine(ix, p.entry.recipe.model, q.entry.recipe.model)
+      ? compareEntries(ix, p.entry, q.entry, keys, p.y, q.y) > 0
+      : p.y > q.y))
     : undefined;
   return { fit: fit.length, withSpeed, plotted, noSpeed, frontier: paretoFrontier(plotted, better, ix.config.ranking.speed_tolerance ?? 0) };
 }
@@ -255,7 +260,7 @@ export function renderPicks({ ix, url, n, category, method }) {
   </div>`;
 
   const footnote = plotted.length
-    ? `Every recipe that fits is plotted, each scored as if it were the one representing its model.${plotted.some((p) => p.copies > 1) ? ` A recipe whose smallest setup fits more than once on ${plural(n)} is also plotted as that many independent copies (marked 2×, 3× and so on), at their decode speeds added together: that is total throughput when serving several requests at once, not the speed of one request.` : ''}${frontier.length === 1 ? ' A frontier line needs at least two ranked recipes.' : ''} ${method === 'mean' ? 'The score axis starts where the points do, not at 0, and each point’s bar is the 95% range of its own score from sampling the benchmarks’ tasks. Whether two recipes differ is tested more sharply, task by task on the benchmarks both ran: one only beats another, and pushes it off the frontier, when the gap is beyond that test’s margin. Inside it, a newer version of the same model is presumed better, then more bits per weight, then the developer’s own weights, and only a gap beyond the 99% margin overturns that. ' : ''}Speeds are single-request decode as measured by each recipe’s author, on their own workload, so treat small gaps as noise. Hover a point for its details; click it for the recipe. ${unplotted}`
+    ? `Every recipe that fits is plotted, each scored as if it were the one representing its model.${plotted.some((p) => p.copies > 1) ? ` A recipe whose smallest setup fits more than once on ${plural(n)} is also plotted as that many independent copies (marked 2×, 3× and so on), at their decode speeds added together: that is total throughput when serving several requests at once, not the speed of one request.` : ''}${frontier.length === 1 ? ' A frontier line needs at least two ranked recipes.' : ''} ${method === 'mean' ? 'The score axis starts where the points do, not at 0, and each point’s bar is the 95% range of its own score from sampling the benchmarks’ tasks. The frontier compares different models by score. Versions of the same model are tested more sharply, task by task on the benchmarks both ran: a newer version is presumed better, then more bits per weight, then the developer’s own weights, and only a gap beyond that test’s 99% margin puts the other ahead. ' : ''}Speeds are single-request decode as measured by each recipe’s author, on their own workload, so treat small gaps as noise. Hover a point for its details; click it for the recipe. ${unplotted}`
     : unplotted;
 
   return html`<section class="wrap section" id="picks" aria-labelledby="picks-title" style="padding-top:40px">
