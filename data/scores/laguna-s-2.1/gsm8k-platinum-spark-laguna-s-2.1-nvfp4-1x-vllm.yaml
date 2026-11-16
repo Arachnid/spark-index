@@ -1,0 +1,12 @@
+benchmark: gsm8k-platinum
+benchmark_version: "2.4"
+value: 88.8
+build: poolside-nvfp4
+provenance: spark
+sparks: 1
+setting: sparkDash 2.90.0, suite 2, scoring 4, temperature 0, 4 at once
+source:
+  title: Spark Plug benchmark run, laguna-s-2.1-nvfp4-1x-vllm on 1 Spark
+  url: https://github.com/Arachnid/spark-index/tree/main/runs/laguna-s-2.1-nvfp4-1x-vllm/quality/20261115T133341Z
+  date: "2026-11-15"
+notes: 167 of 184 passed. 4 cut off at max_tokens count as failures; 90.8% of those that finished.
