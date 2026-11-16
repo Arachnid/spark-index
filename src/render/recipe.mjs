@@ -40,8 +40,10 @@ export function renderRecipe({ ix, url, recipe }) {
     const cells = categories.map((cat) => {
       const r = st.ranking(cat.id, 'mean');
       const pos = r.ranked.findIndex((e) => e.model.id === model.id);
+      const rank = pos < 0 ? null : r.ranked[pos].rank;
       const mine = st.scoreOf(model.id, r.keys);
-      return { pos, of: r.ranked.length, mine };
+      const tied = rank !== null && r.ranked.filter((e) => e.rank === rank).length > 1;
+      return { pos, rank, tied, of: r.ranked.length, mine };
     });
     return { n, cells, speed: speedAt(recipe, n) };
   });
@@ -166,7 +168,7 @@ export function renderRecipe({ ix, url, recipe }) {
     <h2 id="ranks-title" class="label" style="margin:0 0 12px;font-size:13px">Rank by Spark count</h2>
     <div class="table-wrap" style="border:0"><table class="ranks">
       <thead><tr><th scope="col">Sparks</th>${categories.map((c) => html`<th scope="col">${c.name}</th>`)}<th scope="col">Speed</th></tr></thead>
-      <tbody>${rankRows.map((row) => html`<tr><th scope="row"><a href="${url(leaderboardPath(row.n, 'all', 'mean'))}">${plural(row.n)}</a></th>${row.cells.map((c) => html`<td>${c.pos >= 0 ? html`<b>#${c.pos + 1}</b><span>of ${c.of} ranked · score ${fmt0(c.mine.value)}</span>` : html`<b>–</b><span>not ranked: ${c.mine.have} of ${c.mine.need} needed</span>`}</td>`)}<td class="speed">${speedText(row.speed)}</td></tr>`)}</tbody>
+      <tbody>${rankRows.map((row) => html`<tr><th scope="row"><a href="${url(leaderboardPath(row.n, 'all', 'mean'))}">${plural(row.n)}</a></th>${row.cells.map((c) => html`<td>${c.pos >= 0 ? html`<b>#${c.rank}</b><span>${c.tied ? 'tied, ' : ''}of ${c.of} ranked · score ${fmt0(c.mine.value)}</span>` : html`<b>–</b><span>not ranked: ${c.mine.have} of ${c.mine.need} needed</span>`}</td>`)}<td class="speed">${speedText(row.speed)}</td></tr>`)}</tbody>
     </table></div>
     <p class="footnote">Scores don’t change with the number of Sparks; the field does. Each row ranks this recipe against every model that fits that many Sparks, on its best recipe there.</p>
   </section>

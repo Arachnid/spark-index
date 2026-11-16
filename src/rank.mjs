@@ -10,6 +10,13 @@
 //   - For a cluster of n Sparks, each model is represented by one recipe:
 //     the one whose counted scores rank best; ties go to more bits per
 //     weight, then to using more of the Sparks, then to faster decode.
+//   - One recipe is better than another only when the gap between them is
+//     beyond its 95% margin from sampling, measured task by task where both
+//     ran the same tasks. Versions of one model (a model and its related
+//     models) are presumed to rank newest model first, then most bits per
+//     weight, then the developer's own release, and it takes a gap beyond the
+//     99% margin to overturn that; different models inside the margin are
+//     tied.
 
 export const STATUS_ORDER = { counts: 0, sample: 1, 'test-version': 2, build: 3, 'model-version': 4 };
 const PROVENANCE_ORDER = { spark: 0, independent: 1, lab: 2, 'other-lab': 3 };
@@ -50,7 +57,10 @@ export function buildIndex(data) {
     benchmarkList: data.benchmarks,
     recipes: data.recipes,
     recipesByModel,
-    scoresFor: (modelId, benchmarkId) => scoresByKey.get(`${modelId}|${benchmarkId}`) ?? []
+    scoresFor: (modelId, benchmarkId) => scoresByKey.get(`${modelId}|${benchmarkId}`) ?? [],
+    // Per-task results behind Spark scores, by score id (see items.mjs).
+    items: data.items ?? new Map(),
+    pairCache: new Map()
   };
 }
 
@@ -95,6 +105,123 @@ export function viewFor(ix, recipe) {
   const view = {};
   for (const b of ix.benchmarkList) view[b.id] = cellFor(ix, recipe, b.id);
   return view;
+}
+
+// Bits per weight a build keeps: its stated bits, else the precision its
+// format names first (FP8 is 8, BF16 16), else 16 for a developer's release
+// and 0 for anything else.
+export function bitsOf(model, buildId = 'release') {
+  const build = model?.builds?.[buildId];
+  if (!build) return 0;
+  if (typeof build.bits === 'number') return build.bits;
+  const m = String(build.format ?? '').match(/(?:FP|BF|INT)(\d+)/i);
+  return m ? Number(m[1]) : buildId === 'release' ? 16 : 0;
+}
+
+function sameLine(ix, a, b) {
+  return a === b || (ix.models.get(a)?.related ?? []).includes(b) || (ix.models.get(b)?.related ?? []).includes(a);
+}
+
+// Which of two recipes to presume better when their scores can't separate
+// them: negative for the first, positive for the second, 0 for neither. Only
+// versions of one model are presumed apart: the newer model first, then more
+// bits per weight, then the developer's own release over a derived build.
+export function presumption(ix, ra, rb) {
+  if (!sameLine(ix, ra.model, rb.model)) return 0;
+  const key = (r) => {
+    const model = ix.models.get(r.model);
+    return [-dateNumber(model.released), -bitsOf(model, r.build), r.build === 'release' ? 0 : 1];
+  };
+  return compareKeys(key(ra), key(rb));
+}
+
+// The variance of the gap between two scores on one benchmark, on the
+// chance-corrected scale: task by task when both runs kept their tasks and
+// share nearly all of them, else the two scores' own variances added (null
+// when the benchmark doesn't say how many tasks it has).
+function gapVariance(ix, benchmark, sa, sb) {
+  if (sa === sb) return 0;
+  const key = `${sa.id}|${sb.id}`;
+  if (ix.pairCache.has(key)) return ix.pairCache.get(key);
+  let v = null;
+  const ta = ix.items.get(sa.id);
+  const tb = ix.items.get(sb.id);
+  if (ta && tb) {
+    const ids = [...ta.keys()].filter((id) => tb.has(id));
+    if (ids.length >= 0.9 * Math.max(ta.size, tb.size)) {
+      const scale = 100 / (100 - (benchmark.chance ?? 0));
+      const d = ids.map((id) => (ta.get(id) - tb.get(id)) * 100 * scale);
+      const mean = d.reduce((x, y) => x + y, 0) / d.length;
+      v = d.reduce((x, y) => x + (y - mean) ** 2, 0) / Math.max(1, d.length - 1) / d.length;
+    }
+  }
+  if (v === null) {
+    const ca = corrected(benchmark, sa.value).variance;
+    const cb = corrected(benchmark, sb.value).variance;
+    v = ca === null || cb === null ? null : ca + cb;
+  }
+  ix.pairCache.set(key, v);
+  return v;
+}
+
+// How far a's scores are above b's, on average over the benchmarks among
+// `keys` that count for both, chance-corrected, with a 95% margin (null when
+// it can't be measured). Null when no benchmark counts for both.
+export function difference(ix, a, b, keys) {
+  const shared = keys.filter((k) => counts(a.view, k) && counts(b.view, k));
+  if (shared.length === 0) return null;
+  let sum = 0;
+  let variance = 0;
+  for (const k of shared) {
+    const benchmark = ix.benchmarks.get(k);
+    const sa = a.view[k].chosen.score;
+    const sb = b.view[k].chosen.score;
+    sum += corrected(benchmark, sa.value).value - corrected(benchmark, sb.value).value;
+    const v = gapVariance(ix, benchmark, sa, sb);
+    variance = v === null || variance === null ? null : variance + v;
+  }
+  return { value: sum / shared.length, margin: variance === null ? null : (1.96 * Math.sqrt(variance)) / shared.length, benchmarks: shared.length };
+}
+
+// Between versions of one model, a gap must clear the 99% margin, not the
+// 95% one, to overturn the presumption: z of 2.576 rather than 1.96.
+const VERSION_MARGIN = 2.576 / 1.96;
+
+// The margin a gap between two recipes must clear: wider between versions of
+// one model, where it would overturn a presumption.
+function marginFor(ix, ra, rb, d) {
+  return sameLine(ix, ra.model, rb.model) ? d.margin * VERSION_MARGIN : d.margin;
+}
+
+// 1 if entry a is better than b, -1 if b is better, 0 if neither. A gap
+// beyond its margin decides; inside it, the presumption between versions of
+// one model does. With no margin to go by, the higher score is better.
+export function compareEntries(ix, a, b, keys, valueA, valueB) {
+  const d = difference(ix, a, b, keys);
+  if (d && d.margin !== null) {
+    const margin = marginFor(ix, a.recipe, b.recipe, d);
+    if (d.value > margin) return 1;
+    if (d.value < -margin) return -1;
+    return -Math.sign(presumption(ix, a.recipe, b.recipe));
+  }
+  return Math.sign(valueA - valueB);
+}
+
+// A "better than" relation over a list, made transitive: if a is better than
+// b and b than c, a is better than c, even if the scores alone can't separate
+// a from c (say a newer version presumed better than an older one that beat
+// c). Returns better(x, y) for members of the list; where the relation runs
+// both ways round a cycle, neither is better.
+export function transitive(list, better) {
+  const n = list.length;
+  const at = new Map(list.map((x, i) => [x, i]));
+  const r = list.map((x) => list.map((y) => x !== y && better(x, y)));
+  for (let k = 0; k < n; k++) for (let i = 0; i < n; i++) if (r[i][k]) for (let j = 0; j < n; j++) if (r[k][j]) r[i][j] = true;
+  return (x, y) => {
+    const i = at.get(x);
+    const j = at.get(y);
+    return i !== j && r[i][j] && !r[j][i];
+  };
 }
 
 export function counts(view, benchmarkId) {
@@ -149,7 +276,7 @@ export function chooseRecipes(ix, n, forced = null) {
   const hasCounts = (o) => ix.benchmarkList.some((b) => counts(o.view, b.id));
   const tieKey = (o) => {
     const model = ix.models.get(o.recipe.model);
-    const bits = model.builds[o.recipe.build]?.bits ?? 0;
+    const bits = bitsOf(model, o.recipe.build);
     const used = usedSparks(o.recipe, n);
     const decode = speedAt(o.recipe, used)?.decode_tps ?? 0;
     return [hasCounts(o) ? 0 : 1, -bits, -used, -decode, o.recipe.id];
@@ -159,7 +286,9 @@ export function chooseRecipes(ix, n, forced = null) {
   const first = new Map(candidates.map((c) => [c.modelId, [...c.options].sort(byTie)[0]]));
 
   // Where a model has several recipes with counted scores, pick the one whose
-  // scores rank best against the other models' first choices.
+  // scores rank best against the other models' first choices, unless its
+  // scores can't be told apart from a recipe presumed better (or, failing
+  // that, preferred by the tie rules above).
   const fieldValues = (benchmarkId, excludeModel) => [...first.entries()]
     .filter(([id, o]) => id !== excludeModel && counts(o.view, benchmarkId))
     .map(([, o]) => o.view[benchmarkId].chosen.score.value);
@@ -169,12 +298,19 @@ export function chooseRecipes(ix, n, forced = null) {
     return ids.reduce((sum, id) => sum + percentileAgainst(view[id].chosen.score.value, fieldValues(id, modelId)), 0) / ids.length;
   };
 
+  const allKeys = ix.benchmarkList.map((b) => b.id);
   const chosen = [];
   for (const c of candidates) {
     const withCounts = c.options.filter(hasCounts);
     let pick = first.get(c.modelId);
     if (withCounts.length > 1) {
-      pick = [...withCounts].sort((a, b) => (strength(c.modelId, b.view) - strength(c.modelId, a.view)) || byTie(a, b))[0];
+      const sorted = [...withCounts].sort((a, b) => (strength(c.modelId, b.view) - strength(c.modelId, a.view)) || byTie(a, b));
+      pick = sorted[0];
+      for (const o of sorted.slice(1)) {
+        const d = difference(ix, o, pick, allKeys);
+        const tied = d && d.margin !== null && Math.abs(d.value) <= marginFor(ix, o.recipe, pick.recipe, d);
+        if (tied && (presumption(ix, o.recipe, pick.recipe) || byTie(o, pick)) < 0) pick = o;
+      }
     }
     chosen.push({
       model: ix.models.get(c.modelId),
@@ -266,6 +402,16 @@ export function standings(ix, n, { forced = null, minCoverage = ix.config.rankin
     const scored = entries.map((e) => ({ ...e, score: scoreOf(e.model.id, keys, method) }));
     const byValue = (a, b) => (b.score.value ?? -1) - (a.score.value ?? -1) || a.model.name.localeCompare(b.model.name);
     const ranked = scored.filter((e) => e.score.ranked).sort(byValue);
+    // By mean score, a recipe's rank is 1 + the number of recipes better than
+    // it (see compareEntries and transitive), so recipes the scores can't separate share a
+    // rank; among those, the higher score is listed first.
+    if (method === 'mean') {
+      const better = transitive(ranked, (o, e) => compareEntries(ix, o, e, keys, o.score.value, e.score.value) > 0);
+      for (const e of ranked) e.rank = 1 + ranked.filter((o) => better(o, e)).length;
+      ranked.sort((a, b) => (a.rank - b.rank) || byValue(a, b));
+    } else {
+      ranked.forEach((e, i) => { e.rank = i + 1; });
+    }
     const unranked = scored.filter((e) => !e.score.ranked).sort((a, b) => (b.score.have - a.score.have) || byValue(a, b));
     return { keys, need: need(keys), ranked, unranked };
   }
@@ -273,18 +419,28 @@ export function standings(ix, n, { forced = null, minCoverage = ix.config.rankin
   return { n, entries, byModel, pct, keysFor, scoreOf, ranking };
 }
 
-// The points no other point beats on both axes: nothing is at least as fast
-// and scores higher, or is faster and scores at least as well. Returned from
-// slowest to fastest, which is also highest score to lowest.
-export function paretoFrontier(points) {
+// The speed and score frontier, built from the fastest point down: a slower
+// point joins only if it is better than the last point that joined, so each
+// step along it trades speed for capability the scores can show. `better(p,
+// q)` says whether p is more capable than q; by default, a higher y, which
+// gives the points nothing beats on both axes. (A test of tied scores isn't
+// transitive, so this doesn't drop every point tied with a faster one: a
+// chain of ties would leave only the fastest.) Speeds are measurements too:
+// a point within `speedTolerance` (a share) of the last point's speed counts
+// as just as fast, and takes its place if it scores higher and isn't worse.
+// And a point never joins when something faster is better than it.
+// Returned slowest to fastest.
+export function paretoFrontier(points, better = (p, q) => p.y > q.y, speedTolerance = 0) {
   const bySpeed = [...points].sort((a, b) => (b.x - a.x) || (b.y - a.y));
   const frontier = [];
-  let best = -Infinity;
+  const seen = [];
   for (const p of bySpeed) {
-    if (p.y > best) {
-      frontier.push(p);
-      best = p.y;
-    }
+    seen.push(p);
+    const last = frontier[frontier.length - 1];
+    if (!last) frontier.push(p);
+    else if (p.x >= last.x * (1 - speedTolerance)) {
+      if (!better(last, p) && (better(p, last) || p.y > last.y)) frontier[frontier.length - 1] = p;
+    } else if (better(p, last) && !seen.some((q) => q.x > p.x && better(q, p))) frontier.push(p);
   }
   return frontier.reverse();
 }

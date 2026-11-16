@@ -8,6 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { parse } from 'yaml';
+import { loadItems } from './items.mjs';
 
 export const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 
@@ -61,11 +62,14 @@ function loadScores(dir) {
 export function loadData(root = ROOT) {
   const config = readYaml(path.join(root, 'site.config.yaml'));
   if (process.env.BASE_PATH) config.base_path = process.env.BASE_PATH;
+  const scores = loadScores(path.join(root, 'data/scores'));
   return {
     config,
     benchmarks: loadCollection(path.join(root, 'data/benchmarks')),
     models: loadCollection(path.join(root, 'data/models')),
     recipes: loadCollection(path.join(root, 'data/recipes')),
-    scores: loadScores(path.join(root, 'data/scores'))
+    scores,
+    // Per-task results behind Spark scores, by score id (see items.mjs).
+    items: loadItems(root, scores)
   };
 }

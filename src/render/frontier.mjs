@@ -5,7 +5,7 @@
 
 import { html } from '../html.mjs';
 import { plural, fmt0, fmt1 } from './layout.mjs';
-import { minSparks, usedSparks, speedAt, paretoFrontier } from '../rank.mjs';
+import { minSparks, usedSparks, speedAt, paretoFrontier, compareEntries, transitive } from '../rank.mjs';
 import { leaderboardPath, recipePath, recipeBuild } from './common.mjs';
 
 // Two fixed sizes, so text stays at its real size: a wide chart, and a
@@ -56,7 +56,14 @@ export function frontierPoints(ix, n, category, method) {
     if (!ways.length) noSpeed.push(entry);
     for (const d of ways) plotted.push({ x: d.tps, y: entry.score.value, m: entry.score.margin ?? 0, entry, used: d.used, per: d.per, copies: d.copies });
   }
-  return { fit: fit.length, withSpeed, plotted, noSpeed, frontier: paretoFrontier(plotted) };
+  // By mean score, one point is more capable than another only as
+  // compareEntries says: beyond the margin, or presumed so within one model's
+  // versions. Points the scores can't separate are equal, so the faster wins.
+  const keys = ix.standingsFor(n).keysFor(category);
+  const better = method === 'mean'
+    ? transitive(plotted, (p, q) => compareEntries(ix, p.entry, q.entry, keys, p.y, q.y) > 0)
+    : undefined;
+  return { fit: fit.length, withSpeed, plotted, noSpeed, frontier: paretoFrontier(plotted, better, ix.config.ranking.speed_tolerance ?? 0) };
 }
 
 // The name a point goes by: its model, and how many copies of it run.
@@ -172,14 +179,23 @@ function chart(ix, url, n, method, plotted, frontier, size) {
 }
 
 // Picks are the frontier itself, which runs from the most capable recipe to
-// the fastest. With more than four, the cards show the two ends and two
-// between; the chart shows them all.
+// the fastest. With more than four, the cards show the two ends and the two
+// picks between that are the biggest step up in speed from the pick before
+// them; the chart shows them all.
+export function cardPicks(frontier) {
+  if (frontier.length <= MAX_CARDS) return [...frontier];
+  const last = frontier.length - 1;
+  const step = (i) => frontier[i].x / frontier[i - 1].x;
+  const between = frontier.slice(1, last).map((p, k) => ({ p, i: k + 1 }))
+    .sort((a, b) => (step(b.i) - step(a.i)) || (a.i - b.i))
+    .slice(0, MAX_CARDS - 2)
+    .sort((a, b) => a.i - b.i)
+    .map((e) => e.p);
+  return [frontier[0], ...between, frontier[last]];
+}
+
 function pickCards(ix, url, method, frontier) {
-  let picks = [...frontier];
-  if (picks.length > MAX_CARDS) {
-    const last = picks.length - 1;
-    picks = [picks[0], picks[Math.round(last / 3)], picks[Math.round((last * 2) / 3)], picks[last]];
-  }
+  const picks = cardPicks(frontier);
   const measure = method === 'mean' ? 'score' : 'win rate';
   return html`<ol class="pick-cards" aria-label="Picks on the frontier, most capable first">
     ${picks.map((p, i) => {
@@ -190,7 +206,7 @@ function pickCards(ix, url, method, frontier) {
       const drop = prev ? Math.round(prev.y) - Math.round(p.y) : 0;
       const trade = prev
         ? `${fmt1(p.x - prev.x)} t/s faster than ${copiesName(prev)}, ${drop > 0 ? `${drop} lower ${measure}` : `the same ${measure}`}`
-        : only ? 'The only ranked recipe with a measured speed here' : `Highest ${measure} of any recipe that fits`;
+        : only ? 'The only ranked recipe with a measured speed here' : method === 'mean' ? 'Nothing that fits is more capable' : `Highest ${measure} of any recipe that fits`;
       return html`<li class="pick-card">
       <span class="label">${label}</span>
       <a class="name" href="${url(recipePath(p.entry.recipe))}">${copiesName(p)}</a>
@@ -239,7 +255,7 @@ export function renderPicks({ ix, url, n, category, method }) {
   </div>`;
 
   const footnote = plotted.length
-    ? `Every recipe that fits is plotted, each scored as if it were the one representing its model.${plotted.some((p) => p.copies > 1) ? ` A recipe whose smallest setup fits more than once on ${plural(n)} is also plotted as that many independent copies (marked 2×, 3× and so on), at their decode speeds added together: that is total throughput when serving several requests at once, not the speed of one request.` : ''}${frontier.length === 1 ? ' A frontier line needs at least two ranked recipes.' : ''} ${method === 'mean' ? 'The score axis starts where the points do, not at 0, and each point’s bar is its 95% range from sampling the benchmarks’ tasks: points whose bars overlap are not reliably different. ' : ''}Speeds are single-request decode as measured by each recipe’s author, on their own workload, so treat small gaps as noise. Hover a point for its details; click it for the recipe. ${unplotted}`
+    ? `Every recipe that fits is plotted, each scored as if it were the one representing its model.${plotted.some((p) => p.copies > 1) ? ` A recipe whose smallest setup fits more than once on ${plural(n)} is also plotted as that many independent copies (marked 2×, 3× and so on), at their decode speeds added together: that is total throughput when serving several requests at once, not the speed of one request.` : ''}${frontier.length === 1 ? ' A frontier line needs at least two ranked recipes.' : ''} ${method === 'mean' ? 'The score axis starts where the points do, not at 0, and each point’s bar is the 95% range of its own score from sampling the benchmarks’ tasks. Whether two recipes differ is tested more sharply, task by task on the benchmarks both ran: one only beats another, and pushes it off the frontier, when the gap is beyond that test’s margin. Inside it, a newer version of the same model is presumed better, then more bits per weight, then the developer’s own weights, and only a gap beyond the 99% margin overturns that. ' : ''}Speeds are single-request decode as measured by each recipe’s author, on their own workload, so treat small gaps as noise. Hover a point for its details; click it for the recipe. ${unplotted}`
     : unplotted;
 
   return html`<section class="wrap section" id="picks" aria-labelledby="picks-title" style="padding-top:40px">

@@ -32,7 +32,7 @@ function scoreCell(ix, entry, benchmarkId, st, best) {
   return html`<td class="score" data-v=""><span class="cell flag" title="${title}">${fmt1(score.value)}<sup>${MARKS[score.provenance]}</sup><small>${statusTag(ix, score, status)}</small></span></td>`;
 }
 
-function boardRow(ix, url, st, entry, rank, keys, best, n) {
+function boardRow(ix, url, st, entry, rank, keys, best, n, shared = false) {
   const lines = recipeLines(ix, entry.recipe, n);
   // An index from too few benchmarks is not shown: one lucky score would read as 100.
   const value = entry.score.ranked ? entry.score.value : null;
@@ -43,7 +43,7 @@ function boardRow(ix, url, st, entry, rank, keys, best, n) {
     ? `Other recipes that fit: ${entry.others.map((r) => `${ix.models.get(r.model).builds[r.build].label} (${r.sparks.join('/')} Sparks)`).join('; ')}`
     : '';
   return html`<tr class="entry${entry.score.ranked ? '' : ' unranked'}">
-  <td class="rank">${rank ?? '–'}</td>
+  <td class="rank"${shared ? html` title="Tied: the scores can’t reliably separate this recipe from others at rank ${rank}"` : ''}>${rank === null || rank === undefined ? '–' : shared ? `=${rank}` : rank}</td>
   <td class="model"><a href="${url(recipePath(entry.recipe))}">${entry.model.name}</a><div>${entry.model.developer}${entry.model.params_total_b ? ` · ${entry.model.params_total_b}B` : ''}${entry.model.params_active_b ? ` · ${entry.model.params_active_b}B active` : ''}</div></td>
   <td class="recipe" title="${othersTitle}"><b>${lines.name}</b><span>${lines.by}</span><span>${lines.range}</span>${run ? html`<span>${run}</span>` : ''}</td>
   <td class="index" data-v="${value ?? ''}"${value !== null && entry.score.margin !== null ? html` title="95% range from sampling: ${fmt1(value - entry.score.margin)} to ${fmt1(value + entry.score.margin)}"` : ''}><div class="indexbar"><b>${value === null ? '—' : fmt0(value)}${value !== null && entry.score.margin !== null ? html`<small>±${fmt0(Math.max(1, entry.score.margin))}</small>` : ''}</b><i><em style="width:${value === null ? 0 : value.toFixed(1)}%"></em></i></div></td>
@@ -78,7 +78,7 @@ export function renderLeaderboard({ ix, url, n, category, method }) {
 </section>`;
 
   const rows = [];
-  ranked.forEach((e, i) => rows.push(boardRow(ix, url, st, e, i + 1, keys, best, n)));
+  ranked.forEach((e) => rows.push(boardRow(ix, url, st, e, e.rank, keys, best, n, ranked.filter((o) => o.rank === e.rank).length > 1)));
   if (unranked.length) {
     rows.push(html`<tr class="divider"><td colspan="${5 + keys.length}">Not ranked: fewer than ${need} of ${keys.length} benchmarks count for this recipe</td></tr>`);
     unranked.forEach((e) => rows.push(boardRow(ix, url, st, e, null, keys, best, n)));
@@ -115,7 +115,7 @@ export function renderLeaderboard({ ix, url, n, category, method }) {
     </table>
   </div>
   <p class="footnote">${method === 'mean'
-    ? 'Score: the mean of a recipe’s scores on the benchmarks that count for it, each rescaled so random guessing scores 0 and a perfect run 100. The ± is a 95% range from the benchmarks’ finite number of tasks; scores closer than that are not reliably different.'
+    ? 'Score: the mean of a recipe’s scores on the benchmarks that count for it, each rescaled so random guessing scores 0 and a perfect run 100. The ± is a 95% range from the benchmarks’ finite number of tasks. Ranks come from a sharper test, task by task on the benchmarks two recipes both ran: one outranks another only when the gap is beyond that test’s margin, and recipes it can’t separate share a rank (=). Within one model’s versions, the newer model is presumed better, then more bits per weight, then the developer’s own weights, and only a gap beyond the 99% margin overturns that.'
     : 'Win rate: the share of head-to-head match-ups won against the other models that fit, on benchmarks that count for both.'} A recipe needs ${need} of ${keys.length} to be ranked. Dashed cells were measured on a different build, model version, test version or a subset, and are left out. Hover a score for its source; click a column to sort by it.</p>
 </section>`;
 
